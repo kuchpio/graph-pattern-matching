@@ -1,1 +1,1 @@
-# graph-pattern-matching
+# Graph Pattern Matching
