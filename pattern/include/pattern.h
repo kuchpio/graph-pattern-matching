@@ -4,5 +4,5 @@
 
 namespace pattern
 {
-	bool match(const core::Graph& bigGraph, const core::Graph& smallGraph);
+bool match(const core::Graph& bigGraph, const core::Graph& smallGraph);
 }
