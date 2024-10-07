@@ -1,0 +1,14 @@
+name: Check formatting, build and test
+
+on:
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  check-formatting:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run clang-format style check
+      uses: jidicula/clang-format-action@v4.11.0
