@@ -3,6 +3,7 @@ name: Check formatting, build and test
 on:
   pull_request:
     branches: [ "master" ]
+  workflow_dispatch:
 
 jobs:
   check-formatting:
