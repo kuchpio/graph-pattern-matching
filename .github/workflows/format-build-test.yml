@@ -23,11 +23,11 @@ jobs:
         build_type: [Release]
 
     steps:
-#    - name: Install CUDA Tookit
-#      uses: Jimver/cuda-toolkit@v0.2.17
-#      id: cuda-toolkit
-#    - run: echo "Installed cuda version -> ${{ steps.cuda-toolkit.outputs.cuda }}"
-#    - run: echo "Cuda install location -> ${{ steps.cuda-toolkit.outputs.CUDA_PATH }}"
+    - name: Install CUDA Tookit
+      uses: Jimver/cuda-toolkit@v0.2.17
+      id: cuda-toolkit
+    - run: echo "Installed cuda version -> ${{ steps.cuda-toolkit.outputs.cuda }}"
+    - run: echo "Cuda install location -> ${{ steps.cuda-toolkit.outputs.CUDA_PATH }}"
     - run: nvcc -V
     
     - uses: actions/checkout@v4
