@@ -1,12 +1,12 @@
-﻿#include "Core.h"
+﻿#include "core.h"
 
-namespace core 
+namespace core
 {
-	Graph::Graph(int size) {
-		_size = size;
-	}
-
-	int Graph::size() const {
-		return _size;
-	}
+Graph::Graph(int size) {
+    _size = size;
 }
+
+int Graph::size() const {
+    return _size;
+}
+} // namespace core

@@ -1,21 +1,20 @@
 ﻿#include <iostream>
 
-#include "Grapherizer.h"
-#include "Matcher.h"
+#include "image.h"
+#include "pattern.h"
 #include "cudaTest.h"
 
-int main()
-{
-	auto bigGraph = grz::grapherize(8);
-	auto smallGraph = grz::grapherize(6);
+int main() {
+    auto bigGraph = image::grapherize(8);
+    auto smallGraph = image::grapherize(6);
 
-	if (mtr::match(bigGraph, smallGraph)) {
-		std::cout << "Match found." << std::endl;
-	} else {
-		std::cout << "Match not found." << std::endl;
-	}
+    if (pattern::match(bigGraph, smallGraph)) {
+        std::cout << "Match found." << std::endl;
+    } else {
+        std::cout << "Match not found." << std::endl;
+    }
 
-	runCudaTest();
+    runCudaTest();
 
-	return 0;
+    return 0;
 }

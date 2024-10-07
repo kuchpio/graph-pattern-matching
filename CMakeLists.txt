@@ -5,12 +5,12 @@ enable_language("CUDA")
 
 include(CTest)
 
-add_subdirectory("App")
+add_subdirectory("app")
 
-add_subdirectory("Core")
+add_subdirectory("core")
 
-add_subdirectory("Grapherizer")
-add_subdirectory("Grapherizer/Test")
+add_subdirectory("image")
+add_subdirectory("image/test")
 
-add_subdirectory("Matcher")
-add_subdirectory("Matcher/Test")
+add_subdirectory("pattern")
+add_subdirectory("pattern/test")

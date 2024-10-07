@@ -1,0 +1,27 @@
+# Format Style Options - Created with Clang Power Tools
+---
+AllowShortIfStatementsOnASingleLine: WithoutElse
+BasedOnStyle: Microsoft
+BraceWrapping: 
+  AfterCaseLabel: false
+  AfterClass: false
+  AfterControlStatement: false
+  AfterEnum: false
+  AfterFunction: false
+  AfterNamespace: true
+  AfterObjCDeclaration: false
+  AfterStruct: false
+  AfterUnion: false
+  AfterExternBlock: false
+  BeforeCatch: false
+  BeforeElse: false
+  IndentBraces: false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+  BeforeLambdaBody: false
+  BeforeWhile: false
+ColumnLimit: 120
+PointerAlignment: Left
+SortIncludes: false
+...

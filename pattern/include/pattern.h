@@ -1,8 +1,8 @@
 ﻿#pragma once
 
-#include "Core.h"
+#include "core.h"
 
-namespace mtr 
+namespace pattern
 {
 	bool match(const core::Graph& bigGraph, const core::Graph& smallGraph);
 }

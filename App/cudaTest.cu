@@ -49,8 +49,7 @@ void runCudaTest() {
     err = cudaMalloc((void**)&d_A, size);
 
     if (err != cudaSuccess) {
-        fprintf(stderr, "Failed to allocate device vector A (error code %s)!\n",
-            cudaGetErrorString(err));
+        fprintf(stderr, "Failed to allocate device vector A (error code %s)!\n", cudaGetErrorString(err));
         exit(EXIT_FAILURE);
     }
 
@@ -59,8 +58,7 @@ void runCudaTest() {
     err = cudaMalloc((void**)&d_B, size);
 
     if (err != cudaSuccess) {
-        fprintf(stderr, "Failed to allocate device vector B (error code %s)!\n",
-            cudaGetErrorString(err));
+        fprintf(stderr, "Failed to allocate device vector B (error code %s)!\n", cudaGetErrorString(err));
         exit(EXIT_FAILURE);
     }
 
@@ -69,8 +67,7 @@ void runCudaTest() {
     err = cudaMalloc((void**)&d_C, size);
 
     if (err != cudaSuccess) {
-        fprintf(stderr, "Failed to allocate device vector C (error code %s)!\n",
-            cudaGetErrorString(err));
+        fprintf(stderr, "Failed to allocate device vector C (error code %s)!\n", cudaGetErrorString(err));
         exit(EXIT_FAILURE);
     }
 
@@ -81,32 +78,26 @@ void runCudaTest() {
     err = cudaMemcpy(d_A, h_A, size, cudaMemcpyHostToDevice);
 
     if (err != cudaSuccess) {
-        fprintf(stderr,
-            "Failed to copy vector A from host to device (error code %s)!\n",
-            cudaGetErrorString(err));
+        fprintf(stderr, "Failed to copy vector A from host to device (error code %s)!\n", cudaGetErrorString(err));
         exit(EXIT_FAILURE);
     }
 
     err = cudaMemcpy(d_B, h_B, size, cudaMemcpyHostToDevice);
 
     if (err != cudaSuccess) {
-        fprintf(stderr,
-            "Failed to copy vector B from host to device (error code %s)!\n",
-            cudaGetErrorString(err));
+        fprintf(stderr, "Failed to copy vector B from host to device (error code %s)!\n", cudaGetErrorString(err));
         exit(EXIT_FAILURE);
     }
 
     // Launch the Vector Add CUDA Kernel
     int threadsPerBlock = 256;
     int blocksPerGrid = (numElements + threadsPerBlock - 1) / threadsPerBlock;
-    printf("CUDA kernel launch with %d blocks of %d threads\n", blocksPerGrid,
-        threadsPerBlock);
+    printf("CUDA kernel launch with %d blocks of %d threads\n", blocksPerGrid, threadsPerBlock);
     vectorAdd<<<blocksPerGrid, threadsPerBlock>>>(d_A, d_B, d_C, numElements);
     err = cudaGetLastError();
 
     if (err != cudaSuccess) {
-        fprintf(stderr, "Failed to launch vectorAdd kernel (error code %s)!\n",
-            cudaGetErrorString(err));
+        fprintf(stderr, "Failed to launch vectorAdd kernel (error code %s)!\n", cudaGetErrorString(err));
         exit(EXIT_FAILURE);
     }
 
@@ -116,9 +107,7 @@ void runCudaTest() {
     err = cudaMemcpy(h_C, d_C, size, cudaMemcpyDeviceToHost);
 
     if (err != cudaSuccess) {
-        fprintf(stderr,
-            "Failed to copy vector C from device to host (error code %s)!\n",
-            cudaGetErrorString(err));
+        fprintf(stderr, "Failed to copy vector C from device to host (error code %s)!\n", cudaGetErrorString(err));
         exit(EXIT_FAILURE);
     }
 
@@ -136,24 +125,21 @@ void runCudaTest() {
     err = cudaFree(d_A);
 
     if (err != cudaSuccess) {
-        fprintf(stderr, "Failed to free device vector A (error code %s)!\n",
-            cudaGetErrorString(err));
+        fprintf(stderr, "Failed to free device vector A (error code %s)!\n", cudaGetErrorString(err));
         exit(EXIT_FAILURE);
     }
 
     err = cudaFree(d_B);
 
     if (err != cudaSuccess) {
-        fprintf(stderr, "Failed to free device vector B (error code %s)!\n",
-            cudaGetErrorString(err));
+        fprintf(stderr, "Failed to free device vector B (error code %s)!\n", cudaGetErrorString(err));
         exit(EXIT_FAILURE);
     }
 
     err = cudaFree(d_C);
 
     if (err != cudaSuccess) {
-        fprintf(stderr, "Failed to free device vector C (error code %s)!\n",
-            cudaGetErrorString(err));
+        fprintf(stderr, "Failed to free device vector C (error code %s)!\n", cudaGetErrorString(err));
         exit(EXIT_FAILURE);
     }
 
