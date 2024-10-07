@@ -2,6 +2,7 @@
 
 #include "Grapherizer.h"
 #include "Matcher.h"
+#include "cudaTest.h"
 
 int main()
 {
@@ -13,6 +14,8 @@ int main()
 	} else {
 		std::cout << "Match not found." << std::endl;
 	}
+
+	runCudaTest();
 
 	return 0;
 }
