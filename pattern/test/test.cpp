@@ -1,3 +1,4 @@
+#include "core.h"
 #include "pattern.h"
 #include <algorithm>
 #include <cstdlib>
@@ -37,6 +38,26 @@ core::Graph create_isomoporhic_graph(const core::Graph& G) {
     return Q;
 }
 
-bool small_graph_isomorphism_test() {
+core::Graph generate_random_graph(int n, float edge_propability) {
+    core::Graph G = core::Graph(n);
+
+    for (int i = 0; i < G.size(); i++) {
+        for (int j = 0; j < G.size(); j++) {
+            if (j == i) continue;
+            float randomValue = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
+
+            if (randomValue < edge_propability) {
+                G.add_edge(i, j);
+            }
+        }
+    }
+    return G;
+}
+
+bool random_graph_isomorphism_test() {
+
+    core::Graph G = generate_random_graph(100, 0.4f);
+    core::Graph Q = create_isomoporhic_graph(G);
+
     return false;
 }
