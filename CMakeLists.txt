@@ -3,6 +3,8 @@
 project("graph-pattern-matching")
 enable_language("CUDA")
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 include(CTest)
 
 add_subdirectory("app")
