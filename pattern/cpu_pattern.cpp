@@ -1,4 +1,3 @@
-#include "core.h"
 #include "pattern.h"
 #include <map>
 
