@@ -16,3 +16,5 @@ add_subdirectory("image/test")
 
 add_subdirectory("pattern")
 add_subdirectory("pattern/test")
+
+add_subdirectory("utils")
