@@ -1,4 +1,5 @@
 ﻿#include "core.h"
+#include <cstddef>
 #include <vector>
 #include <algorithm>
 
@@ -8,7 +9,7 @@ Graph::Graph(int size) {
     _size = size;
 }
 
-int Graph::size() const {
+std::size_t Graph::size() const {
     return _size;
 }
 
