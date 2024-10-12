@@ -20,7 +20,7 @@ core::Graph utils::GraphFactory::isomoporhic_graph(const core::Graph& G) {
     std::shuffle(shuffled_vertices.begin(), shuffled_vertices.end(), std::default_random_engine{});
 
     // Create mapping
-    std::unordered_map<int, int> mapping;
+    std::unordered_map<int, int> mapping = std::unordered_map<int, int>();
     for (int i = 0; i < G.size(); i++) {
         mapping[i] = shuffled_vertices[i];
     }

@@ -7,6 +7,7 @@ namespace core
 {
 Graph::Graph(int size) {
     _size = size;
+    Graph::_adjacencyList = std::vector<std::vector<int>>(_size);
 }
 
 std::size_t Graph::size() const {
@@ -14,6 +15,7 @@ std::size_t Graph::size() const {
 }
 
 void Graph::add_edge(int u, int v) {
+    // if (Graph::_adjacencyList[u] == nullptr) Graph::_adjacencyList[u] = std::vector<int>();
     Graph::_adjacencyList[u].push_back(v);
 }
 
