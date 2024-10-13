@@ -12,8 +12,8 @@
 
 namespace pattern
 {
-bool is_isomorphism_recursion(const core::Graph& G, const core::Graph& Q, std::unordered_map<int, int>& Q_G_mapping,
-                              std::unordered_map<int, int>& G_Q_mapping, int v);
+bool is_isomorphism_recursion(const core::Graph& G, const core::Graph& Q, std::unordered_map<int, int> Q_G_mapping,
+                              std::unordered_map<int, int> G_Q_mapping, int v);
 bool match(const core::Graph& bigGraph, const core::Graph& smallGraph) {
     return bigGraph.size() >= smallGraph.size();
 }
@@ -38,11 +38,15 @@ bool is_isomorphism(const core::Graph& G, const core::Graph& Q) {
         return G.neighbours_count(i) > G.neighbours_count(j); // Sort by descending count of 1s
     });
 
-    return is_isomorphism_recursion(G, Q, Q_G_mapping, G_Q_mapping, vertex_indices[0]);
+    for (auto v : vertex_indices) {
+        if (G_Q_mapping.contains(v)) continue;
+        if (is_isomorphism_recursion(G, Q, Q_G_mapping, G_Q_mapping, v)) return true;
+    }
+    return false;
 }
 
-bool is_isomorphism_recursion(const core::Graph& G, const core::Graph& Q, std::unordered_map<int, int>& Q_G_mapping,
-                              std::unordered_map<int, int>& G_Q_mapping, int v) {
+bool is_isomorphism_recursion(const core::Graph& G, const core::Graph& Q, std::unordered_map<int, int> Q_G_mapping,
+                              std::unordered_map<int, int> G_Q_mapping, int v) {
 
     if (Q_G_mapping.size() == G.size()) return true;
 
@@ -57,11 +61,13 @@ bool is_isomorphism_recursion(const core::Graph& G, const core::Graph& Q, std::u
         Q_G_mapping.insert({u, v});
         G_Q_mapping.insert({v, u});
 
+        if (Q_G_mapping.size() == G.size()) return true;
+
         // try function for each neighbour
         for (auto neighbour : G.get_neighbours(v)) {
 
             if (G_Q_mapping.contains(neighbour) == false)
-                is_isomorphism_recursion(G, Q, Q_G_mapping, G_Q_mapping, neighbour);
+                if (is_isomorphism_recursion(G, Q, Q_G_mapping, G_Q_mapping, neighbour)) return true;
         }
         Q_G_mapping.erase(u);
         G_Q_mapping.erase(v);
