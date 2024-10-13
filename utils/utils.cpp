@@ -68,6 +68,9 @@ std::vector<core::Graph> utils::GraphFactory::divide_into_components(const core:
         std::vector<std::tuple<int, int>> edges = std::vector<std::tuple<int, int>>();
         stack.push(v);
         while (stack.empty() == false) {
+            v = stack.top();
+            stack.pop();
+            visited[v] = true;
             for (auto neighbour : G.get_neighbours(v)) {
                 if (visited[neighbour] == true) continue;
                 stack.push(neighbour);
@@ -79,4 +82,38 @@ std::vector<core::Graph> utils::GraphFactory::divide_into_components(const core:
     }
     return components;
 }
+
+std::vector<int> empty_vertices_indices(const std::vector<bool>& vec) {
+    std::vector<int> false_vertices;
+
+    for (int i = 0; i < vec.size(); i++) {
+        if (vec[i] == false) false_vertices.push_back(i);
+    }
+    return false_vertices;
+}
+
+std::vector<int> get_empty_vertices(const core::Graph& G) {
+
+    std::vector<bool> visited = std::vector<bool>(G.size());
+
+    std::stack<int> stack = std::stack<int>();
+    int v = 0;
+    while (G.neighbours_count(v) == 0)
+        v++;
+
+    stack.push(v);
+
+    while (stack.empty() == false) {
+        int v = stack.top();
+        stack.pop();
+        visited[v] = true;
+
+        for (auto neighbour : G.get_neighbours(v)) {
+            if (visited[neighbour] == true) continue;
+            stack.push(neighbour);
+        }
+    }
+    return empty_vertices_indices(visited);
+}
+
 } // namespace utils
