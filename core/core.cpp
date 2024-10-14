@@ -12,7 +12,6 @@ Graph::Graph(int size) {
 }
 
 Graph::Graph(std::vector<std::tuple<int, int>> edges) {
-    // find biggest value in tuples
     int max_value = -1;
     for (auto [u, v] : edges) {
         max_value = std::max({max_value, u, v});

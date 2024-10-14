@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <cstddef>
 #include <numeric>
-#include <optional>
 #include <sys/types.h>
 #include <unordered_map>
 #include <vector>
@@ -84,13 +83,6 @@ bool connected_isomorphism(const core::Graph& G, const core::Graph& Q) {
     std::ranges::sort(vertex_indices, [&G](size_t i, size_t j) {
         return G.neighbours_count(i) > G.neighbours_count(j); // Sort by descending count of 1s
     });
-
-    /*
-    for (auto v : vertex_indices) {
-        if (G_Q_mapping.contains(v)) continue;
-        if (is_isomorphism_recursion(G, Q, Q_G_mapping, G_Q_mapping, v)) return true;
-    }
-    */
     return is_isomorphism_recursion(G, Q, Q_G_mapping, G_Q_mapping, vertex_indices[0]);
 }
 
@@ -118,17 +110,6 @@ bool is_isomorphism_recursion(const core::Graph& G, const core::Graph& Q, std::u
         Q_G_mapping.erase(u);
         G_Q_mapping.erase(v);
     }
-
-    // sprawdź czy nie koniec
-    //  sprawdz ktore wierzcholki z mapowania nie maja wszystkich sasiadow, sproboj zmapowac pierwszego
     return false;
-}
-
-std::optional<std::size_t> match(const core::Graph& G, const core::Graph& Q,
-                                 std::unordered_map<int, int>& Q_G_Q_G_mapping, int v) {
-
-    // find unmapped vertex with his neighbours count
-
-    return {}; // invalid match
 }
 } // namespace pattern

@@ -51,7 +51,7 @@ bool small_graph_isomorphic() {
 }
 
 bool random_graph_isomorphism_test() {
-    core::Graph G = utils::GraphFactory::random_graph(10, 0.4f);
+    core::Graph G = utils::GraphFactory::random_graph(30, 0.4f);
     core::Graph Q = utils::GraphFactory::isomoporhic_graph(G);
     return pattern::connected_isomorphism(G, Q);
 }
