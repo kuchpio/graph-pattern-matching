@@ -16,6 +16,7 @@ class Graph {
     void add_edges(std::vector<std::tuple<int, int>> edges);
     bool remove_edge(int u, int v);
     std::size_t size() const;
+    std::vector<std::tuple<int, int>> edges() const;
     std::vector<int> get_neighbours(int v) const;
     int neighbours_count(int v) const;
 };

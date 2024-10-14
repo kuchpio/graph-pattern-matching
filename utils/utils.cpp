@@ -116,4 +116,25 @@ std::vector<int> get_empty_vertices(const core::Graph& G) {
     return empty_vertices_indices(visited);
 }
 
+core::Graph remove_empty_vertices(const core::Graph& G) {
+    auto empty_vertices = get_empty_vertices(G);
+
+    core::Graph Q = core::Graph(G.size() - empty_vertices.size());
+
+    for (int v = 0; v < Q.size(); v++) {
+        for (auto neighbour : G.get_neighbours(v)) {
+            if (neighbour >= Q.size()) neighbour = empty_vertices[neighbour - Q.size()];
+            Q.add_edge(v, neighbour);
+        }
+    }
+
+    for (int i = 0; i < empty_vertices.size(); i++) {
+        for (auto neighbour : G.get_neighbours(i + Q.size())) {
+            if (neighbour >= Q.size()) neighbour = empty_vertices[neighbour - Q.size()];
+            Q.add_edge(empty_vertices[i], neighbour);
+        }
+    }
+    return Q;
+}
+
 } // namespace utils
