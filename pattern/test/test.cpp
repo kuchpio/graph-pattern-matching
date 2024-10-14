@@ -1,13 +1,12 @@
 #include "core.h"
 #include "pattern.h"
-#include "utils.h"
 #include <cassert>
 bool random_graph_isomorphism_test();
 bool small_graph_not_isomorphic();
 
 bool small_graph_isomorphic();
 int main() {
-    // assert(random_graph_isomorphism_test() == true);
+    assert(random_graph_isomorphism_test() == true);
     assert(small_graph_not_isomorphic() == false);
     assert(small_graph_isomorphic() == true);
     return 0;

@@ -1,10 +1,7 @@
-#include "core.h"
 #include "pattern.h"
-#include "utils.h"
 
 #include <algorithm>
 #include <cstddef>
-#include <iostream>
 #include <numeric>
 #include <optional>
 #include <sys/types.h>
