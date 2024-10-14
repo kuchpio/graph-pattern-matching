@@ -28,7 +28,7 @@ bool small_graph_not_isomorphic() {
     Q.add_edge(3, 2);
     Q.add_edge(2, 4);
 
-    return pattern::is_isomorphism(G, Q);
+    return pattern::connected_isomorphism(G, Q);
 }
 
 bool small_graph_isomorphic() {
@@ -48,11 +48,11 @@ bool small_graph_isomorphic() {
     Q.add_edge(3, 4); // corresponds to edge (1, 3) in G
     Q.add_edge(4, 0);
 
-    return pattern::is_isomorphism(G, Q);
+    return pattern::connected_isomorphism(G, Q);
 }
 
 bool random_graph_isomorphism_test() {
     core::Graph G = utils::GraphFactory::random_graph(10, 0.4f);
     core::Graph Q = utils::GraphFactory::isomoporhic_graph(G);
-    return pattern::is_isomorphism(G, Q);
+    return pattern::connected_isomorphism(G, Q);
 }

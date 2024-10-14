@@ -14,6 +14,7 @@
 
 namespace utils
 {
+core::Graph remove_empty_vertices(const core::Graph& G);
 core::Graph utils::GraphFactory::isomoporhic_graph(const core::Graph& G) {
     std::srand(unsigned(SEED));
 
@@ -57,7 +58,7 @@ core::Graph utils::GraphFactory::random_graph(int n, float edge_propability) {
     return G;
 }
 
-std::vector<core::Graph> utils::GraphFactory::divide_into_components(const core::Graph& G) {
+std::vector<core::Graph> utils::GraphFactory::components(const core::Graph& G) {
     std::vector<bool> visited = std::vector<bool>(G.size());
     std::vector<core::Graph> components = std::vector<core::Graph>();
 
@@ -77,9 +78,14 @@ std::vector<core::Graph> utils::GraphFactory::divide_into_components(const core:
                 edges.push_back(std::make_tuple(v, neighbour));
             }
         }
-        components.push_back(core::Graph(edges));
+        components.push_back(remove_empty_vertices(core::Graph(edges)));
         edges.clear();
     }
+
+    // sort components vector by size of graphs inside
+    std::sort(components.begin(), components.end(),
+              [](const core::Graph& G, const core::Graph& Q) { return G.size() > Q.size(); });
+
     return components;
 }
 
