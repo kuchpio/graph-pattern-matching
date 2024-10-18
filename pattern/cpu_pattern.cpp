@@ -1,3 +1,4 @@
+#include "core.h"
 #include "pattern.h"
 
 #include <algorithm>
@@ -19,11 +20,29 @@ bool match(const core::Graph& bigGraph, const core::Graph& smallGraph) {
     return bigGraph.size() >= smallGraph.size();
 }
 
+bool sub_induced_isomorpshim(const core::Graph& bigGraph, const core::Graph& smallGraph) {
+
+    if (bigGraph.size() == smallGraph.size()) return isomorphism(bigGraph, smallGraph);
+    auto removed_vertices = std::vector<int>(bigGraph.size() - smallGraph.size());
+
+    std::iota(removed_vertices.begin(), removed_vertices.end(), 0);
+
+    do {
+        core::Graph Q = core::Graph(bigGraph);
+        Q.remove_vertices(removed_vertices);
+        if (isomorphism(Q, smallGraph)) return true;
+
+    } while (std::prev_permutation(removed_vertices.begin(), removed_vertices.end()));
+
+    return false;
+}
+
 bool is_sub_isomorphism(const core::Graph& bigGraph, const core::Graph& smallGraph) {
+
     return connected_isomorphism(bigGraph, smallGraph);
 }
 
-bool check_isomorphism(const core::Graph& G, const core::Graph& Q) {
+bool isomorphism(const core::Graph& G, const core::Graph& Q) {
     if (G.size() != Q.size()) return false;
     auto G_components = utils::GraphFactory::components(G);
     auto Q_components = utils::GraphFactory::components(Q);

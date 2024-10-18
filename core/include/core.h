@@ -10,10 +10,13 @@ class Graph {
     std::vector<std::vector<int>> _adjacencyList;
 
   public:
+    Graph(const Graph& G);
     Graph(int size);
     Graph(std::vector<std::tuple<int, int>> edges);
     void add_edge(int u, int v);
     void add_edges(std::vector<std::tuple<int, int>> edges);
+    bool remove_vertex(int v);
+    bool remove_vertices(std::vector<int> vertices);
     bool remove_edge(int u, int v);
     std::size_t size() const;
     std::vector<std::tuple<int, int>> edges() const;
