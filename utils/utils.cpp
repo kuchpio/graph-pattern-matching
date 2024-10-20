@@ -14,7 +14,7 @@
 
 namespace utils
 {
-core::Graph remove_empty_vertices(const core::Graph& G);
+void remove_empty_vertices(core::Graph& G);
 core::Graph utils::GraphFactory::isomoporhic_graph(const core::Graph& G) {
     std::srand(unsigned(SEED));
 
@@ -78,7 +78,9 @@ std::vector<core::Graph> utils::GraphFactory::components(const core::Graph& G) {
                 edges.push_back(std::make_tuple(v, neighbour));
             }
         }
-        components.push_back(remove_empty_vertices(core::Graph(edges)));
+        auto Q = core::Graph(edges);
+        remove_empty_vertices(Q);
+        components.push_back(Q);
         edges.clear();
     }
 
@@ -122,25 +124,9 @@ std::vector<int> get_empty_vertices(const core::Graph& G) {
     return empty_vertices_indices(visited);
 }
 
-core::Graph remove_empty_vertices(const core::Graph& G) {
+void remove_empty_vertices(core::Graph& G) {
     auto empty_vertices = get_empty_vertices(G);
-
-    core::Graph Q = core::Graph(G.size() - empty_vertices.size());
-
-    for (int v = 0; v < Q.size(); v++) {
-        for (auto neighbour : G.get_neighbours(v)) {
-            if (neighbour >= Q.size()) neighbour = empty_vertices[neighbour - Q.size()];
-            Q.add_edge(v, neighbour);
-        }
-    }
-
-    for (int i = 0; i < empty_vertices.size(); i++) {
-        for (auto neighbour : G.get_neighbours(i + Q.size())) {
-            if (neighbour >= Q.size()) neighbour = empty_vertices[neighbour - Q.size()];
-            Q.add_edge(empty_vertices[i], neighbour);
-        }
-    }
-    return Q;
+    G.remove_vertices(empty_vertices);
 }
 
 } // namespace utils

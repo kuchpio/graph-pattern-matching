@@ -3,8 +3,10 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <iostream>
 #include <numeric>
 #include <sys/types.h>
+#include <tuple>
 #include <unordered_map>
 #include <vector>
 
@@ -18,6 +20,14 @@ bool match_isomorphism_components(std::vector<std::vector<core::Graph>>& G_compo
 
 bool match(const core::Graph& bigGraph, const core::Graph& smallGraph) {
     return bigGraph.size() >= smallGraph.size();
+}
+
+bool sub_edge_induced_isomporhism(const core::Graph& bigGraph, const core::Graph& smallGraph) {
+
+    int edge_diff_count = bigGraph.edge_count() - smallGraph.edge_count();
+    if (edge_diff_count == 0) return isomorphism(bigGraph, smallGraph);
+
+    // Teraz będziemy usuwali rekurencyjnie po jakiejś krawędzi
 }
 
 bool sub_induced_isomorpshim(const core::Graph& bigGraph, const core::Graph& smallGraph) {
@@ -59,7 +69,7 @@ bool isomorphism(const core::Graph& G, const core::Graph& Q) {
     for (int i = 0; i < G_components.size(); i++) {
 
         if (G_components[i].size() != Q_components[i].size()) return false;
-        if (G_components.size() != previous_size) {
+        if (G_components[i].size() != previous_size) {
             G_components_by_size.push_back(current_G_components);
             Q_components_by_size.push_back(current_Q_components);
             current_G_components.clear();

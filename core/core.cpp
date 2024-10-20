@@ -22,7 +22,9 @@ Graph::Graph(std::vector<std::tuple<int, int>> edges) {
         max_value = std::max({max_value, u, v});
     }
 
-    _size = max_value;
+    _size = max_value + 1;
+    _adjacencyList = std::vector<std::vector<int>>(_size);
+
     this->add_edges(edges);
 }
 
@@ -101,5 +103,14 @@ int Graph::neighbours_count(int v) const {
 
 std::vector<int> Graph::get_neighbours(int v) const {
     return Graph::_adjacencyList[v];
+}
+
+std::size_t Graph::edge_count() const {
+    std::size_t edge_count = 0;
+
+    for (int i = 0; i < this->size(); i++) {
+        edge_count += this->_adjacencyList[i].capacity();
+    }
+    return edge_count;
 }
 } // namespace core
