@@ -3,10 +3,8 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <iostream>
 #include <numeric>
 #include <sys/types.h>
-#include <tuple>
 #include <unordered_map>
 #include <vector>
 
@@ -15,19 +13,15 @@ namespace pattern
 bool is_isomorphism_recursion(const core::Graph& G, const core::Graph& Q, std::unordered_map<int, int> Q_G_mapping,
                               std::unordered_map<int, int> G_Q_mapping, int v);
 
+bool can_match_isomorphism(const core::Graph& bigGraph, const core::Graph& smallGraph,
+                           const std::unordered_map<int, int>& mapping_big_small,
+                           const std::unordered_map<int, int> mapping_small_big, int v, int big_v);
+
 bool match_isomorphism_components(std::vector<std::vector<core::Graph>>& G_components_by_size,
                                   std::vector<std::vector<core::Graph>>& Q_components_by_size);
 
 bool match(const core::Graph& bigGraph, const core::Graph& smallGraph) {
     return bigGraph.size() >= smallGraph.size();
-}
-
-bool sub_edge_induced_isomporhism(const core::Graph& bigGraph, const core::Graph& smallGraph) {
-
-    int edge_diff_count = bigGraph.edge_count() - smallGraph.edge_count();
-    if (edge_diff_count == 0) return isomorphism(bigGraph, smallGraph);
-
-    // Teraz będziemy usuwali rekurencyjnie po jakiejś krawędzi
 }
 
 bool sub_induced_isomorpshim(const core::Graph& bigGraph, const core::Graph& smallGraph) {
@@ -47,11 +41,113 @@ bool sub_induced_isomorpshim(const core::Graph& bigGraph, const core::Graph& sma
     return false;
 }
 
-bool is_sub_isomorphism(const core::Graph& bigGraph, const core::Graph& smallGraph) {
+bool sub_isomorphism(const core::Graph& bigGraph, const core::Graph& smallGraph) {
+
+    std::unordered_map<int, int> Q_G_mapping = std::unordered_map<int, int>();
+    std::unordered_map<int, int> G_Q_mapping = std::unordered_map<int, int>();
+    // bierzemy pierwszy wierzchołek
+    // znajdz wierzcholek ktory maksymalizuje n(v)
+    auto vertex_indices = std::vector<int>(smallGraph.size());
+    std::iota(vertex_indices.begin(), vertex_indices.end(), 0);
+
+    // Find the row index with the maximum number of ones
+    std::ranges::sort(vertex_indices, [&smallGraph](size_t i, size_t j) {
+        return smallGraph.neighbours_count(i) > smallGraph.neighbours_count(j); // Sort by descending count of 1s
+    });
 
     return connected_isomorphism(bigGraph, smallGraph);
 }
 
+bool sub_isomorphism_recursion(const core::Graph& bigGraph, const core::Graph& smallGraph,
+                               std::unordered_map<int, int> small_big_mapping,
+                               std::unordered_map<int, int> big_small_mapping, int v) {
+
+    if (small_big_mapping.size() == smallGraph.size()) return true;
+
+    // find matching for v in Q
+    for (std::size_t big_v = 0; big_v < bigGraph.size(); big_v++) {
+
+        if (can_match_isomorphism(bigGraph, smallGraph, small_big_mapping, big_small_mapping, v, big_v)) {
+            big_small_mapping.insert({big_v, v});
+            small_big_mapping.insert({v, big_v});
+        }
+
+        if (small_big_mapping.size() == smallGraph.size()) return true;
+
+        // try function for each neighbour
+        for (auto neighbour : smallGraph.get_neighbours(v)) {
+            if (small_big_mapping.contains(neighbour) == false)
+                if (sub_isomorphism_recursion(bigGraph, smallGraph, small_big_mapping, big_small_mapping, neighbour))
+                    return true;
+        }
+
+        small_big_mapping.erase(v);
+        big_small_mapping.erase(big_v);
+    }
+    return false;
+}
+
+bool connected_sub_isomorphism(const core::Graph& bigGraph, const core::Graph& smallGraph) {
+
+    std::unordered_map<int, int> small_big_mapping = std::unordered_map<int, int>();
+    std::unordered_map<int, int> big_small_mapping = std::unordered_map<int, int>();
+    // bierzemy pierwszy wierzchołek
+    // znajdz wierzcholek ktory maksymalizuje n(v)
+    auto vertex_indices = std::vector<int>(smallGraph.size());
+    std::iota(vertex_indices.begin(), vertex_indices.end(), 0);
+
+    for (auto vertex : vertex_indices) {
+        if (sub_isomorphism_recursion(bigGraph, smallGraph, small_big_mapping, big_small_mapping, vertex_indices[0]))
+            return true;
+    }
+    return false;
+}
+
+bool can_match_isomorphism(const core::Graph& bigGraph, const core::Graph& smallGraph,
+                           const std::unordered_map<int, int>& mapping_big_small,
+                           const std::unordered_map<int, int> mapping_small_big, int v, int big_v) {
+    if (mapping_big_small.contains(big_v)) return true;
+
+    for (auto neighbour : smallGraph.get_neighbours(v)) {
+        if (mapping_small_big.contains(neighbour)) {
+            if (bigGraph.has_edge(big_v, mapping_small_big.at(neighbour)) == false) return false;
+        }
+    }
+    return true;
+}
+
+bool can_match_induced_isomorphism(const core::Graph& bigGraph, const core::Graph& smallGraph,
+                                   const std::unordered_map<int, int>& mapping, int v, int big_v) {
+    if (mapping.contains(v)) return true;
+
+    for (auto neighbour : smallGraph.get_neighbours(v)) {
+        if (mapping.contains(neighbour)) {
+            if (bigGraph.has_edge(big_v, mapping.at(neighbour)) == false) return false;
+        }
+    }
+    return true;
+}
+
+bool naive_isomorphism_checker(const core::Graph& bigGraph, const core::Graph& smallGraph,
+                               const std::vector<int>& mapping) {
+    for (int i = 0; i < smallGraph.size(); i++) {
+        for (auto neighbour : smallGraph.get_neighbours(i)) {
+            if (bigGraph.has_edge(mapping.at(i), mapping.at(neighbour)) == false) return false;
+        }
+    }
+    return true;
+}
+
+bool naive_induced_isomorphism_checker(const core::Graph& bigGraph, const core::Graph& smallGraph,
+                                       const std::unordered_map<int, int>& mapping) {
+    for (int i = 0; i < smallGraph.size(); i++) {
+        if (bigGraph.neighbours_count(mapping.at(i)) != smallGraph.neighbours_count(i)) return false;
+        for (auto neighbour : smallGraph.get_neighbours(i)) {
+            if (bigGraph.has_edge(mapping.at(i), mapping.at(neighbour)) == false) return false;
+        }
+    }
+    return true;
+}
 bool isomorphism(const core::Graph& G, const core::Graph& Q) {
     if (G.size() != Q.size()) return false;
     auto G_components = utils::GraphFactory::components(G);

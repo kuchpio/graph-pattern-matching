@@ -37,6 +37,11 @@ void Graph::add_edge(int u, int v) {
     Graph::_adjacencyList[u].push_back(v);
 }
 
+bool Graph::has_edge(int u, int v) const {
+    auto neighbours = this->get_neighbours(u);
+    return std::find(neighbours.begin(), neighbours.end(), v) != neighbours.end();
+}
+
 void Graph::add_edges(std::vector<std::tuple<int, int>> edges) {
     for (auto [u, v] : edges) {
         this->add_edge(u, v);

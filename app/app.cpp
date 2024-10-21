@@ -2,6 +2,7 @@
 
 #include "image.h"
 #include "pattern.h"
+#include "utils.h"
 #include "cudaTest.h"
 
 int main() {
