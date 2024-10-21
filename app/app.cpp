@@ -2,7 +2,6 @@
 
 #include "image.h"
 #include "pattern.h"
-#include "cudaTest.h"
 #include "render.h"
 
 int main() {
@@ -14,8 +13,6 @@ int main() {
     } else {
         std::cout << "Match not found." << std::endl;
     }
-
-    runCudaTest();
 
     testRender();
 

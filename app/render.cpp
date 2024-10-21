@@ -1,4 +1,4 @@
-#include <iostream>
+#include <cstdio>
 #include <vector>
 
 #define GLAD_GL_IMPLEMENTATION
@@ -101,21 +101,22 @@ void testRender() {
     gladLoadGL(glfwGetProcAddress);
     glfwSwapInterval(1);
 
-    GraphRenderer graphRenderer;
-    graphRenderer.setEdges(graph);
-    graphRenderer.setVertexPositions(vertices, graph.size());
+    {
+        GraphRenderer graphRenderer;
+        graphRenderer.setEdges(graph);
+        graphRenderer.setVertexPositions(vertices, graph.size());
 
-    while (!glfwWindowShouldClose(window)) {
-        int width, height;
+        while (!glfwWindowShouldClose(window)) {
+            int width, height;
 
-        glfwGetFramebufferSize(window, &width, &height);
+            glfwGetFramebufferSize(window, &width, &height);
 
-        graphRenderer.render(width, height);
+            graphRenderer.render(width, height);
 
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+            glfwSwapBuffers(window);
+            glfwPollEvents();
+        }
     }
-    graphRenderer.~GraphRenderer();
 
     glfwDestroyWindow(window);
 
