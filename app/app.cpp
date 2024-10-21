@@ -3,6 +3,7 @@
 #include "image.h"
 #include "pattern.h"
 #include "cudaTest.h"
+#include "render.h"
 
 int main() {
     auto bigGraph = image::grapherize(8);
@@ -15,6 +16,8 @@ int main() {
     }
 
     runCudaTest();
+
+    testRender();
 
     return 0;
 }
