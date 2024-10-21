@@ -1,16 +1,11 @@
 ﻿find_package(OpenGL REQUIRED)
+
 include_directories(${OPENGL_INCLUDE_DIRS})
+include_directories("../external/glfw/deps")
 
 set(GLFW_BUILD_DOCS OFF CACHE BOOL  "GLFW lib only")
 set(GLFW_INSTALL OFF CACHE BOOL  "GLFW lib only")
-set(GLAD_GL "")
-
-option(GLFW-CMAKE-STARTER-USE-GLFW-GLAD "Use GLAD from GLFW" ON)
-
-if(GLFW-CMAKE-STARTER-USE-GLFW-GLAD)
-    include_directories("../external/glfw/deps")
-    set(GLAD_GL "../external/glfw/deps/glad/gl.h")
-endif()
+set(GLAD_GL "../external/glfw/deps/glad/gl.h")
 
 if(MSVC)
     SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ENTRY:mainCRTStartup")
@@ -24,6 +19,4 @@ set_target_properties(app PROPERTIES CUDA_ARCHITECTURES "50" CXX_STANDARD 17)
 
 target_link_libraries(app core image pattern ${OPENGL_LIBRARIES} glfw)
 target_include_directories(app PUBLIC ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    target_compile_options(app PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-G>)
-endif()
+target_compile_options(app PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CUDA>,$<CONFIG:DEBUG>>:-G>)
