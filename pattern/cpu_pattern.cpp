@@ -10,12 +10,12 @@
 
 namespace pattern
 {
-bool is_isomorphism_recursion(const core::Graph& G, const core::Graph& Q, std::unordered_map<int, int> Q_G_mapping,
-                              std::unordered_map<int, int> G_Q_mapping, int v);
+bool is_isomorphism_recursion(const core::Graph& G, const core::Graph& Q, std::unordered_map<int, int>& Q_G_mapping,
+                              std::unordered_map<int, int>& G_Q_mapping, int v);
 
 bool can_match_isomorphism(const core::Graph& bigGraph, const core::Graph& smallGraph,
                            const std::unordered_map<int, int>& mapping_big_small,
-                           const std::unordered_map<int, int> mapping_small_big, int v, int big_v);
+                           const std::unordered_map<int, int>& mapping_small_big, int v, int big_v);
 
 bool match_isomorphism_components(std::vector<std::vector<core::Graph>>& G_components_by_size,
                                   std::vector<std::vector<core::Graph>>& Q_components_by_size);
@@ -41,36 +41,30 @@ bool sub_induced_isomorpshim(const core::Graph& bigGraph, const core::Graph& sma
     return false;
 }
 
-bool sub_isomorphism(const core::Graph& bigGraph, const core::Graph& smallGraph) {
-
-    std::unordered_map<int, int> Q_G_mapping = std::unordered_map<int, int>();
-    std::unordered_map<int, int> G_Q_mapping = std::unordered_map<int, int>();
-    // bierzemy pierwszy wierzchołek
-    // znajdz wierzcholek ktory maksymalizuje n(v)
-    auto vertex_indices = std::vector<int>(smallGraph.size());
-    std::iota(vertex_indices.begin(), vertex_indices.end(), 0);
-
-    // Find the row index with the maximum number of ones
-    std::ranges::sort(vertex_indices, [&smallGraph](size_t i, size_t j) {
-        return smallGraph.neighbours_count(i) > smallGraph.neighbours_count(j); // Sort by descending count of 1s
-    });
-
-    return connected_isomorphism(bigGraph, smallGraph);
+int find_first_unmapped(const core::Graph& G, std::unordered_map<int, int> map) {
+    for (int i = 0; i < G.size(); i++) {
+        if (!map.contains(i)) return i;
+    }
+    return -1;
 }
 
 bool sub_isomorphism_recursion(const core::Graph& bigGraph, const core::Graph& smallGraph,
-                               std::unordered_map<int, int> small_big_mapping,
-                               std::unordered_map<int, int> big_small_mapping, int v) {
+                               std::unordered_map<int, int>& small_big_mapping,
+                               std::unordered_map<int, int>& big_small_mapping, int v) {
 
-    if (small_big_mapping.size() == smallGraph.size()) return true;
+    if (small_big_mapping.size() == smallGraph.size()) {
+        return true;
+    }
 
     for (std::size_t big_v = 0; big_v < bigGraph.size(); big_v++) {
 
-        if (can_match_isomorphism(bigGraph, smallGraph, small_big_mapping, big_small_mapping, v, big_v)) {
-            big_small_mapping.insert({big_v, v});
-            small_big_mapping.insert({v, big_v});
+        if (!can_match_isomorphism(bigGraph, smallGraph, big_small_mapping, small_big_mapping, v, big_v)) continue;
+        big_small_mapping.insert({big_v, v});
+        small_big_mapping.insert({v, big_v});
+
+        if (small_big_mapping.size() == smallGraph.size()) {
+            return true;
         }
-        if (small_big_mapping.size() == smallGraph.size()) return true;
 
         bool remaining_neighbours = false;
         for (auto neighbour : smallGraph.get_neighbours(v)) {
@@ -80,15 +74,19 @@ bool sub_isomorphism_recursion(const core::Graph& bigGraph, const core::Graph& s
                     return true;
             }
         }
-        if (remaining_neighbours) {
-            small_big_mapping.erase(v);
-            big_small_mapping.erase(big_v);
+
+        if (remaining_neighbours == false) {
+            int first_unmapped = find_first_unmapped(smallGraph, small_big_mapping);
+            if (sub_isomorphism_recursion(bigGraph, smallGraph, small_big_mapping, big_small_mapping, first_unmapped))
+                return true;
         }
+        small_big_mapping.erase(v);
+        big_small_mapping.erase(big_v);
     }
     return false;
 }
 
-bool connected_sub_isomorphism(const core::Graph& bigGraph, const core::Graph& smallGraph) {
+bool sub_isomorphism(const core::Graph& bigGraph, const core::Graph& smallGraph) {
 
     std::unordered_map<int, int> small_big_mapping = std::unordered_map<int, int>();
     std::unordered_map<int, int> big_small_mapping = std::unordered_map<int, int>();
@@ -106,13 +104,19 @@ bool connected_sub_isomorphism(const core::Graph& bigGraph, const core::Graph& s
 
 bool can_match_isomorphism(const core::Graph& bigGraph, const core::Graph& smallGraph,
                            const std::unordered_map<int, int>& mapping_big_small,
-                           const std::unordered_map<int, int> mapping_small_big, int v, int big_v) {
-    if (mapping_big_small.contains(big_v)) return true;
+                           const std::unordered_map<int, int>& mapping_small_big, int v, int big_v) {
+    if (mapping_big_small.contains(big_v)) return false;
+    if (mapping_small_big.contains(v)) return false;
 
     for (auto neighbour : smallGraph.get_neighbours(v)) {
         if (mapping_small_big.contains(neighbour)) {
             if (bigGraph.has_edge(big_v, mapping_small_big.at(neighbour)) == false) return false;
         }
+    }
+
+    for (auto(pair) : mapping_small_big) {
+        // check if pair has edge from pair to v that G doest have
+        if (smallGraph.has_edge(pair.first, v) && bigGraph.has_edge(pair.second, big_v) == false) return false;
     }
     return true;
 }
@@ -212,8 +216,8 @@ bool connected_isomorphism(const core::Graph& G, const core::Graph& Q) {
     return is_isomorphism_recursion(G, Q, Q_G_mapping, G_Q_mapping, vertex_indices[0]);
 }
 
-bool is_isomorphism_recursion(const core::Graph& G, const core::Graph& Q, std::unordered_map<int, int> Q_G_mapping,
-                              std::unordered_map<int, int> G_Q_mapping, int v) {
+bool is_isomorphism_recursion(const core::Graph& G, const core::Graph& Q, std::unordered_map<int, int>& Q_G_mapping,
+                              std::unordered_map<int, int>& G_Q_mapping, int v) {
 
     if (Q_G_mapping.size() == G.size()) return true;
 

@@ -3,12 +3,16 @@
 #include <cassert>
 bool random_graph_isomorphism_test();
 bool small_graph_not_isomorphic();
+bool subgraph_not_sub_isomorphic();
+bool small_graph_sub_isomorphic();
 
 bool small_graph_isomorphic();
 int main() {
     assert(random_graph_isomorphism_test() == true);
     assert(small_graph_not_isomorphic() == false);
     assert(small_graph_isomorphic() == true);
+    assert(small_graph_sub_isomorphic() == true);
+    assert(subgraph_not_sub_isomorphic() == false);
     return 0;
 }
 
@@ -54,4 +58,53 @@ bool random_graph_isomorphism_test() {
     core::Graph G = utils::GraphFactory::random_graph(30, 0.4f);
     core::Graph Q = utils::GraphFactory::isomoporhic_graph(G);
     return pattern::isomorphism(G, Q);
+}
+
+bool subgraph_not_sub_isomorphic() {
+    int graph_size = 6;
+    int subgraph_size = 4;
+
+    // Create the larger graph G
+    core::Graph G = core::Graph(graph_size);
+    core::Graph Q = core::Graph(subgraph_size);
+
+    // Define edges for the larger graph G
+    G.add_edge(0, 1);
+    G.add_edge(1, 2);
+    G.add_edge(2, 3);
+    G.add_edge(3, 4);
+    G.add_edge(4, 5); // Extra node and edge in G
+
+    // Define edges for the smaller subgraph Q
+    Q.add_edge(0, 1);
+    Q.add_edge(1, 2);
+    Q.add_edge(2, 3);
+    Q.add_edge(3, 0);
+
+    // Check for subgraph isomorphism
+    return pattern::sub_isomorphism(G, Q);
+}
+
+bool small_graph_sub_isomorphic() {
+    int graph_size = 6;
+    int subgraph_size = 4;
+
+    // Create the larger graph G
+    core::Graph G = core::Graph(graph_size);
+    core::Graph Q = core::Graph(subgraph_size);
+
+    // Define edges for the larger graph G
+    G.add_edge(0, 1);
+    G.add_edge(1, 2);
+    G.add_edge(2, 3);
+    G.add_edge(3, 4);
+    G.add_edge(4, 5);
+
+    // Define edges for the smaller subgraph Q
+    Q.add_edge(0, 1);
+    Q.add_edge(1, 2);
+    Q.add_edge(2, 3);
+
+    // Check for subgraph isomorphism
+    return pattern::sub_isomorphism(G, Q);
 }

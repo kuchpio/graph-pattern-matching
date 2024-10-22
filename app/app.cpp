@@ -19,10 +19,27 @@ int main() {
 
     // runCudaTest();
 
-    auto G = utils::GraphFactory::random_graph(10, 0.4f);
-    auto Q = utils::GraphFactory::isomoporhic_graph(G);
+    int graph_size = 6;
+    int subgraph_size = 4;
 
-    if (pattern::isomorphism(G, Q)) {
+    // Create the larger graph G
+    core::Graph G = core::Graph(graph_size);
+    core::Graph Q = core::Graph(subgraph_size);
+
+    // Define edges for the larger graph G
+    G.add_edge(0, 1);
+    G.add_edge(1, 2);
+    G.add_edge(2, 3);
+    G.add_edge(3, 4);
+    G.add_edge(4, 5);
+
+    // Define edges for the smaller subgraph Q
+    Q.add_edge(0, 1);
+    Q.add_edge(1, 2);
+    Q.add_edge(2, 3);
+    Q.add_edge(3, 0);
+
+    if (pattern::sub_isomorphism(G, Q)) {
         std::cout << "Match found." << std::endl;
     } else {
         std::cout << "Match not found." << std::endl;
