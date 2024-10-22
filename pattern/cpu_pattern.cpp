@@ -64,25 +64,26 @@ bool sub_isomorphism_recursion(const core::Graph& bigGraph, const core::Graph& s
 
     if (small_big_mapping.size() == smallGraph.size()) return true;
 
-    // find matching for v in Q
     for (std::size_t big_v = 0; big_v < bigGraph.size(); big_v++) {
 
         if (can_match_isomorphism(bigGraph, smallGraph, small_big_mapping, big_small_mapping, v, big_v)) {
             big_small_mapping.insert({big_v, v});
             small_big_mapping.insert({v, big_v});
         }
-
         if (small_big_mapping.size() == smallGraph.size()) return true;
 
-        // try function for each neighbour
+        bool remaining_neighbours = false;
         for (auto neighbour : smallGraph.get_neighbours(v)) {
-            if (small_big_mapping.contains(neighbour) == false)
+            if (small_big_mapping.contains(neighbour) == false) {
+                remaining_neighbours = true;
                 if (sub_isomorphism_recursion(bigGraph, smallGraph, small_big_mapping, big_small_mapping, neighbour))
                     return true;
+            }
         }
-
-        small_big_mapping.erase(v);
-        big_small_mapping.erase(big_v);
+        if (remaining_neighbours) {
+            small_big_mapping.erase(v);
+            big_small_mapping.erase(big_v);
+        }
     }
     return false;
 }
