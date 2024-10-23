@@ -90,8 +90,7 @@ bool sub_isomorphism(const core::Graph& bigGraph, const core::Graph& smallGraph)
 
     std::unordered_map<int, int> small_big_mapping = std::unordered_map<int, int>();
     std::unordered_map<int, int> big_small_mapping = std::unordered_map<int, int>();
-    // bierzemy pierwszy wierzchołek
-    // znajdz wierzcholek ktory maksymalizuje n(v)
+
     auto vertex_indices = std::vector<int>(smallGraph.size());
     std::iota(vertex_indices.begin(), vertex_indices.end(), 0);
 
@@ -113,43 +112,32 @@ bool can_match_isomorphism(const core::Graph& bigGraph, const core::Graph& small
             if (bigGraph.has_edge(big_v, mapping_small_big.at(neighbour)) == false) return false;
         }
     }
-
     for (auto(pair) : mapping_small_big) {
-        // check if pair has edge from pair to v that G doest have
         if (smallGraph.has_edge(pair.first, v) && bigGraph.has_edge(pair.second, big_v) == false) return false;
     }
     return true;
 }
 
 bool can_match_induced_isomorphism(const core::Graph& bigGraph, const core::Graph& smallGraph,
-                                   const std::unordered_map<int, int>& mapping, int v, int big_v) {
-    if (mapping.contains(v)) return true;
+                                   const std::unordered_map<int, int>& mapping_small_big,
+                                   const std::unordered_map<int, int>& mapping_big_small, int v, int big_v) {
+    if (mapping_small_big.contains(v)) return true;
 
     for (auto neighbour : smallGraph.get_neighbours(v)) {
-        if (mapping.contains(neighbour)) {
-            if (bigGraph.has_edge(big_v, mapping.at(neighbour)) == false) return false;
+        if (mapping_small_big.contains(neighbour)) {
+            if (bigGraph.has_edge(big_v, mapping_small_big.at(neighbour)) == false) return false;
         }
     }
-    return true;
-}
 
-bool naive_isomorphism_checker(const core::Graph& bigGraph, const core::Graph& smallGraph,
-                               const std::vector<int>& mapping) {
-    for (int i = 0; i < smallGraph.size(); i++) {
-        for (auto neighbour : smallGraph.get_neighbours(i)) {
-            if (bigGraph.has_edge(mapping.at(i), mapping.at(neighbour)) == false) return false;
+    for (auto neigbhour : bigGraph.get_neighbours(big_v)) {
+        if (mapping_big_small.contains(neigbhour)) {
+            if (smallGraph.has_edge(mapping_big_small.at(neigbhour), v) == false) return false;
         }
     }
-    return true;
-}
 
-bool naive_induced_isomorphism_checker(const core::Graph& bigGraph, const core::Graph& smallGraph,
-                                       const std::unordered_map<int, int>& mapping) {
-    for (int i = 0; i < smallGraph.size(); i++) {
-        if (bigGraph.neighbours_count(mapping.at(i)) != smallGraph.neighbours_count(i)) return false;
-        for (auto neighbour : smallGraph.get_neighbours(i)) {
-            if (bigGraph.has_edge(mapping.at(i), mapping.at(neighbour)) == false) return false;
-        }
+    for (auto(pair) : mapping_small_big) {
+        if (smallGraph.has_edge(pair.first, v) && bigGraph.has_edge(pair.second, big_v) == false) return false;
+        if (bigGraph.has_edge(pair.second, big_v) && smallGraph.has_edge(pair.first, v)) return false;
     }
     return true;
 }
