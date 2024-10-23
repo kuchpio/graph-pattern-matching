@@ -2,6 +2,7 @@
 
 #include "image.h"
 #include "pattern.h"
+#include "subgraph_matcher.h"
 #include "utils.h"
 #include "cudaTest.h"
 
@@ -22,6 +23,8 @@ int main() {
     int graph_size = 6;
     int subgraph_size = 4;
 
+    pattern::SubgraphMatcher matcher = pattern::SubgraphMatcher();
+
     // Create the larger graph G
     core::Graph G = core::Graph(graph_size);
     core::Graph Q = core::Graph(subgraph_size);
@@ -39,7 +42,7 @@ int main() {
     Q.add_edge(2, 3);
     Q.add_edge(3, 0);
 
-    if (pattern::sub_isomorphism(G, Q)) {
+    if (matcher.match(G, Q)) {
         std::cout << "Match found." << std::endl;
     } else {
         std::cout << "Match not found." << std::endl;
