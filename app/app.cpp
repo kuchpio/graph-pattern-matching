@@ -1,6 +1,7 @@
 ﻿#include <iostream>
 
 #include "image.h"
+#include "isomorphism_matcher.h"
 #include "pattern.h"
 #include "subgraph_matcher.h"
 #include "utils.h"
@@ -20,27 +21,21 @@ int main() {
 
     // runCudaTest();
 
-    int graph_size = 6;
-    int subgraph_size = 4;
+    int small_size = 5;
+    core::Graph G = core::Graph(small_size);
+    core::Graph Q = core::Graph(small_size);
 
-    pattern::SubgraphMatcher matcher = pattern::SubgraphMatcher();
-
-    // Create the larger graph G
-    core::Graph G = core::Graph(graph_size);
-    core::Graph Q = core::Graph(subgraph_size);
-
-    // Define edges for the larger graph G
     G.add_edge(0, 1);
-    G.add_edge(1, 2);
-    G.add_edge(2, 3);
+    G.add_edge(0, 2);
+    G.add_edge(1, 3);
     G.add_edge(3, 4);
-    G.add_edge(4, 5);
 
-    // Define edges for the smaller subgraph Q
     Q.add_edge(0, 1);
-    Q.add_edge(1, 2);
-    Q.add_edge(2, 3);
-    Q.add_edge(3, 0);
+    Q.add_edge(0, 3);
+    Q.add_edge(3, 2);
+    Q.add_edge(1, 4);
+
+    auto matcher = pattern::IsomorphismMatcher();
 
     if (matcher.match(G, Q)) {
         std::cout << "Match found." << std::endl;

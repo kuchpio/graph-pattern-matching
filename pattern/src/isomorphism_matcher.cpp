@@ -19,7 +19,6 @@ bool IsomorphismMatcher::match(const core::Graph& bigGraph, const core::Graph& s
     auto current_Q_components = std::vector<core::Graph>();
 
     for (int i = 0; i < G_components.size(); i++) {
-
         if (G_components[i].size() != Q_components[i].size()) return false;
         if (G_components[i].size() != previous_size) {
             G_components_by_size.push_back(current_G_components);
@@ -30,6 +29,8 @@ bool IsomorphismMatcher::match(const core::Graph& bigGraph, const core::Graph& s
         current_G_components.push_back(G_components[i]);
         current_Q_components.push_back(Q_components[i]);
     }
+    G_components_by_size.push_back(current_G_components);
+    Q_components_by_size.push_back(current_Q_components);
 
     // try to match every
     return match_isomorphism_components(G_components_by_size, Q_components_by_size);
