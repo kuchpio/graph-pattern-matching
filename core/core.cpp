@@ -118,4 +118,16 @@ std::size_t Graph::edge_count() const {
     }
     return edge_count;
 }
+
+bool Graph::extract_edge(int u, int v) {
+    // przesun wszystkich sasiadow v do u
+    for (auto neighbour : this->get_neighbours(v)) {
+        this->add_edge(u, neighbour);
+    }
+    return this->remove_vertex(v);
+}
+
+void Graph::topological_sort() {
+}
+
 } // namespace core

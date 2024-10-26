@@ -19,10 +19,14 @@ class Graph {
     bool remove_vertices(std::vector<int> vertices);
     bool remove_edge(int u, int v);
     bool has_edge(int u, int v) const;
+    bool extract_edge(int u, int v);
+
     std::size_t size() const;
     std::size_t edge_count() const;
     std::vector<std::tuple<int, int>> edges() const;
     std::vector<int> get_neighbours(int v) const;
+
+    void topological_sort();
     int neighbours_count(int v) const;
 };
 } // namespace core
