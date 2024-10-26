@@ -1,9 +1,9 @@
 #include <cstdio>
 #include <vector>
 
-#define GLAD_GL_IMPLEMENTATION
-#include "glad/gl.h"
-#include "GLFW/glfw3.h"
+#include "wx/wx.h"
+
+#include "glad/glad.h"
 
 #include "render.h"
 
@@ -52,10 +52,10 @@ void GraphRenderer::render(int width, int height) const {
 
 	glBindVertexArray(_vertexArrayObject);
 
-	glColor3f(1.0f, 1.0f, 1.0f);
+	// glColor3f(1.0f, 1.0f, 1.0f);
 	glDrawElements(GL_LINES, _edgesCount, GL_UNSIGNED_INT, 0);
 
-	glColor3f(1.0f, 0.0f, 0.0f);
+	// glColor3f(1.0f, 0.0f, 0.0f);
 	glDrawArrays(GL_POINTS, 0, _vertexCount);
 
 	glBindVertexArray(0);
@@ -67,14 +67,7 @@ GraphRenderer::~GraphRenderer() {
     glDeleteBuffers(1, &_vertexArrayObject);
 }
 
-static void error_callback(int error, const char* description) {
-    fprintf(stderr, "Error: %s\n", description);
-}
-
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) glfwSetWindowShouldClose(window, GLFW_TRUE);
-}
-
+/*
 void testRender() {
     const float vertices[] = {
         -0.5f, 0.3f, 
@@ -121,4 +114,9 @@ void testRender() {
     glfwDestroyWindow(window);
 
     glfwTerminate();
+}
+*/
+
+void testRender() {
+
 }
