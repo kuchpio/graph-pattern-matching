@@ -8,20 +8,15 @@ namespace pattern
 bool MinorMatcher::match(const core::Graph& G, const core::Graph& H) {
     if (H.size() > G.size()) return false;
 
-    //
-
-    return false;
+    return minor_recursion(G, H, 0);
 };
 
 bool MinorMatcher::minor_recursion(const core::Graph& G, const core::Graph& H, int v) {
-    //
-
     auto isomorphismMatcher = IsomorphismMatcher();
     if (isomorphismMatcher.match(G, H)) return true;
 
     if (v > G.size()) return false;
-    //
-    // auto Q = remove_vertex(G, v);
+
     if (minor_recursion(remove_vertex(G, v), H, v + 1)) return true;
     for (auto neighbour : G.get_neighbours(v)) {
         if (minor_recursion(remove_edge(G, v, neighbour), H, v + 1)) return true;
