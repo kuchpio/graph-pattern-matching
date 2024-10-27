@@ -9,7 +9,7 @@ class GraphCanvas : public wxGLCanvas {
 
     wxColour vertexColor{wxColour(255, 128, 51)};
 
-    void SetVertexPositions(const float *positions2D, unsigned int vertexCount);
+    void SetRandomVertexPositions(unsigned int vertexCount);
     void SetEdges(const unsigned int* edges, unsigned int edgesCount);
 
   private:
@@ -24,6 +24,7 @@ class GraphCanvas : public wxGLCanvas {
     unsigned int edgesBuffer = 0;
     unsigned int shaderProgram = 0;
 
+    float* positions2D = nullptr;
     unsigned int vertexCount = 0;
     unsigned int edgesCount = 0;
 
@@ -33,4 +34,5 @@ class GraphCanvas : public wxGLCanvas {
 
     void OnPaint(wxPaintEvent& event);
     void OnSize(wxSizeEvent& event);
+    void OnIdle(wxIdleEvent& event);
 };

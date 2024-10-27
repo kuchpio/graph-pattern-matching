@@ -17,55 +17,12 @@ GraphCanvas::GraphCanvas(wxWindow* parent, const wxGLAttributes& canvasAttrs) : 
 
     Bind(wxEVT_PAINT, &GraphCanvas::OnPaint, this);
     Bind(wxEVT_SIZE, &GraphCanvas::OnSize, this);
+    Bind(wxEVT_IDLE, &GraphCanvas::OnIdle, this);
 }
 
 GraphCanvas::~GraphCanvas() {
+    if (positions2D != nullptr) delete[] positions2D;
     delete openGLContext;
-}
-
-bool GraphCanvas::InitializeOpenGLFunctions() {
-    auto gladVersion = gladLoadGL();
-
-    if (0 == gladVersion) {
-        wxLogError("OpenGL glad initialization failed");
-        return false;
-    }
-
-    wxLogDebug("Status: Using Glad");
-
-    return true;
-}
-
-bool GraphCanvas::InitializeOpenGL() {
-    if (!openGLContext) return false;
-
-    SetCurrent(*openGLContext);
-
-    if (!InitializeOpenGLFunctions()) {
-        wxMessageBox("Error: Could not initialize OpenGL function pointers.",
-                     "OpenGL initialization error",
-                     wxOK | wxICON_INFORMATION, this);
-        return false;
-    }
-
-    wxLogDebug("OpenGL version: %s", reinterpret_cast<const char*>(glGetString(GL_VERSION)));
-    wxLogDebug("OpenGL vendor: %s", reinterpret_cast<const char*>(glGetString(GL_VENDOR)));
-
-    if (!InitializeShaders()) {
-        wxMessageBox("Error: Could not initialize OpenGL shaders.", 
-                     "OpenGL initialization error",
-                     wxOK | wxICON_INFORMATION, this);
-        return false;
-    }
-
-    glGenVertexArrays(1, &vertexArrayObject);
-    glGenBuffers(1, &vertexBuffer);
-    glGenBuffers(1, &edgesBuffer);
-
-    glPointSize(VERTEX_SIZE);
-    glLineWidth(EDGE_WIDTH);
-
-    return true;
 }
 
 void GraphCanvas::OnPaint(wxPaintEvent& WXUNUSED(event)) {
@@ -102,6 +59,71 @@ void GraphCanvas::OnSize(wxSizeEvent& event) {
 	auto viewPortSize = event.GetSize() * GetContentScaleFactor();
 	SetCurrent(*openGLContext);
 	glViewport(0, 0, viewPortSize.x, viewPortSize.y);
+}
+
+void GraphCanvas::OnIdle(wxIdleEvent& event) {
+    if (!isOpenGLInitialized) return;
+
+    auto newPositions2D = new float[2 * vertexCount];
+
+    for (unsigned int i = 0; i < vertexCount; i++) {
+        newPositions2D[2 * i] = positions2D[2 * i] < 0 ? positions2D[2 * i] + 0.0001f : positions2D[2 * i] - 0.0001f;
+        newPositions2D[2 * i + 1] = positions2D[2 * i + 1] < 0 ? positions2D[2 * i + 1] + 0.0001f : positions2D[2 * i + 1] - 0.0001f;
+    }
+
+    memcpy(positions2D, newPositions2D, 2 * vertexCount * sizeof(float));
+    delete[] newPositions2D;
+
+    SetCurrent(*openGLContext);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexCount * 2, positions2D, GL_DYNAMIC_DRAW);
+
+    Refresh();
+}
+
+bool GraphCanvas::InitializeOpenGL() {
+    if (!openGLContext) return false;
+
+    SetCurrent(*openGLContext);
+
+    if (!InitializeOpenGLFunctions()) {
+        wxMessageBox("Error: Could not initialize OpenGL function pointers.",
+                     "OpenGL initialization error",
+                     wxOK | wxICON_INFORMATION, this);
+        return false;
+    }
+
+    wxLogDebug("OpenGL version: %s", reinterpret_cast<const char*>(glGetString(GL_VERSION)));
+    wxLogDebug("OpenGL vendor: %s", reinterpret_cast<const char*>(glGetString(GL_VENDOR)));
+
+    if (!InitializeShaders()) {
+        wxMessageBox("Error: Could not initialize OpenGL shaders.", 
+                     "OpenGL initialization error",
+                     wxOK | wxICON_INFORMATION, this);
+        return false;
+    }
+
+    glGenVertexArrays(1, &vertexArrayObject);
+    glGenBuffers(1, &vertexBuffer);
+    glGenBuffers(1, &edgesBuffer);
+
+    glPointSize(VERTEX_SIZE);
+    glLineWidth(EDGE_WIDTH);
+
+    return true;
+}
+
+bool GraphCanvas::InitializeOpenGLFunctions() {
+    auto gladVersion = gladLoadGL();
+
+    if (0 == gladVersion) {
+        wxLogError("OpenGL glad initialization failed");
+        return false;
+    }
+
+    wxLogDebug("Status: Using Glad");
+
+    return true;
 }
 
 bool GraphCanvas::InitializeShaders() {
@@ -169,13 +191,20 @@ bool GraphCanvas::InitializeShaders() {
     return true;
 }
 
-void GraphCanvas::SetVertexPositions(const float* positions2D, unsigned int vertexCount) {
+void GraphCanvas::SetRandomVertexPositions(unsigned int vertexCount) {
+    if (positions2D != nullptr) delete[] positions2D;
+    positions2D = new float[2 * vertexCount];
+
+    for (unsigned int i = 0; i < 2 * vertexCount; i++) {
+        positions2D[i] = 2 * ((float)rand() / RAND_MAX) - 1;
+    }
+
     if (!isOpenGLInitialized) return;
     SetCurrent(*openGLContext);
 
     glBindVertexArray(vertexArrayObject);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexCount * 2, positions2D, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexCount * 2, positions2D, GL_DYNAMIC_DRAW);
 
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
     glEnableVertexAttribArray(0);

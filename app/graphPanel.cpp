@@ -29,13 +29,6 @@ GraphPanel::GraphPanel(wxWindow* parent) : wxPanel(parent) {
     this->SetSizerAndFit(sizer);
 
     initButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
-		const float vertices[] = {
-			-0.5f, 0.3f, 
-			0.4f, 0.1f, 
-			-0.7f, 0.9f, 
-			-0.6f, 0.0f, 
-			0.2f, -0.5f
-		};
 		const unsigned int edges[] = {
 			0, 1, 
 			0, 3, 
@@ -45,7 +38,7 @@ GraphPanel::GraphPanel(wxWindow* parent) : wxPanel(parent) {
 			2, 4
 		};
 
-        canvas->SetVertexPositions(vertices, 5);
+        canvas->SetRandomVertexPositions(5);
         canvas->SetEdges(edges, 6);
 		canvas->Refresh();
     });
