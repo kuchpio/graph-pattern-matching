@@ -69,6 +69,8 @@ bool GraphCanvas::InitializeOpenGL() {
 }
 
 void GraphCanvas::OnPaint(wxPaintEvent& WXUNUSED(event)) {
+    auto firstApperance = !isOpenGLInitialized && IsShownOnScreen();
+    if (firstApperance) isOpenGLInitialized = InitializeOpenGL();
     if (!isOpenGLInitialized) return;
 
     SetCurrent(*openGLContext);
@@ -76,7 +78,6 @@ void GraphCanvas::OnPaint(wxPaintEvent& WXUNUSED(event)) {
     glClear(GL_COLOR_BUFFER_BIT);
 
     glUseProgram(shaderProgram);
-
     glUniform4f(
         glGetUniformLocation(shaderProgram, "vertexColor"), 
         vertexColor.Red() / 255.0f, 
@@ -96,18 +97,11 @@ void GraphCanvas::OnPaint(wxPaintEvent& WXUNUSED(event)) {
 }
 
 void GraphCanvas::OnSize(wxSizeEvent& event) {
-    bool firstApperance = IsShownOnScreen() && !isOpenGLInitialized;
+    if (!isOpenGLInitialized) return;
 
-    if (firstApperance)
-        isOpenGLInitialized = InitializeOpenGL();
-
-    if (isOpenGLInitialized) {
-		auto viewPortSize = event.GetSize() * GetContentScaleFactor();
-        SetCurrent(*openGLContext);
-		glViewport(0, 0, viewPortSize.x, viewPortSize.y);
-    }
-
-    event.Skip();
+	auto viewPortSize = event.GetSize() * GetContentScaleFactor();
+	SetCurrent(*openGLContext);
+	glViewport(0, 0, viewPortSize.x, viewPortSize.y);
 }
 
 bool GraphCanvas::InitializeShaders() {
