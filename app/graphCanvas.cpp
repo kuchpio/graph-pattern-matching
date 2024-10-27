@@ -1,4 +1,6 @@
 #include "glad/glad.h"
+#include "wx/msgdlg.h"
+
 #include "graphCanvas.h"
 
 GraphCanvas::GraphCanvas(wxWindow* parent, const wxGLAttributes& canvasAttrs) : wxGLCanvas(parent, canvasAttrs) {
@@ -12,8 +14,6 @@ GraphCanvas::GraphCanvas(wxWindow* parent, const wxGLAttributes& canvasAttrs) : 
         delete openGLContext;
         openGLContext = nullptr;
     }
-
-    InitializeOpenGL();
 
     Bind(wxEVT_PAINT, &GraphCanvas::OnPaint, this);
     Bind(wxEVT_SIZE, &GraphCanvas::OnSize, this);
@@ -42,7 +42,8 @@ bool GraphCanvas::InitializeOpenGL() {
     SetCurrent(*openGLContext);
 
     if (!InitializeOpenGLFunctions()) {
-        wxMessageBox("Error: Could not initialize OpenGL function pointers.", "OpenGL initialization error",
+        wxMessageBox("Error: Could not initialize OpenGL function pointers.",
+                     "OpenGL initialization error",
                      wxOK | wxICON_INFORMATION, this);
         return false;
     }
@@ -50,7 +51,12 @@ bool GraphCanvas::InitializeOpenGL() {
     wxLogDebug("OpenGL version: %s", reinterpret_cast<const char*>(glGetString(GL_VERSION)));
     wxLogDebug("OpenGL vendor: %s", reinterpret_cast<const char*>(glGetString(GL_VENDOR)));
 
-    InitializeShaders();
+    if (!InitializeShaders()) {
+        wxMessageBox("Error: Could not initialize OpenGL shaders.", 
+                     "OpenGL initialization error",
+                     wxOK | wxICON_INFORMATION, this);
+        return false;
+    }
 
     glGenVertexArrays(1, &vertexArrayObject);
     glGenBuffers(1, &vertexBuffer);
@@ -63,7 +69,7 @@ bool GraphCanvas::InitializeOpenGL() {
 }
 
 void GraphCanvas::OnPaint(wxPaintEvent& WXUNUSED(event)) {
-    if (!openGLContext) return;
+    if (!isOpenGLInitialized) return;
 
     SetCurrent(*openGLContext);
     glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
@@ -90,7 +96,12 @@ void GraphCanvas::OnPaint(wxPaintEvent& WXUNUSED(event)) {
 }
 
 void GraphCanvas::OnSize(wxSizeEvent& event) {
-    if (openGLContext) {
+    bool firstApperance = IsShownOnScreen() && !isOpenGLInitialized;
+
+    if (firstApperance)
+        isOpenGLInitialized = InitializeOpenGL();
+
+    if (isOpenGLInitialized) {
 		auto viewPortSize = event.GetSize() * GetContentScaleFactor();
         SetCurrent(*openGLContext);
 		glViewport(0, 0, viewPortSize.x, viewPortSize.y);
@@ -99,7 +110,7 @@ void GraphCanvas::OnSize(wxSizeEvent& event) {
     event.Skip();
 }
 
-void GraphCanvas::InitializeShaders() {
+bool GraphCanvas::InitializeShaders() {
     constexpr auto vertexShaderSource = R"(
         #version 330 core
         layout (location = 0) in vec3 aPos;
@@ -130,6 +141,7 @@ void GraphCanvas::InitializeShaders() {
     if (!success) {
         glGetShaderInfoLog(vertexShader, 512, nullptr, infoLog);
         wxLogDebug("Vertex Shader Compilation Failed: %s", infoLog);
+        return false;
     }
 
     unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -141,6 +153,7 @@ void GraphCanvas::InitializeShaders() {
     if (!success) {
         glGetShaderInfoLog(fragmentShader, 512, nullptr, infoLog);
         wxLogDebug("Fragment Shader Compilation Failed: %s", infoLog);
+        return false;
     }
 
     shaderProgram = glCreateProgram();
@@ -153,14 +166,17 @@ void GraphCanvas::InitializeShaders() {
     if (!success) {
         glGetProgramInfoLog(shaderProgram, 512, nullptr, infoLog);
         wxLogDebug("Shader Program Linking Failed: %s", infoLog);
+        return false;
     }
 
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
+
+    return true;
 }
 
 void GraphCanvas::SetVertexPositions(const float* positions2D, unsigned int vertexCount) {
-    if (!openGLContext) return;
+    if (!isOpenGLInitialized) return;
     SetCurrent(*openGLContext);
 
     glBindVertexArray(vertexArrayObject);
@@ -176,7 +192,7 @@ void GraphCanvas::SetVertexPositions(const float* positions2D, unsigned int vert
 }
 
 void GraphCanvas::SetEdges(const unsigned int* edges, unsigned int edgesCount) {
-    if (!openGLContext) return;
+    if (!isOpenGLInitialized) return;
     SetCurrent(*openGLContext);
 
     glBindVertexArray(vertexArrayObject);

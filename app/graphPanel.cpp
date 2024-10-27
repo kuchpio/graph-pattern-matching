@@ -17,8 +17,8 @@ GraphPanel::GraphPanel(wxWindow* parent) : wxPanel(parent) {
     }
 
     auto bottomSizer = new wxBoxSizer(wxHORIZONTAL);
-    auto initButton = new wxButton(this, wxID_ANY, "Utwórz");
-    auto colorButton = new wxButton(this, wxID_ANY, "Kolor");
+    auto initButton = new wxButton(this, wxID_ANY, "Create");
+    auto colorButton = new wxButton(this, wxID_ANY, "Color");
 
     bottomSizer->Add(initButton, 0, wxALL | wxALIGN_CENTER, FromDIP(15));
     bottomSizer->Add(colorButton, 0, wxALL | wxALIGN_CENTER, FromDIP(15));

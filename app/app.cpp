@@ -1,8 +1,4 @@
-﻿#include <iostream>
-
-#include "wx/wx.h"
-
-#include "app.h"
+﻿#include "app.h"
 #include "frame.h"
 
 bool App::OnInit() {
@@ -13,6 +9,6 @@ bool App::OnInit() {
 
 wxIMPLEMENT_APP_NO_MAIN(App);
 
-int main() {
-    return wxEntry();
+int main(int argc, char* argv[]) {
+    return wxEntry(argc, argv);
 }

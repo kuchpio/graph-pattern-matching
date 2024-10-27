@@ -1,9 +1,6 @@
 #pragma once
 
-#include "wx/wx.h"
 #include "wx/glcanvas.h"
-
-#include "core.h"
 
 class GraphCanvas : public wxGLCanvas {
   public:
@@ -17,6 +14,7 @@ class GraphCanvas : public wxGLCanvas {
 
   private:
     wxGLContext* openGLContext;
+    bool isOpenGLInitialized = false;
 
     const float VERTEX_SIZE = 8.0f;
     const float EDGE_WIDTH = 2.0f;
@@ -31,7 +29,7 @@ class GraphCanvas : public wxGLCanvas {
 
     bool InitializeOpenGLFunctions();
     bool InitializeOpenGL();
-    void InitializeShaders();
+    bool InitializeShaders();
 
     void OnPaint(wxPaintEvent& event);
     void OnSize(wxSizeEvent& event);

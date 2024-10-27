@@ -8,7 +8,7 @@ Frame::Frame(const wxString& title) : wxFrame(nullptr, wxID_ANY, title, wxDefaul
 
     auto mainPanel = new wxPanel(this);
     auto mainPanelSizer = new wxBoxSizer(wxHORIZONTAL);
-    auto startMatchingButton = new wxButton(mainPanel, wxID_ANY, "Szukaj");
+    auto startMatchingButton = new wxButton(mainPanel, wxID_ANY, "Match");
 
     mainPanelSizer->Add(startMatchingButton, 0, wxALL | wxALIGN_CENTER, 10);
 
