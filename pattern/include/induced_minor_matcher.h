@@ -9,6 +9,7 @@ class InducedMinorMatcher : public MinorMatcher {
     bool match(const core::Graph& G, const core::Graph& H) override;
 
   private:
-    bool minor_induced_recursion(const core::Graph& G, const core::Graph& H, int v);
+    bool minor_induced_recursion(const core::Graph& G, const core::Graph& H, int v,
+                                 std::optional<int> last_neighbour_index);
 };
 } // namespace pattern
