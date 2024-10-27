@@ -5,7 +5,12 @@ if(MSVC)
     SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ENTRY:mainCRTStartup")
 endif()
 
-set(APP_SRC "app.cpp" "cudaTest.cu" "cudaTest.h" "render.h" "render.cpp")
+set(APP_SRC 
+    "app.h" "app.cpp"
+    "frame.h" "frame.cpp" 
+    "graphCanvas.h" "graphCanvas.cpp" 
+    "graphPanel.h" "graphPanel.cpp"
+)
 
 add_executable (app ${APP_SRC} ${GLAD_SRC})
 set_target_properties(app PROPERTIES WIN32_EXECUTABLE $<CONFIG:Release>)
