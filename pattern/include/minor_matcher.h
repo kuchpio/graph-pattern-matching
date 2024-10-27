@@ -7,8 +7,9 @@ namespace pattern
 class MinorMatcher : public PatternMatcher {
   public:
     bool match(const core::Graph& G, const core::Graph& H);
+    bool induced_minor(const core::Graph& G, const core::Graph& H);
 
-  private:
+  protected:
     bool minor_recursion(const core::Graph& G, const core::Graph& H, int v);
     static core::Graph remove_vertex(const core::Graph& G, int v);
     static core::Graph remove_edge(const core::Graph& G, int u, int v);
