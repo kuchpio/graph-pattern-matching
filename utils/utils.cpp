@@ -106,7 +106,7 @@ std::vector<int> get_empty_vertices(const core::Graph& G) {
 
     std::stack<int> stack = std::stack<int>();
     int v = 0;
-    while (G.neighbours_count(v) == 0)
+    while (G.degree_out(v) == 0)
         v++;
 
     stack.push(v);

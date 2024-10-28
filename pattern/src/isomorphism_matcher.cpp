@@ -63,7 +63,7 @@ bool IsomorphismMatcher::connected_isomorphism(const core::Graph& G, const core:
 
     // Find the row index with the maximum number of ones
     std::ranges::sort(vertex_indices, [&G](size_t i, size_t j) {
-        return G.neighbours_count(i) > G.neighbours_count(j); // Sort by descending count of 1s
+        return G.degree_out(i) > G.degree_out(j); // Sort by descending count of 1s
     });
     return is_isomorphism_recursion(G, Q, Q_G_mapping, G_Q_mapping, vertex_indices[0]);
 }
@@ -77,7 +77,7 @@ bool IsomorphismMatcher::is_isomorphism_recursion(const core::Graph& G, const co
     // find matching for v in Q
     for (std::size_t u = 0; u < Q.size(); u++) {
         if (Q_G_mapping.contains(u)) continue;
-        if (G.neighbours_count(v) != Q.neighbours_count(u)) continue;
+        if (G.degree_out(v) != Q.degree_out(u)) continue;
 
         Q_G_mapping.insert({u, v});
         G_Q_mapping.insert({v, u});

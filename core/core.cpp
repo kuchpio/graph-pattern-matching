@@ -102,7 +102,7 @@ bool Graph::remove_edge(int u, int v) {
     return false;
 }
 
-int Graph::neighbours_count(int v) const {
+int Graph::degree_out(int v) const {
     return Graph::_adjacencyList[v].size();
 }
 
@@ -128,6 +128,17 @@ bool Graph::extract_edge(int u, int v) {
 }
 
 void Graph::topological_sort() {
+}
+
+int Graph::degree_in(int v) const {
+
+    int degree_in = 0;
+    for (int i = 0; i < this->size(); i++) {
+        if (i == v) continue;
+        auto neighbours = this->get_neighbours(i);
+        if (std::find(neighbours.begin(), neighbours.end(), v) != neighbours.end()) degree_in++;
+    }
+    return degree_in;
 }
 
 } // namespace core

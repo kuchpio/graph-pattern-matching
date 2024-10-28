@@ -21,12 +21,13 @@ class Graph {
     bool has_edge(int u, int v) const;
     bool extract_edge(int u, int v);
 
+    int degree_in(int v) const;
     std::size_t size() const;
     std::size_t edge_count() const;
     std::vector<std::tuple<int, int>> edges() const;
     std::vector<int> get_neighbours(int v) const;
 
     void topological_sort();
-    int neighbours_count(int v) const;
+    int degree_out(int v) const;
 };
 } // namespace core
