@@ -21,7 +21,7 @@ int main() {
     assert(small_graph_sub_isomorphic() == true);
     assert(subgraph_not_sub_isomorphic() == false);
     assert(small_not_minor() == false);
-    //  assert(small_has_minor() == true);
+    assert(small_has_minor() == true);
     //  assert(has_minor_not_topological() == true);
 
     return 0;
@@ -153,7 +153,7 @@ bool small_not_minor() {
     auto matcher = pattern::MinorMatcher();
 
     // Check for minor relationship - expecting false because Q is a cycle but G is a chain
-    return matcher.match(G, Q) == false;
+    return matcher.match(G, Q);
 }
 
 bool small_has_minor() {

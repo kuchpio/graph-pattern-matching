@@ -14,23 +14,6 @@ bool match(const core::Graph& bigGraph, const core::Graph& smallGraph) {
     return bigGraph.size() >= smallGraph.size();
 }
 
-bool sub_induced_isomorpshim(const core::Graph& bigGraph, const core::Graph& smallGraph) {
-
-    if (bigGraph.size() == smallGraph.size()) return isomorphism(bigGraph, smallGraph);
-    auto removed_vertices = std::vector<int>(bigGraph.size() - smallGraph.size());
-
-    std::iota(removed_vertices.begin(), removed_vertices.end(), 0);
-
-    do {
-        core::Graph Q = core::Graph(bigGraph);
-        Q.remove_vertices(removed_vertices);
-        if (isomorphism(Q, smallGraph)) return true;
-
-    } while (std::prev_permutation(removed_vertices.begin(), removed_vertices.end()));
-
-    return false;
-}
-
 bool can_match_induced_isomorphism(const core::Graph& bigGraph, const core::Graph& smallGraph,
                                    const std::unordered_map<int, int>& mapping_small_big,
                                    const std::unordered_map<int, int>& mapping_big_small, int v, int big_v) {

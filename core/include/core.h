@@ -6,7 +6,6 @@ namespace core
 {
 class Graph {
   private:
-    std::size_t _size;
     std::vector<std::vector<int>> _adjacencyList;
 
   public:

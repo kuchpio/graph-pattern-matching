@@ -7,12 +7,10 @@
 namespace core
 {
 Graph::Graph(int size) {
-    _size = size;
-    Graph::_adjacencyList = std::vector<std::vector<int>>(_size);
+    Graph::_adjacencyList = std::vector<std::vector<int>>(size);
 }
 
 Graph::Graph(const Graph& G) {
-    _size = G._size;
     _adjacencyList = G._adjacencyList;
 }
 
@@ -22,18 +20,19 @@ Graph::Graph(std::vector<std::tuple<int, int>> edges) {
         max_value = std::max({max_value, u, v});
     }
 
-    _size = max_value + 1;
-    _adjacencyList = std::vector<std::vector<int>>(_size);
+    int size = max_value + 1;
+    _adjacencyList = std::vector<std::vector<int>>(size);
 
     this->add_edges(edges);
 }
 
 std::size_t Graph::size() const {
-    return _size;
+    return this->_adjacencyList.size();
 }
 
 void Graph::add_edge(int u, int v) {
-    // if (Graph::_adjacencyList[u] == nullptr) Graph::_adjacencyList[u] = std::vector<int>();
+    if (std::find(this->_adjacencyList[u].begin(), this->_adjacencyList[u].end(), v) != this->_adjacencyList[u].end())
+        return;
     Graph::_adjacencyList[u].push_back(v);
 }
 
@@ -61,20 +60,25 @@ std::vector<std::tuple<int, int>> Graph::edges() const {
 
 bool Graph::remove_vertex(int v) {
 
-    if (v > 0 && this->_size < (v - 1)) return false;
+    if (v > 0 && this->size() < (v - 1)) return false;
 
     // find vertex remove all edges, push back all edges from upcoming vertices
     for (int i = 0; i < this->size(); i++) {
-        for (int neighbour : this->get_neighbours(i)) {
-            if (neighbour > v) neighbour--;
-            if (neighbour == v) this->remove_edge(i, neighbour);
+        if (i == v) continue;
+        if (std::find(this->_adjacencyList[i].begin(), this->_adjacencyList[i].end(), v) !=
+            this->_adjacencyList[i].end())
+            this->remove_edge(i, v);
+        auto neighbours = this->_adjacencyList[i];
+        for (int neighbour_index = 0; neighbour_index < neighbours.size(); neighbour_index++) {
+            auto neighbour = this->_adjacencyList[i][neighbour_index];
+            if (neighbour > v) this->_adjacencyList[i][neighbour_index]--;
         }
     }
 
     for (int i = v; i < this->size() - 1; i++) {
         this->_adjacencyList[i] = this->_adjacencyList[i + 1];
     }
-    this->_size--;
+    this->_adjacencyList.pop_back();
 
     return true;
 }
@@ -92,14 +96,14 @@ bool Graph::remove_vertices(std::vector<int> vertices) {
 }
 
 bool Graph::remove_edge(int u, int v) {
-    std::vector<int> neighbours = Graph::_adjacencyList[u];
-    auto v_iterator = std::find(neighbours.begin(), neighbours.end(), v);
+    auto v_iterator = std::find(this->_adjacencyList[u].begin(), this->_adjacencyList[u].end(), v);
+    if (v_iterator == this->_adjacencyList[u].end()) return false;
 
-    if (v_iterator != neighbours.end()) {
-        neighbours.erase(v_iterator);
-        return true;
-    }
-    return false;
+    this->_adjacencyList[u].erase(v_iterator);
+
+    if (this->degree_in(u) == 0 && this->degree_out(u) == 0) this->remove_vertex(u);
+
+    return true;
 }
 
 int Graph::degree_out(int v) const {
@@ -107,6 +111,7 @@ int Graph::degree_out(int v) const {
 }
 
 std::vector<int> Graph::get_neighbours(int v) const {
+    if (v >= this->size()) return std::vector<int>();
     return Graph::_adjacencyList[v];
 }
 
@@ -122,9 +127,23 @@ std::size_t Graph::edge_count() const {
 bool Graph::extract_edge(int u, int v) {
     // przesun wszystkich sasiadow v do u
     for (auto neighbour : this->get_neighbours(v)) {
+        if (neighbour == u) continue;
         this->add_edge(u, neighbour);
     }
-    return this->remove_vertex(v);
+
+    // i wszystkich wchodzacydh do v do u
+    for (int i = 0; i < this->size(); i++) {
+        if (i == v || i == u) continue;
+        for (auto neighbour : this->get_neighbours(i)) {
+            if (neighbour == v) {
+                this->add_edge(i, u);
+                break;
+            }
+        }
+    }
+    auto succcess = this->remove_vertex(v);
+
+    return succcess;
 }
 
 void Graph::topological_sort() {
@@ -135,7 +154,7 @@ int Graph::degree_in(int v) const {
     int degree_in = 0;
     for (int i = 0; i < this->size(); i++) {
         if (i == v) continue;
-        auto neighbours = this->get_neighbours(i);
+        auto neighbours = this->_adjacencyList[i];
         if (std::find(neighbours.begin(), neighbours.end(), v) != neighbours.end()) degree_in++;
     }
     return degree_in;

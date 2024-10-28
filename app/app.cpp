@@ -22,27 +22,46 @@ int main() {
 
     // runCudaTest();
 
-    int graph_size = 6;
-    int subgraph_size = 4;
+    int graph_size = 8;
+    int subgraph_size = 5;
 
     // Create the larger graph G
     core::Graph G = core::Graph(graph_size);
     core::Graph Q = core::Graph(subgraph_size);
 
-    // Define edges for the larger graph G (a linear chain with no cycles)
+    // Define edges for the larger graph G Qubic graph Q^3
     G.add_edge(0, 1);
     G.add_edge(1, 2);
     G.add_edge(2, 3);
-    G.add_edge(3, 4);
+    G.add_edge(3, 0);
+    G.add_edge(0, 4);
+    G.add_edge(1, 5);
+    G.add_edge(2, 6);
+    G.add_edge(3, 7);
     G.add_edge(4, 5);
+    G.add_edge(5, 6);
+    G.add_edge(6, 7);
+    G.add_edge(7, 4);
 
-    // Define edges for the smaller graph Q (a cycle, which cannot be formed by contractions in G)
+    // Define edges for the smaller graph Q (wheel W^4)
     Q.add_edge(0, 1);
     Q.add_edge(1, 2);
     Q.add_edge(2, 3);
     Q.add_edge(3, 0);
+    Q.add_edge(0, 4);
+    Q.add_edge(1, 4);
+    Q.add_edge(2, 4);
+    Q.add_edge(3, 4);
+
+    /*
+    G.extract_edge(4, 5);
+    G.extract_edge(4, 5);
+    G.extract_edge(4, 5);
+    */
 
     auto matcher = pattern::MinorMatcher();
+
+    // auto matcher = pattern::MinorMatcher();
 
     if (matcher.match(G, Q)) {
         std::cout << "Match found." << std::endl;
