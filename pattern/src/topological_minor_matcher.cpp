@@ -22,7 +22,6 @@ bool TopologicalMinorMatcher::topological_minor_recursion(const core::Graph& G, 
     int start_neighbour_index = last_neighbour_index.value_or(0);
     if (topological_minor_recursion(remove_vertex(G, v), H, v, {})) return true;
 
-    // vertex degree = 1 + 1
     if (G.degree_in(v) == 1 && G.degree_out(v) == 1) {
         if (topological_minor_recursion(extract_edge(G, v, G.get_neighbours(v)[0]), H, v, {})) return true;
     }
