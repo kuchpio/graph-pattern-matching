@@ -73,11 +73,14 @@ std::vector<core::Graph> utils::GraphFactory::components(const core::Graph& G) {
             stack.pop();
             visited[v] = true;
             for (auto neighbour : G.get_neighbours(v)) {
-                if (visited[neighbour] == true) continue;
-                stack.push(neighbour);
+                if (visited[neighbour] == false) {
+                    visited[neighbour] = true;
+                    stack.push(neighbour);
+                }
                 edges.push_back(std::make_tuple(v, neighbour));
             }
         }
+        if (edges.empty()) continue;
         auto Q = core::Graph(edges);
         remove_empty_vertices(Q);
         components.push_back(Q);

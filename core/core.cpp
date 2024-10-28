@@ -61,7 +61,7 @@ std::vector<std::tuple<int, int>> Graph::edges() const {
 
 bool Graph::remove_vertex(int v) {
 
-    if (this->_size < v - 1) return false;
+    if (v > 0 && this->_size < (v - 1)) return false;
 
     // find vertex remove all edges, push back all edges from upcoming vertices
     for (int i = 0; i < this->size(); i++) {
