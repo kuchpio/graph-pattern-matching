@@ -1,0 +1,3 @@
+[submodule "external/minorMiner"]
+	path = external/minorMiner
+	url = https://github.com/dwavesystems/minorminer.git
