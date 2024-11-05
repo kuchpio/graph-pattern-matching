@@ -1,10 +1,10 @@
 #include "core.h"
 #include "isomorphism_matcher.h"
 #include "minor_matcher.h"
-#include "pattern.h"
 #include "subgraph_matcher.h"
 #include "topological_minor_matcher.h"
 #include <cassert>
+
 bool random_graph_isomorphism_test();
 bool small_graph_not_isomorphic();
 bool subgraph_not_sub_isomorphic();
