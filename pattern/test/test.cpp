@@ -3,6 +3,7 @@
 #include "minor_matcher.h"
 #include "subgraph_matcher.h"
 #include "topological_minor_matcher.h"
+#include "utils.h"
 #include <cassert>
 
 bool random_graph_isomorphism_test();

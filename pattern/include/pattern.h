@@ -1,11 +1,9 @@
 ﻿#pragma once
 
 #include "core.h"
-#include "utils.h"
 
 namespace pattern
 {
-
 class PatternMatcher {
   public:
     virtual ~PatternMatcher() = default;
