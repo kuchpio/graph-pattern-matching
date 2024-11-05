@@ -1,6 +1,4 @@
 ﻿add_library(pattern STATIC 
-            "src/pattern.cpp" 
-            "src/cpu_pattern.cpp" 
             "src/subgraph_matcher.cpp"
             "src/isomorphism_matcher.cpp"
             "src/induced_subgraph_matcher.cpp"
