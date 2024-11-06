@@ -1,1 +1,1 @@
-add_subdirectory(minorMiner)
+add_subdirectory(minorminer)
