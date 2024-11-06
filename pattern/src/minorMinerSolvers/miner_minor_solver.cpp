@@ -28,10 +28,11 @@ namespace pattern
 bool MinerMinorMatcher::match(const core::Graph& G, const core::Graph& Q) {
     find_embedding::optional_parameters params;
     params.localInteractionPtr.reset(new MyCppInteractions);
+
     auto bigGraph = this->convert_graph(G);
     auto smallGraph = this->convert_graph(Q);
     std::vector<std::vector<int>> chains;
-    return find_embedding::findEmbedding(bigGraph, smallGraph, params, chains);
+    return find_embedding::findEmbedding(smallGraph, bigGraph, params, chains);
 }
 
 graph::input_graph MinerMinorMatcher::convert_graph(const core::Graph& G) {

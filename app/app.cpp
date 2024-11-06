@@ -3,6 +3,7 @@
 
 #include "image.h"
 #include "isomorphism_matcher.h"
+#include "miner_minor_matcher.hpp"
 #include "minor_matcher.h"
 #include "pattern.h"
 #include "subgraph_matcher.h"
@@ -36,6 +37,7 @@ int main() {
     G.add_edge(2, 3);
     G.add_edge(3, 0);
     G.add_edge(0, 4);
+
     G.add_edge(1, 5);
     G.add_edge(2, 6);
     G.add_edge(3, 7);
@@ -60,7 +62,7 @@ int main() {
     G.contract_edge(4, 5);
     */
 
-    auto matcher = pattern::MinorMatcher();
+    auto matcher = pattern::MinerMinorMatcher();
 
     // auto matcher = pattern::MinorMatcher();
 
