@@ -1,7 +1,7 @@
 #include "isomorphism_matcher.h"
-#include <bits/ranges_algo.h>
 #include <numeric>
-
+#include "utils.h"
+#include <algorithm>
 namespace pattern
 {
 bool IsomorphismMatcher::match(const core::Graph& bigGraph, const core::Graph& smallGraph) {
