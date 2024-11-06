@@ -6,6 +6,7 @@
             "src/induced_minor_matcher.cpp"
             "src/topological_minor_matcher.cpp"
             "src/topological_induced_minor_matcher.cpp"
+            "src/minorMinerSolvers/miner_minor_solver.cpp"
             )
 target_include_directories(pattern PUBLIC "include" ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-target_link_libraries(pattern core utils)
+target_link_libraries(pattern core utils minorminer pthread)
