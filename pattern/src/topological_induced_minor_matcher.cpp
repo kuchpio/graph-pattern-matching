@@ -26,8 +26,8 @@ bool TopologicalInducedMinorMatcher::topological_induced_minor_recursion(const c
     }
 
     if (G.degree_in(v) == 1 && G.degree_out(v) == 1) {
-        auto G_after_edge_extraction = extract_edge(G, v, G.get_neighbours(v)[0]);
-        if (topological_induced_minor_recursion(G_after_edge_extraction, H, v, std::nullopt)) return true;
+        auto G_after_edge_contraction = contract_edge(G, v, G.get_neighbours(v)[0]);
+        if (topological_induced_minor_recursion(G_after_edge_contraction, H, v, std::nullopt)) return true;
     }
 
     return topological_induced_minor_recursion(G, H, v + 1, std::nullopt);

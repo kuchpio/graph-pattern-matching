@@ -26,8 +26,8 @@ bool TopologicalMinorMatcher::topological_minor_recursion(const core::Graph& G, 
     }
 
     if (G.degree_in(v) == 1 && G.degree_out(v) == 1) {
-        auto G_after_edge_extraction = extract_edge(G, v, G.get_neighbours(v)[0]);
-        if (topological_minor_recursion(G_after_edge_extraction, H, v, std::nullopt)) return true;
+        auto G_after_edge_contraction = contract_edge(G, v, G.get_neighbours(v)[0]);
+        if (topological_minor_recursion(G_after_edge_contraction, H, v, std::nullopt)) return true;
     }
 
     for (int neighbour_index = start_neighbour_index; neighbour_index < G.get_neighbours(v).size(); neighbour_index++) {

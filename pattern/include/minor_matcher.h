@@ -15,7 +15,7 @@ class MinorMatcher : public PatternMatcher {
                          std::optional<int> last_neighbour_index);
     static core::Graph remove_vertex(const core::Graph& G, int v);
     static core::Graph remove_edge(const core::Graph& G, int u, int v);
-    static core::Graph extract_edge(const core::Graph& G, int u, int v);
+    static core::Graph contract_edge(const core::Graph& G, int u, int v);
     IsomorphismMatcher isomorphismMatcher = IsomorphismMatcher();
 };
 

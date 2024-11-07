@@ -18,7 +18,7 @@ class Graph {
     bool remove_vertices(std::vector<int> vertices);
     bool remove_edge(int u, int v);
     bool has_edge(int u, int v) const;
-    bool extract_edge(int u, int v);
+    bool contract_edge(int u, int v);
 
     int degree_in(int v) const;
     std::size_t size() const;

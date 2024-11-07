@@ -32,8 +32,8 @@ bool MinorMatcher::minor_recursion(const core::Graph& G, const core::Graph& H, s
         auto G_after_edge_removal = remove_edge(G, v, neighbour);
 
         if (minor_recursion(G_after_edge_removal, H, v, neighbour_index)) return true;
-        auto G_after_edge_extraction = extract_edge(G, v, neighbour);
-        if (minor_recursion(G_after_edge_extraction, H, v, neighbour_index)) return true;
+        auto G_after_edge_contraction = contract_edge(G, v, neighbour);
+        if (minor_recursion(G_after_edge_contraction, H, v, neighbour_index)) return true;
     }
 
     return minor_recursion(G, H, v + 1, std::nullopt);
@@ -51,9 +51,9 @@ core::Graph MinorMatcher::remove_edge(const core::Graph& G, int u, int v) {
     return Q;
 }
 
-core::Graph MinorMatcher::extract_edge(const core::Graph& G, int u, int v) {
+core::Graph MinorMatcher::contract_edge(const core::Graph& G, int u, int v) {
     core::Graph Q = core::Graph(G);
-    Q.extract_edge(u, v);
+    Q.contract_edge(u, v);
     return Q;
 }
 

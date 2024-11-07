@@ -27,8 +27,8 @@ bool InducedMinorMatcher::minor_induced_recursion(const core::Graph& G, const co
 
     for (int neighbour_index = start_neighbour_index; neighbour_index < G.get_neighbours(v).size(); neighbour_index++) {
         auto neighbour = G.get_neighbours(v)[neighbour_index];
-        auto G_after_edge_extraction = extract_edge(G, v, neighbour);
-        if (minor_induced_recursion(G_after_edge_extraction, H, v, neighbour_index)) return true;
+        auto G_after_edge_contraction = contract_edge(G, v, neighbour);
+        if (minor_induced_recursion(G_after_edge_contraction, H, v, neighbour_index)) return true;
     }
 
     return minor_induced_recursion(G, H, v + 1, std::nullopt);
