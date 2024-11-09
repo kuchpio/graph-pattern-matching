@@ -1,5 +1,7 @@
 ﻿cmake_minimum_required (VERSION 3.16 FATAL_ERROR)
 
+set(CMAKE_CXX_STANDARD 20)
+
 project("graph-pattern-matching")
 enable_language("CUDA")
 
@@ -10,6 +12,8 @@ include(CTest)
 add_subdirectory("external")
 
 add_subdirectory("core")
+
+add_subdirectory("utils")
 
 add_subdirectory("image")
 add_subdirectory("image/test")
