@@ -10,15 +10,15 @@ bool TopologicalInducedMinorMatcher::match(const core::Graph& G, const core::Gra
 };
 
 bool TopologicalInducedMinorMatcher::topological_induced_minor_recursion(const core::Graph& G, const core::Graph& H,
-                                                                         int v,
-                                                                         std::optional<int> last_neighbour_index) {
+                                                                         vertex v,
+                                                                         std::optional<vertex> last_neighbour_index) {
     if (H.size() > G.size()) return false;
 
     if (this->isomorphismMatcher.match(G, H)) return true;
 
     if (v >= G.size()) return false;
 
-    int start_neighbour_index = last_neighbour_index.value_or(0);
+    vertex start_neighbour_index = last_neighbour_index.value_or(0);
 
     if (G.size() > H.size()) {
         auto G_after_removal = remove_vertex(G, v);

@@ -14,11 +14,11 @@ bool IsomorphismMatcher::match(const core::Graph& bigGraph, const core::Graph& s
     auto G_components_by_size = std::vector<std::vector<core::Graph>>();
     auto Q_components_by_size = std::vector<std::vector<core::Graph>>();
 
-    int previous_size = G_components[0].size();
+    vertex previous_size = G_components[0].size();
     auto current_G_components = std::vector<core::Graph>();
     auto current_Q_components = std::vector<core::Graph>();
 
-    for (int i = 0; i < G_components.size(); i++) {
+    for (vertex i = 0; i < G_components.size(); i++) {
         if (G_components[i].size() != Q_components[i].size()) return false;
         if (G_components[i].size() != previous_size) {
             G_components_by_size.push_back(current_G_components);
@@ -38,7 +38,7 @@ bool IsomorphismMatcher::match(const core::Graph& bigGraph, const core::Graph& s
 
 bool IsomorphismMatcher::match_isomorphism_components(std::vector<std::vector<core::Graph>>& G_components_by_size,
                                                       std::vector<std::vector<core::Graph>>& Q_components_by_size) {
-    for (int i = 0; i < G_components_by_size.size(); i++) {
+    for (vertex i = 0; i < G_components_by_size.size(); i++) {
         bool match = false;
         for (const auto& G : G_components_by_size[i]) {
             for (const auto& Q : Q_components_by_size[i]) {
@@ -54,11 +54,11 @@ bool IsomorphismMatcher::connected_isomorphism(const core::Graph& G, const core:
 
     if (G.size() != Q.size()) return false;
 
-    std::unordered_map<int, int> Q_G_mapping = std::unordered_map<int, int>();
-    std::unordered_map<int, int> G_Q_mapping = std::unordered_map<int, int>();
+    std::unordered_map<vertex, vertex> Q_G_mapping = std::unordered_map<vertex, vertex>();
+    std::unordered_map<vertex, vertex> G_Q_mapping = std::unordered_map<vertex, vertex>();
     // bierzemy pierwszy wierzchołek
     // znajdz wierzcholek ktory maksymalizuje n(v)
-    auto vertex_indices = std::vector<int>(G.size());
+    auto vertex_indices = std::vector<vertex>(G.size());
     std::iota(vertex_indices.begin(), vertex_indices.end(), 0);
 
     // Find the row index with the maximum number of ones
@@ -69,13 +69,13 @@ bool IsomorphismMatcher::connected_isomorphism(const core::Graph& G, const core:
 }
 
 bool IsomorphismMatcher::is_isomorphism_recursion(const core::Graph& G, const core::Graph& Q,
-                                                  std::unordered_map<int, int>& Q_G_mapping,
-                                                  std::unordered_map<int, int>& G_Q_mapping, int v) {
+                                                  std::unordered_map<vertex, vertex>& Q_G_mapping,
+                                                  std::unordered_map<vertex, vertex>& G_Q_mapping, vertex v) {
 
     if (Q_G_mapping.size() == G.size()) return true;
 
     // find matching for v in Q
-    for (std::size_t u = 0; u < Q.size(); u++) {
+    for (vertex u = 0; u < Q.size(); u++) {
         if (Q_G_mapping.contains(u)) continue;
         if (G.degree_out(v) != Q.degree_out(u)) continue;
 

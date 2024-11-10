@@ -8,7 +8,7 @@ class TopologicalInducedMinorMatcher : public MinorMatcher {
     bool match(const core::Graph& G, const core::Graph& H);
 
   private:
-    bool topological_induced_minor_recursion(const core::Graph& G, const core::Graph& H, int v,
-                                             std::optional<int> last_neighbour_index);
+    bool topological_induced_minor_recursion(const core::Graph& G, const core::Graph& H, vertex v,
+                                             std::optional<vertex> last_neighbour_index);
 };
 } // namespace pattern

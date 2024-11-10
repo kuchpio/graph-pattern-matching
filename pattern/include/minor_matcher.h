@@ -11,11 +11,11 @@ class MinorMatcher : public PatternMatcher {
     bool match(const core::Graph& G, const core::Graph& H) override;
 
   protected:
-    bool minor_recursion(const core::Graph& G, const core::Graph& H, std::size_t v,
-                         std::optional<int> last_neighbour_index);
-    static core::Graph remove_vertex(const core::Graph& G, int v);
-    static core::Graph remove_edge(const core::Graph& G, int u, int v);
-    static core::Graph contract_edge(const core::Graph& G, int u, int v);
+    bool minor_recursion(const core::Graph& G, const core::Graph& H, vertex v,
+                         std::optional<vertex> last_neighbour_index);
+    static core::Graph remove_vertex(const core::Graph& G, vertex v);
+    static core::Graph remove_edge(const core::Graph& G, vertex u, vertex v);
+    static core::Graph contract_edge(const core::Graph& G, vertex u, vertex v);
     IsomorphismMatcher isomorphismMatcher = IsomorphismMatcher();
 };
 

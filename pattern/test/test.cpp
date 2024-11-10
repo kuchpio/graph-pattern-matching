@@ -29,7 +29,7 @@ int main() {
 }
 
 bool small_graph_not_isomorphic() {
-    int small_size = 5;
+    std::size_t small_size = 5;
     core::Graph G = core::Graph(small_size);
     core::Graph Q = core::Graph(small_size);
 
@@ -49,7 +49,7 @@ bool small_graph_not_isomorphic() {
 }
 
 bool small_graph_isomorphic() {
-    int small_size = 5;
+    std::size_t small_size = 5;
     core::Graph G = core::Graph(small_size);
     core::Graph Q = core::Graph(small_size);
 
@@ -78,8 +78,8 @@ bool random_graph_isomorphism_test() {
 }
 
 bool subgraph_not_sub_isomorphic() {
-    int graph_size = 6;
-    int subgraph_size = 4;
+    std::size_t graph_size = 6;
+    std::size_t subgraph_size = 4;
 
     // Create the larger graph G
     core::Graph G = core::Graph(graph_size);
@@ -105,8 +105,8 @@ bool subgraph_not_sub_isomorphic() {
 }
 
 bool small_graph_sub_isomorphic() {
-    int graph_size = 6;
-    int subgraph_size = 4;
+    std::size_t graph_size = 6;
+    std::size_t subgraph_size = 4;
 
     pattern::SubgraphMatcher matcher = pattern::SubgraphMatcher();
 
@@ -131,8 +131,8 @@ bool small_graph_sub_isomorphic() {
 }
 
 bool small_not_minor() {
-    int graph_size = 6;
-    int subgraph_size = 4;
+    std::size_t graph_size = 6;
+    std::size_t subgraph_size = 4;
 
     // Create the larger graph G
     core::Graph G = core::Graph(graph_size);
@@ -158,8 +158,8 @@ bool small_not_minor() {
 }
 
 bool small_has_minor() {
-    int graph_size = 8;
-    int subgraph_size = 5;
+    std::size_t graph_size = 8;
+    std::size_t subgraph_size = 5;
 
     // Create the larger graph G
     core::Graph G = core::Graph(graph_size);
@@ -196,8 +196,8 @@ bool small_has_minor() {
 
 bool has_minor_not_topological() {
 
-    int graph_size = 8;
-    int subgraph_size = 5;
+    std::size_t graph_size = 8;
+    std::size_t subgraph_size = 5;
 
     // Create the larger graph G
     core::Graph G = core::Graph(graph_size);

@@ -1,4 +1,5 @@
-﻿#include <iostream>
+﻿#include <cstddef>
+#include <iostream>
 
 #include "image.h"
 #include "isomorphism_matcher.h"
@@ -22,8 +23,8 @@ int main() {
 
     // runCudaTest();
 
-    int graph_size = 8;
-    int subgraph_size = 5;
+    vertex graph_size = 8;
+    vertex subgraph_size = 5;
 
     // Create the larger graph G
     core::Graph G = core::Graph(graph_size);

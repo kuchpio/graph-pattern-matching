@@ -14,7 +14,8 @@ class IsomorphismMatcher : public PatternMatcher {
                                       std::vector<std::vector<core::Graph>>& Q_components_by_size);
     bool connected_isomorphism(const core::Graph& G, const core::Graph& Q);
 
-    bool is_isomorphism_recursion(const core::Graph& G, const core::Graph& Q, std::unordered_map<int, int>& Q_G_mapping,
-                                  std::unordered_map<int, int>& G_Q_mapping, int v);
+    bool is_isomorphism_recursion(const core::Graph& G, const core::Graph& Q,
+                                  std::unordered_map<vertex, vertex>& Q_G_mapping,
+                                  std::unordered_map<vertex, vertex>& G_Q_mapping, vertex v);
 };
 } // namespace pattern
