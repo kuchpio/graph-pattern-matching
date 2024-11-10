@@ -121,11 +121,7 @@ vertex Graph::edge_count() const {
     return edge_count;
 }
 
-<<<<<<< HEAD
-bool Graph::contract_edge(int u, int v) {
-=======
 bool Graph::contract_edge(vertex u, vertex v) {
->>>>>>> c0af704 (changed int to vertex typedef)
     // przesun wszystkich sasiadow v do u
     for (auto neighbour : this->get_neighbours(v)) {
         if (neighbour == u) continue;

@@ -52,11 +52,7 @@ core::Graph MinorMatcher::remove_edge(const core::Graph& G, vertex u, vertex v) 
     return Q;
 }
 
-<<<<<<< HEAD
-core::Graph MinorMatcher::contract_edge(const core::Graph& G, int u, int v) {
-=======
 core::Graph MinorMatcher::contract_edge(const core::Graph& G, vertex u, vertex v) {
->>>>>>> c0af704 (changed int to vertex typedef)
     core::Graph Q = core::Graph(G);
     Q.contract_edge(u, v);
     return Q;
