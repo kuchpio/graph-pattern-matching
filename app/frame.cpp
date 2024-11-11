@@ -25,7 +25,7 @@ Frame::Frame(const wxString& title) : wxFrame(nullptr, wxID_ANY, title, wxDefaul
     mainPanelSizer->Add(topologicalMinorRadioButton, 0, wxALIGN_CENTER | wxLEFT, 10);
     mainPanelSizer->AddStretchSpacer(1);
     mainPanelSizer->Add(startMatchingButton, 0, wxALIGN_CENTER);
-    mainPanelSizer->Add(showMatchingButton, 0, wxALIGN_CENTER);
+    mainPanelSizer->Add(showMatchingButton, 0, wxALIGN_CENTER | wxLEFT, 5);
     mainPanelSizer->Add(matchingStatus, 0, wxALIGN_CENTER | wxLEFT, 10);
     mainPanelSizer->AddStretchSpacer(2);
     mainPanelSizer->Add(optionsButton, 0, wxALIGN_CENTER);

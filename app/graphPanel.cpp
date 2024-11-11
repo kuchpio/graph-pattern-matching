@@ -25,13 +25,14 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title) : wxPanel(parent
     auto fileInfoLabel = new wxStaticText(fileBoxSizer->GetStaticBox(), wxID_ANY, "test.g6 (graph6)");
     auto vertexCountInput = new wxTextCtrl(fileBoxSizer->GetStaticBox(), wxID_ANY);
     vertexCountInput->SetHint("Vertex count");
+    vertexCountInput->SetMinSize(wxSize(120, wxDefaultCoord));
     auto loadButton = new wxButton(fileBoxSizer->GetStaticBox(), wxID_ANY, "Load");
-    fileBoxSizer->Add(saveButton, 0, wxALIGN_CENTER);
-    fileBoxSizer->Add(openButton, 0, wxALIGN_CENTER);
-    fileBoxSizer->Add(fileInfoLabel, 0, wxALIGN_CENTER | wxLEFT, 10);
+    fileBoxSizer->Add(saveButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
+    fileBoxSizer->Add(openButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
+    fileBoxSizer->Add(fileInfoLabel, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
     fileBoxSizer->AddStretchSpacer(1);
-    fileBoxSizer->Add(vertexCountInput, 0, wxALIGN_CENTER);
-    fileBoxSizer->Add(loadButton, 0, wxALIGN_CENTER);
+    fileBoxSizer->Add(vertexCountInput, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
+    fileBoxSizer->Add(loadButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM | wxRIGHT, 5);
 
     auto modifyBoxSizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "Modifications");
     auto addButton = new wxButton(modifyBoxSizer->GetStaticBox(), wxID_ANY, "Add");
@@ -42,15 +43,15 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title) : wxPanel(parent
     auto subdivideButton = new wxButton(modifyBoxSizer->GetStaticBox(), wxID_ANY, "Subdivide");
     auto undoButton = new wxButton(modifyBoxSizer->GetStaticBox(), wxID_ANY, "Undo");
     auto redoButton = new wxButton(modifyBoxSizer->GetStaticBox(), wxID_ANY, "Redo");
-    modifyBoxSizer->Add(addButton, 0, wxALIGN_CENTER);
-    modifyBoxSizer->Add(deleteButton, 0, wxALIGN_CENTER);
-    modifyBoxSizer->Add(connectButton, 0, wxALIGN_CENTER);
-    modifyBoxSizer->Add(disconnectButton, 0, wxALIGN_CENTER);
-    modifyBoxSizer->Add(contractButton, 0, wxALIGN_CENTER);
-    modifyBoxSizer->Add(subdivideButton, 0, wxALIGN_CENTER);
+    modifyBoxSizer->Add(addButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
+    modifyBoxSizer->Add(deleteButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
+    modifyBoxSizer->Add(connectButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
+    modifyBoxSizer->Add(disconnectButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
+    modifyBoxSizer->Add(contractButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
+    modifyBoxSizer->Add(subdivideButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
     modifyBoxSizer->AddStretchSpacer(1);
-    modifyBoxSizer->Add(undoButton, 0, wxALIGN_CENTER);
-    modifyBoxSizer->Add(redoButton, 0, wxALIGN_CENTER);
+    modifyBoxSizer->Add(undoButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
+    modifyBoxSizer->Add(redoButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM | wxRIGHT, 5);
 
     auto drawBoxSizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "Drawing");
     auto anchorButton = new wxButton(drawBoxSizer->GetStaticBox(), wxID_ANY, "Anchor");
@@ -58,17 +59,17 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title) : wxPanel(parent
     auto autoVertexPositioningCheckbox = 
         new wxCheckBox(drawBoxSizer->GetStaticBox(), wxID_ANY, "Automatic vertex positioning");
     auto showFPSCheckbox = new wxCheckBox(drawBoxSizer->GetStaticBox(), wxID_ANY, "Show FPS");
-    drawBoxSizer->Add(anchorButton, 0, wxALIGN_CENTER);
-    drawBoxSizer->Add(freeButton, 0, wxALIGN_CENTER);
-    drawBoxSizer->Add(autoVertexPositioningCheckbox, 0, wxALIGN_CENTER | wxLEFT, 10);
+    drawBoxSizer->Add(anchorButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
+    drawBoxSizer->Add(freeButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
+    drawBoxSizer->Add(autoVertexPositioningCheckbox, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
     drawBoxSizer->AddStretchSpacer(1);
-    drawBoxSizer->Add(showFPSCheckbox, 0, wxALIGN_CENTER);
+    drawBoxSizer->Add(showFPSCheckbox, 0, wxALIGN_CENTER | wxRIGHT | wxBOTTOM, 5);
 
     auto testBoxSizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "Testing");
     auto initButton = new wxButton(testBoxSizer->GetStaticBox(), wxID_ANY, "Create");
     auto colorButton = new wxButton(testBoxSizer->GetStaticBox(), wxID_ANY, "Color");
-    testBoxSizer->Add(initButton, 0, wxALIGN_CENTER);
-    testBoxSizer->Add(colorButton, 0, wxALIGN_CENTER);
+    testBoxSizer->Add(initButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
+    testBoxSizer->Add(colorButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
     testBoxSizer->AddStretchSpacer(1);
 
     sizer->Add(nameLabel, 0, wxALIGN_CENTER | wxTOP, 5);
