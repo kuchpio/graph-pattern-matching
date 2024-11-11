@@ -7,7 +7,7 @@
 
 class GraphPanel : public wxPanel {
   public:
-    GraphPanel(wxWindow* parent);
+    GraphPanel(wxWindow* parent, const wxString& title);
     ~GraphPanel();
 
   private:
