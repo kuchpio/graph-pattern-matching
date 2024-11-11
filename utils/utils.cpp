@@ -19,19 +19,19 @@ core::Graph utils::GraphFactory::isomoporhic_graph(const core::Graph& G) {
     std::srand(unsigned(SEED));
 
     // Shuffle vertices
-    std::vector<int> shuffled_vertices(G.size());
+    std::vector<vertex> shuffled_vertices(G.size());
     std::iota(shuffled_vertices.begin(), shuffled_vertices.end(), 0);
     std::shuffle(shuffled_vertices.begin(), shuffled_vertices.end(), std::default_random_engine{});
 
     // Create mapping
-    std::unordered_map<int, int> mapping = std::unordered_map<int, int>();
-    for (int i = 0; i < G.size(); i++) {
+    std::unordered_map<vertex, vertex> mapping = std::unordered_map<vertex, vertex>();
+    for (vertex i = 0; i < G.size(); i++) {
         mapping[i] = shuffled_vertices[i];
     }
 
     // Create new Graph
     core::Graph Q = core::Graph(G.size());
-    for (int i = 0; i < G.size(); i++) {
+    for (vertex i = 0; i < G.size(); i++) {
 
         auto neighbours = G.get_neighbours(i);
 
@@ -42,11 +42,11 @@ core::Graph utils::GraphFactory::isomoporhic_graph(const core::Graph& G) {
     return Q;
 }
 
-core::Graph utils::GraphFactory::random_graph(int n, float edge_propability) {
+core::Graph utils::GraphFactory::random_graph(std::size_t n, float edge_propability) {
     core::Graph G = core::Graph(n);
 
-    for (int i = 0; i < G.size(); i++) {
-        for (int j = 0; j < G.size(); j++) {
+    for (vertex i = 0; i < G.size(); i++) {
+        for (vertex j = 0; j < G.size(); j++) {
             if (j == i) continue;
             float randomValue = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
 
@@ -62,22 +62,25 @@ std::vector<core::Graph> utils::GraphFactory::components(const core::Graph& G) {
     std::vector<bool> visited = std::vector<bool>(G.size());
     std::vector<core::Graph> components = std::vector<core::Graph>();
 
-    std::stack<int> stack = std::stack<int>();
-    for (int v = 0; v < G.size(); v++) {
+    std::stack<vertex> stack = std::stack<vertex>();
+    for (vertex v = 0; v < G.size(); v++) {
         if (visited[v]) continue;
 
-        std::vector<std::tuple<int, int>> edges = std::vector<std::tuple<int, int>>();
+        std::vector<std::tuple<vertex, vertex>> edges = std::vector<std::tuple<vertex, vertex>>();
         stack.push(v);
         while (stack.empty() == false) {
             v = stack.top();
             stack.pop();
             visited[v] = true;
             for (auto neighbour : G.get_neighbours(v)) {
-                if (visited[neighbour] == true) continue;
-                stack.push(neighbour);
+                if (visited[neighbour] == false) {
+                    visited[neighbour] = true;
+                    stack.push(neighbour);
+                }
                 edges.push_back(std::make_tuple(v, neighbour));
             }
         }
+        if (edges.empty()) continue;
         auto Q = core::Graph(edges);
         remove_empty_vertices(Q);
         components.push_back(Q);
@@ -91,28 +94,28 @@ std::vector<core::Graph> utils::GraphFactory::components(const core::Graph& G) {
     return components;
 }
 
-std::vector<int> empty_vertices_indices(const std::vector<bool>& vec) {
-    std::vector<int> false_vertices;
+std::vector<vertex> empty_vertices_indices(const std::vector<bool>& vec) {
+    std::vector<vertex> false_vertices;
 
-    for (int i = 0; i < vec.size(); i++) {
+    for (vertex i = 0; i < vec.size(); i++) {
         if (vec[i] == false) false_vertices.push_back(i);
     }
     return false_vertices;
 }
 
-std::vector<int> get_empty_vertices(const core::Graph& G) {
+std::vector<vertex> get_empty_vertices(const core::Graph& G) {
 
     std::vector<bool> visited = std::vector<bool>(G.size());
 
-    std::stack<int> stack = std::stack<int>();
-    int v = 0;
-    while (G.neighbours_count(v) == 0)
+    std::stack<vertex> stack = std::stack<vertex>();
+    vertex v = 0;
+    while (G.degree_out(v) == 0)
         v++;
 
     stack.push(v);
 
     while (stack.empty() == false) {
-        int v = stack.top();
+        vertex v = stack.top();
         stack.pop();
         visited[v] = true;
 
