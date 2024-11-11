@@ -56,12 +56,6 @@ int main() {
     Q.add_edge(2, 4);
     Q.add_edge(3, 4);
 
-    /*
-    G.contract_edge(4, 5);
-    G.contract_edge(4, 5);
-    G.contract_edge(4, 5);
-    */
-
     auto matcher = pattern::MinerMinorMatcher();
 
     // auto matcher = pattern::MinorMatcher();
