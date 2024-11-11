@@ -136,7 +136,7 @@ void remove_empty_vertices(core::Graph& G) {
 core::Graph GraphFactory::random_spanning_tree(std::size_t vertex_count) {
     core::Graph SpanningTree = core::Graph(vertex_count);
 
-    auto vertices = shuffled_vertices(vertex_count, SEED);
+    auto vertices = shuffled_vertices(vertex_count);
     std::vector<bool> visited = std::vector<bool>(vertex_count);
 
     auto current_vertex = vertices.back();
@@ -150,16 +150,66 @@ core::Graph GraphFactory::random_spanning_tree(std::size_t vertex_count) {
             SpanningTree.add_edge(current_vertex, neighbour);
             visited[neighbour] = true;
         }
-    } // create vector of vertices and random shuffle
-
+    }
     return SpanningTree;
 }
 
-std::vector<std::size_t> GraphFactory::shuffled_vertices(std::size_t vertex_count, int seed) {
+core::Graph GraphFactory::random_connected_graph(std::size_t vertex_count, float edge_probability) {
+    auto spanningTree = random_spanning_tree(vertex_count);
+
+    srand(SEED);
+
+    for (int v = 0; v < spanningTree.size(); v++) {
+        for (int u = 0; u < spanningTree.size(); u++) {
+            if (u == v) continue;
+            float probability = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+            if (probability > edge_probability) {
+                spanningTree.add_edge(v, u);
+            }
+        }
+    }
+    return spanningTree;
+}
+
+core::Graph GraphFactory::random_minor(core::Graph G, std::size_t minorSize) {
+
+    while (G.size() > minorSize) {
+        std::size_t randomVertex = rand() % G.size();
+        random_minor_operation(G, randomVertex);
+    }
+    return G;
+}
+
+std::size_t random_neighbour(const core::Graph& G, int v) {
+    auto neighbours = G.get_neighbours(v);
+    std::size_t random_index = rand() % neighbours.size();
+    return neighbours[random_index];
+}
+
+void GraphFactory::random_minor_operation(core::Graph& G, int v) {
+    // choose random operation
+    int random_operation = rand() % 3;
+
+    std::size_t randomNeighbour;
+    switch (random_operation) {
+    case 0:
+        G.remove_vertex(v);
+        break;
+    case 1:
+        randomNeighbour = random_neighbour(G, v);
+        G.remove_edge(v, randomNeighbour);
+        break;
+    case 2:
+        randomNeighbour = random_neighbour(G, v);
+        G.contract_edge(v, randomNeighbour);
+        break;
+    }
+}
+
+std::vector<std::size_t> GraphFactory::shuffled_vertices(std::size_t vertex_count) {
     std::vector<std::size_t> vertices = std::vector<std::size_t>(vertex_count);
     std::iota(vertices.begin(), vertices.end(), 0);
 
-    srand(seed);
     std::shuffle(vertices.begin(), vertices.end(), std::mt19937());
     return vertices;
 }
