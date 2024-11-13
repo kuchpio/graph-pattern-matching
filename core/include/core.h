@@ -21,6 +21,7 @@ class Graph {
     bool remove_edge(vertex u, vertex v);
     bool has_edge(vertex u, vertex v) const;
     bool contract_edge(vertex u, vertex v);
+    bool is_subgraph(const core::Graph& G) const;
 
     // operator
     bool operator==(const core::Graph& G) const;

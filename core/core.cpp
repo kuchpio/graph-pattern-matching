@@ -184,4 +184,13 @@ bool Graph::operator==(const core::Graph& G) const {
     return this->_adjacencyList == G._adjacencyList;
 }
 
+bool Graph::is_subgraph(const core::Graph& subgprah) const {
+    for (auto v = 0; v < subgprah.size(); v++) {
+        for (auto u : subgprah.get_neighbours(v)) {
+            if (this->has_edge(v, u) == false) return false;
+        }
+    }
+    return true;
+}
+
 } // namespace core
