@@ -24,23 +24,7 @@ core::Graph utils::GraphFactory::isomoporhic_graph(const core::Graph& G) {
     std::iota(shuffled_vertices.begin(), shuffled_vertices.end(), 0);
     std::shuffle(shuffled_vertices.begin(), shuffled_vertices.end(), std::default_random_engine{});
 
-    // Create mapping
-    std::unordered_map<vertex, vertex> mapping = std::unordered_map<vertex, vertex>();
-    for (vertex i = 0; i < G.size(); i++) {
-        mapping[i] = shuffled_vertices[i];
-    }
-
-    // Create new Graph
-    core::Graph Q = core::Graph(G.size());
-    for (vertex i = 0; i < G.size(); i++) {
-
-        auto neighbours = G.get_neighbours(i);
-
-        for (const auto& u : neighbours) {
-            Q.add_edge(mapping[i], mapping[u]);
-        }
-    }
-    return Q;
+    return G.reorder(shuffled_vertices);
 }
 
 core::Graph utils::GraphFactory::random_graph(std::size_t n, float edge_propability) {

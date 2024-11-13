@@ -5,6 +5,7 @@
 #include "isomorphism_matcher.h"
 #include "miner_minor_matcher.hpp"
 #include "minor_matcher.h"
+#include "nauty_isomorphism_matcher.hpp"
 #include "pattern.h"
 #include "subgraph_matcher.h"
 #include "utils.h"
@@ -24,14 +25,9 @@ int main() {
 
     // runCudaTest();
 
-    vertex graph_size = 8;
-    vertex subgraph_size = 5;
-
-    // Create the larger graph G
-    core::Graph G = utils::GraphFactory::random_connected_graph(graph_size);
-    core::Graph Q = utils::GraphFactory::random_minor(G, subgraph_size);
-
-    auto matcher = pattern::MinerMinorMatcher();
+    core::Graph G = utils::GraphFactory::random_connected_graph(30, 0.4f);
+    core::Graph Q = utils::GraphFactory::isomoporhic_graph(G);
+    auto matcher = pattern::NautyIsomorphismMatcher();
 
     // auto matcher = pattern::MinorMatcher();
 
