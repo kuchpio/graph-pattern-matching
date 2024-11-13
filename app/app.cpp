@@ -10,6 +10,7 @@
 #include "subgraph_matcher.h"
 #include "utils.h"
 #include "cudaTest.h"
+#include "vf3_subgraph_solver.hpp"
 
 int main() {
     /*
@@ -27,7 +28,7 @@ int main() {
 
     core::Graph G = utils::GraphFactory::random_connected_graph(30, 0.4f);
     core::Graph Q = utils::GraphFactory::isomoporhic_graph(G);
-    auto matcher = pattern::NautyIsomorphismMatcher();
+    auto matcher = pattern::Vf3SubgraphSolver();
 
     // auto matcher = pattern::MinorMatcher();
 
