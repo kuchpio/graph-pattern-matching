@@ -1,2 +1,2 @@
 add_subdirectory(minorminer)
-add_subdirectory(vf3lib)
+add_subdirectory(vf2lib)

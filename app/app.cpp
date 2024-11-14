@@ -5,12 +5,12 @@
 #include "isomorphism_matcher.h"
 #include "miner_minor_matcher.hpp"
 #include "minor_matcher.h"
-#include "nauty_isomorphism_matcher.hpp"
 #include "pattern.h"
 #include "subgraph_matcher.h"
 #include "utils.h"
 #include "cudaTest.h"
-#include "vf3_subgraph_solver.hpp"
+#include "vf2_induced_subgraph_solver.hpp"
+#include "vf2_subgraph_solver.hpp"
 
 int main() {
     /*
@@ -28,7 +28,7 @@ int main() {
 
     core::Graph G = utils::GraphFactory::random_connected_graph(30, 0.4f);
     core::Graph Q = utils::GraphFactory::isomoporhic_graph(G);
-    auto matcher = pattern::Vf3SubgraphSolver();
+    auto matcher = pattern::Vf2InducedSubgraphSolver();
 
     // auto matcher = pattern::MinorMatcher();
 

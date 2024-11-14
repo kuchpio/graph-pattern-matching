@@ -1,7 +1,6 @@
 #include "core.h"
 #include "isomorphism_matcher.h"
 #include "minor_matcher.h"
-#include "nauty_isomorphism_matcher.hpp"
 #include "subgraph_matcher.h"
 #include "topological_minor_matcher.h"
 #include "utils.h"
@@ -74,7 +73,7 @@ bool small_graph_isomorphic() {
 bool random_graph_isomorphism_test() {
     core::Graph G = utils::GraphFactory::random_connected_graph(30, 0.4f);
     core::Graph Q = utils::GraphFactory::isomoporhic_graph(G);
-    auto matcher = pattern::NautyIsomorphismMatcher();
+    auto matcher = pattern::IsomorphismMatcher();
     return matcher.match(G, Q);
 }
 

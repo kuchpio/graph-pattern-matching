@@ -2,15 +2,15 @@
 
 #include "core.h"
 #include "pattern.h"
-#include "nauty_traces.h"
+#include "argraph.h"
 
 namespace pattern
 {
-class NautyIsomorphismMatcher : public PatternMatcher {
+class Vf2SubgraphSolver : public PatternMatcher {
   public:
     bool match(const core::Graph& bigGraph, const core::Graph& smallGraph);
 
   private:
-    NTSparseGraph convert_graph(const core::Graph& G);
+    Graph convert_graph(const core::Graph& G);
 };
 } // namespace pattern

@@ -1,9 +1,3 @@
 [submodule "external/minorminer"]
 	path = external/minorminer
 	url = git@github.com:Willu12/minorminer.git
-[submodule "external/nauty"]
-	path = external/nauty
-	url = https://github.com/schemanoise/Nauty_and_Traces.git
-[submodule "external/vf3lib"]
-	path = external/vf3lib
-	url = https://github.com/MiviaLab/vf3lib.git

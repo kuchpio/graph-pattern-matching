@@ -2,15 +2,15 @@
 
 #include "core.h"
 #include "pattern.h"
-#include "VFLib.h"
+#include "argraph.h"
 
 namespace pattern
 {
-class Vf3SubgraphSolver : public PatternMatcher {
+class Vf2InducedSubgraphSolver : public PatternMatcher {
   public:
     bool match(const core::Graph& bigGraph, const core::Graph& smallGraph);
 
   private:
-    vflib::ARGraph<vertex, int> convert_graph(const core::Graph& G);
+    Graph convert_graph(const core::Graph& G);
 };
 } // namespace pattern
