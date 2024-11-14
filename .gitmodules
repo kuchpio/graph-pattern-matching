@@ -1,3 +1,6 @@
 [submodule "external/minorminer"]
 	path = external/minorminer
 	url = git@github.com:Willu12/minorminer.git
+[submodule "external/vf2lib"]
+	path = external/vf2lib
+	url = git@github.com:Willu12/vf2lib.git
