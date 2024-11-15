@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include "wx/wx.h"
+#include "core.h"
 
 #include "graphCanvas.h"
 
@@ -13,8 +14,7 @@ class GraphPanel : public wxPanel {
   private:
     GraphCanvas* canvas{nullptr};
 
-    unsigned int vertexCount = 0;
-    bool* adjecencyMatrix = nullptr;
+    core::Graph graph;
     unsigned int readBufferId = 0;
     float* vertexPositions2D[2] = {nullptr, nullptr};
     float* vertexVelocities2D[2] = {nullptr, nullptr};
@@ -23,6 +23,6 @@ class GraphPanel : public wxPanel {
     using animationClock = std::chrono::high_resolution_clock;
     std::chrono::time_point<animationClock> lastFrameTime;
 
-    void InitRandomGraph(unsigned int vertexCount);
+    void InitRandomGraph(vertex vertexCount);
     void OnIdle(wxIdleEvent& event);
 };

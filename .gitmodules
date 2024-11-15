@@ -1,3 +1,6 @@
 [submodule "external/wxWidgets"]
 	path = external/wxWidgets
 	url = https://github.com/wxWidgets/wxWidgets.git
+[submodule "external/googletest"]
+	path = external/googletest
+	url = https://github.com/google/googletest.git

@@ -1,11 +1,12 @@
 #include "wx/glcanvas.h"
 #include "wx/colordlg.h"
 #include <chrono>
+#include "utils.h"
 
 #include "graphPanel.h"
 #include "graphCanvas.h"
 
-GraphPanel::GraphPanel(wxWindow* parent, const wxString& title) : wxPanel(parent) {
+GraphPanel::GraphPanel(wxWindow* parent, const wxString& title) : wxPanel(parent), graph(0) {
     auto sizer = new wxBoxSizer(wxVERTICAL);
 
     wxGLAttributes vAttrs;
@@ -99,33 +100,28 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title) : wxPanel(parent
 }
 
 GraphPanel::~GraphPanel() {
-    if (adjecencyMatrix)       delete[] adjecencyMatrix;
     if (vertexPositions2D[0])  delete[] vertexPositions2D[0];
     if (vertexPositions2D[1])  delete[] vertexPositions2D[1];
     if (vertexVelocities2D[0]) delete[] vertexVelocities2D[0];
     if (vertexVelocities2D[1]) delete[] vertexVelocities2D[1];
 }
 
-void GraphPanel::InitRandomGraph(unsigned int vertexCount) {
-    if (adjecencyMatrix)       delete[] adjecencyMatrix;
+void GraphPanel::InitRandomGraph(vertex vertexCount) {
     if (vertexPositions2D[0])  delete[] vertexPositions2D[0];
     if (vertexPositions2D[1])  delete[] vertexPositions2D[1];
     if (vertexVelocities2D[0]) delete[] vertexVelocities2D[0];
     if (vertexVelocities2D[1]) delete[] vertexVelocities2D[1];
 
-    adjecencyMatrix          = new bool[vertexCount * vertexCount];
     vertexPositions2D[0]     = new float[2 * vertexCount];
     vertexPositions2D[1]     = new float[2 * vertexCount];
     vertexVelocities2D[0]    = new float[2 * vertexCount];
     vertexVelocities2D[1]    = new float[2 * vertexCount];
-    this->vertexCount = vertexCount;
+    graph = utils::GraphFactory::random_graph(vertexCount, 0.5f);
 
     std::vector<unsigned int> edges;
     for (unsigned int i = 0; i < vertexCount; i++) {
         for (unsigned int j = 0; j < i; j++) {
-            bool isEdge = rand() & 0b1;
-            adjecencyMatrix[i * vertexCount + j] = adjecencyMatrix[j * vertexCount + i] = isEdge;
-            if (isEdge) {
+            if (graph.has_edge(i, j)) {
                 edges.push_back(i);
                 edges.push_back(j);
             }
@@ -147,7 +143,7 @@ void GraphPanel::OnIdle(wxIdleEvent& event) {
         return;
     }
 
-    for (unsigned int i = 0; i < vertexCount; i++) {
+    for (unsigned int i = 0; i < graph.size(); i++) {
         float x = vertexPositions2D[readBufferId][2 * i];
         float y = vertexPositions2D[readBufferId][2 * i + 1];
 
@@ -157,12 +153,13 @@ void GraphPanel::OnIdle(wxIdleEvent& event) {
         float a_x = gravityCoefficient * x;
         float a_y = gravityCoefficient * y;
 
-        for (unsigned int j = 0; j < vertexCount; j++) {
+        for (unsigned int j = 0; j < graph.size(); j++) {
+            if (i == j) continue;
             float dx = x - vertexPositions2D[readBufferId][2 * j];
             float dy = y - vertexPositions2D[readBufferId][2 * j + 1];
             float dist = sqrtf(dx * dx + dy * dy);
             
-            float springCoefficient = !adjecencyMatrix[i * vertexCount + j] || dist < 0.01f
+            float springCoefficient = !graph.has_edge(i, j) || !graph.has_edge(j, i) || dist < 0.01f
                 ? 0.0f : C[0] * logf(dist / C[1]) / dist;
             float repelCoefficient = dist < 0.0001f ? 0.0f : C[2] / (dist * dist * dist);
 
@@ -184,7 +181,7 @@ void GraphPanel::OnIdle(wxIdleEvent& event) {
     }
 
     readBufferId = 1 - readBufferId;
-    canvas->SetVertexPositions(vertexPositions2D[readBufferId], vertexCount);
+    canvas->SetVertexPositions(vertexPositions2D[readBufferId], graph.size());
 
     canvas->Refresh();
     event.RequestMore();

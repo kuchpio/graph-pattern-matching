@@ -7,11 +7,12 @@ enable_language("CUDA")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-include(CTest)
+enable_testing()
 
 add_subdirectory("external")
 
 add_subdirectory("core")
+add_subdirectory("core/test")
 
 add_subdirectory("utils")
 
