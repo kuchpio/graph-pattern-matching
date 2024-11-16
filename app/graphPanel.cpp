@@ -1,5 +1,7 @@
 #include "wx/glcanvas.h"
 #include "wx/colordlg.h"
+#include "wx/wfstream.h"
+#include "wx/txtstrm.h"
 #include <chrono>
 #include "utils.h"
 
@@ -23,7 +25,7 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title) : wxPanel(parent
     auto fileBoxSizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "Files");
     auto saveButton = new wxButton(fileBoxSizer->GetStaticBox(), wxID_ANY, "Save");
     auto openButton = new wxButton(fileBoxSizer->GetStaticBox(), wxID_ANY, "Open");
-    auto fileInfoLabel = new wxStaticText(fileBoxSizer->GetStaticBox(), wxID_ANY, "test.g6 (graph6)");
+    auto fileInfoLabel = new wxStaticText(fileBoxSizer->GetStaticBox(), wxID_ANY, "Open a file to load the graph.");
     auto vertexCountInput = new wxTextCtrl(fileBoxSizer->GetStaticBox(), wxID_ANY);
     vertexCountInput->SetHint("Vertex count");
     vertexCountInput->SetMinSize(wxSize(120, wxDefaultCoord));
@@ -80,8 +82,57 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title) : wxPanel(parent
     sizer->Add(testBoxSizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 5);
     this->SetSizerAndFit(sizer);
 
+    openButton->Bind(wxEVT_BUTTON, [this, fileInfoLabel](wxCommandEvent& event) { 
+        auto fileDialog = new wxFileDialog(
+            this, "Choose a file to open", wxEmptyString, wxEmptyString,
+            "Graph6 files (*.g6)|*.g6", wxFD_OPEN);
+
+        if (fileDialog->ShowModal() == wxID_OK) {
+            wxFileInputStream inputStream(fileDialog->GetPath());
+            
+            if (!inputStream.IsOk()) {
+                wxMessageBox("Could not open file: " + fileDialog->GetFilename());
+            } else {
+                wxTextInputStream graph6Stream(inputStream, wxT("\x09"), wxConvUTF8);
+                try {
+                    graph = Graph6Serializer::Deserialize(graph6Stream.ReadLine().ToStdString());
+                    fileInfoLabel->SetLabel(fileDialog->GetFilename() + " (Graph6)");
+                    InitGraphSimulation();
+                } catch (const graph6FormatError& err) {
+                    wxMessageBox(err.what());
+                }
+            }
+        }
+
+        fileDialog->Destroy();
+    });
+
+    saveButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
+        auto fileDialog = new wxFileDialog(
+            this, "Save the graph to file", wxEmptyString, wxEmptyString,
+            "Graph6 files (*.g6)|*.g6", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+        if (fileDialog->ShowModal() == wxID_OK) {
+            wxFileOutputStream outputStream(fileDialog->GetPath());
+            
+            if (!outputStream.IsOk()) {
+                wxMessageBox("Cannot save the graph in file: " + fileDialog->GetFilename());
+            } else {
+                wxTextOutputStream graph6Stream(outputStream, wxEOL_NATIVE, wxConvUTF8);
+                try {
+                    graph6Stream << Graph6Serializer::Serialize(graph);
+                } catch (const graph6FormatError& err) {
+                    wxMessageBox(err.what());
+                }
+            }
+        }
+
+        fileDialog->Destroy();
+    });
+
     initButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) { 
-        InitRandomGraph(5);
+        graph = utils::GraphFactory::random_graph(5, 0.5f);
+        InitGraphSimulation();
     });
 
     colorButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
@@ -106,20 +157,19 @@ GraphPanel::~GraphPanel() {
     if (vertexVelocities2D[1]) delete[] vertexVelocities2D[1];
 }
 
-void GraphPanel::InitRandomGraph(vertex vertexCount) {
+void GraphPanel::InitGraphSimulation() {
     if (vertexPositions2D[0])  delete[] vertexPositions2D[0];
     if (vertexPositions2D[1])  delete[] vertexPositions2D[1];
     if (vertexVelocities2D[0]) delete[] vertexVelocities2D[0];
     if (vertexVelocities2D[1]) delete[] vertexVelocities2D[1];
 
-    vertexPositions2D[0]     = new float[2 * vertexCount];
-    vertexPositions2D[1]     = new float[2 * vertexCount];
-    vertexVelocities2D[0]    = new float[2 * vertexCount];
-    vertexVelocities2D[1]    = new float[2 * vertexCount];
-    graph = utils::GraphFactory::random_graph(vertexCount, 0.5f);
+    vertexPositions2D[0] = new float[2 * graph.size()];
+    vertexPositions2D[1] = new float[2 * graph.size()];
+    vertexVelocities2D[0] = new float[2 * graph.size()];
+    vertexVelocities2D[1] = new float[2 * graph.size()];
 
     std::vector<unsigned int> edges;
-    for (unsigned int i = 0; i < vertexCount; i++) {
+    for (unsigned int i = 0; i < graph.size(); i++) {
         for (unsigned int j = 0; j < i; j++) {
             if (graph.has_edge(i, j)) {
                 edges.push_back(i);
@@ -130,7 +180,7 @@ void GraphPanel::InitRandomGraph(vertex vertexCount) {
         vertexPositions2D[readBufferId][2 * i + 1] = 2 * ((float)rand() / RAND_MAX) - 1;
         vertexVelocities2D[readBufferId][2 * i] = vertexVelocities2D[readBufferId][2 * i + 1] = 0.0f;
     }
-    canvas->SetVertexPositions(vertexPositions2D[readBufferId], vertexCount);
+    canvas->SetVertexPositions(vertexPositions2D[readBufferId], graph.size());
     canvas->SetEdges(edges.data(), edges.size() / 2);
 }
 

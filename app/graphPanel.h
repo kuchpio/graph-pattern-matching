@@ -23,6 +23,6 @@ class GraphPanel : public wxPanel {
     using animationClock = std::chrono::high_resolution_clock;
     std::chrono::time_point<animationClock> lastFrameTime;
 
-    void InitRandomGraph(vertex vertexCount);
+    void InitGraphSimulation();
     void OnIdle(wxIdleEvent& event);
 };
