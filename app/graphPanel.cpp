@@ -95,10 +95,10 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title) : wxPanel(parent
             } else {
                 wxTextInputStream graph6Stream(inputStream, wxT("\x09"), wxConvUTF8);
                 try {
-                    graph = Graph6Serializer::Deserialize(graph6Stream.ReadLine().ToStdString());
+                    graph = core::Graph6Serializer::Deserialize(graph6Stream.ReadLine().ToStdString());
                     fileInfoLabel->SetLabel(fileDialog->GetFilename() + " (Graph6)");
                     InitGraphSimulation();
-                } catch (const graph6FormatError& err) {
+                } catch (const core::graph6FormatError& err) {
                     wxMessageBox(err.what());
                 }
             }
@@ -120,8 +120,8 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title) : wxPanel(parent
             } else {
                 wxTextOutputStream graph6Stream(outputStream, wxEOL_NATIVE, wxConvUTF8);
                 try {
-                    graph6Stream << Graph6Serializer::Serialize(graph);
-                } catch (const graph6FormatError& err) {
+                    graph6Stream << core::Graph6Serializer::Serialize(graph);
+                } catch (const core::graph6FormatError& err) {
                     wxMessageBox(err.what());
                 }
             }

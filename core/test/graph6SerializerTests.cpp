@@ -1,14 +1,11 @@
 #include "core.h"
 #include "gtest/gtest.h"
 
+namespace core
+{
+
 TEST(Graph6Deserialize, Path_5) {
-    const bool expectedAdjecencyMatrix[] = {
-        0, 0, 1, 0, 1, 
-        0, 0, 0, 1, 0, 
-        1, 0, 0, 0, 0, 
-        0, 1, 0, 0, 1, 
-        1, 0, 0, 1, 0
-    };
+    const bool expectedAdjecencyMatrix[] = {0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0};
 
     auto graph = Graph6Serializer::Deserialize("DQc");
 
@@ -23,13 +20,7 @@ TEST(Graph6Deserialize, Path_5) {
 }
 
 TEST(Graph6Deserialize, Cycle_5) {
-    const bool expectedAdjecencyMatrix[] = {
-        0, 1, 0, 1, 0, 
-        1, 0, 0, 0, 1, 
-        0, 0, 0, 1, 1, 
-        1, 0, 1, 0, 0, 
-        0, 1, 1, 0, 0
-    };
+    const bool expectedAdjecencyMatrix[] = {0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0};
 
     auto graph = Graph6Serializer::Deserialize("DdW");
 
@@ -44,13 +35,7 @@ TEST(Graph6Deserialize, Cycle_5) {
 }
 
 TEST(Graph6Deserialize, Star_5) {
-    const bool expectedAdjecencyMatrix[] = {
-        0, 0, 1, 0, 0, 
-        0, 0, 1, 0, 0, 
-        1, 1, 0, 1, 1, 
-        0, 0, 1, 0, 0, 
-        0, 0, 1, 0, 0
-    };
+    const bool expectedAdjecencyMatrix[] = {0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0};
 
     auto graph = Graph6Serializer::Deserialize("DXG");
 
@@ -65,12 +50,7 @@ TEST(Graph6Deserialize, Star_5) {
 }
 
 TEST(Graph6Deserialize, Full_4) {
-    const bool expectedAdjecencyMatrix[] = {
-        0, 1, 1, 1, 
-        1, 0, 1, 1, 
-        1, 1, 0, 1, 
-        1, 1, 1, 0
-    };
+    const bool expectedAdjecencyMatrix[] = {0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0};
 
     auto graph = Graph6Serializer::Deserialize("C~");
 
@@ -192,3 +172,5 @@ TEST(Graph6Serialize, Full_4) {
 
     EXPECT_EQ(graph6, "C~");
 }
+
+} // namespace core
