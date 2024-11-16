@@ -157,6 +157,10 @@ GraphPanel::~GraphPanel() {
     if (vertexVelocities2D[1]) delete[] vertexVelocities2D[1];
 }
 
+const core::Graph& GraphPanel::GetGraph() const {
+    return graph;
+}
+
 void GraphPanel::InitGraphSimulation() {
     if (vertexPositions2D[0])  delete[] vertexPositions2D[0];
     if (vertexPositions2D[1])  delete[] vertexPositions2D[1];

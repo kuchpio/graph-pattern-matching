@@ -11,6 +11,8 @@ class GraphPanel : public wxPanel {
     GraphPanel(wxWindow* parent, const wxString& title);
     ~GraphPanel();
 
+    const core::Graph& GetGraph() const;
+
   private:
     GraphCanvas* canvas{nullptr};
 
