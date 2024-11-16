@@ -2,7 +2,13 @@
 #include "gtest/gtest.h"
 
 TEST(Graph6Deserialize, Path_5) {
-    const bool expectedAdjecencyMatrix[] = {0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0};
+    const bool expectedAdjecencyMatrix[] = {
+        0, 0, 1, 0, 1, 
+        0, 0, 0, 1, 0, 
+        1, 0, 0, 0, 0, 
+        0, 1, 0, 0, 1, 
+        1, 0, 0, 1, 0
+    };
 
     auto graph = Graph6Serializer::Deserialize("DQc");
 
@@ -17,7 +23,13 @@ TEST(Graph6Deserialize, Path_5) {
 }
 
 TEST(Graph6Deserialize, Cycle_5) {
-    const bool expectedAdjecencyMatrix[] = {0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0};
+    const bool expectedAdjecencyMatrix[] = {
+        0, 1, 0, 1, 0, 
+        1, 0, 0, 0, 1, 
+        0, 0, 0, 1, 1, 
+        1, 0, 1, 0, 0, 
+        0, 1, 1, 0, 0
+    };
 
     auto graph = Graph6Serializer::Deserialize("DdW");
 
@@ -32,7 +44,13 @@ TEST(Graph6Deserialize, Cycle_5) {
 }
 
 TEST(Graph6Deserialize, Star_5) {
-    const bool expectedAdjecencyMatrix[] = {0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0};
+    const bool expectedAdjecencyMatrix[] = {
+        0, 0, 1, 0, 0, 
+        0, 0, 1, 0, 0, 
+        1, 1, 0, 1, 1, 
+        0, 0, 1, 0, 0, 
+        0, 0, 1, 0, 0
+    };
 
     auto graph = Graph6Serializer::Deserialize("DXG");
 
@@ -47,7 +65,12 @@ TEST(Graph6Deserialize, Star_5) {
 }
 
 TEST(Graph6Deserialize, Full_4) {
-    const bool expectedAdjecencyMatrix[] = {0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0};
+    const bool expectedAdjecencyMatrix[] = {
+        0, 1, 1, 1, 
+        1, 0, 1, 1, 
+        1, 1, 0, 1, 
+        1, 1, 1, 0
+    };
 
     auto graph = Graph6Serializer::Deserialize("C~");
 
@@ -86,6 +109,18 @@ TEST(Graph6Deserialize, InvalidSizeEncoding) {
 
 TEST(Graph6Deserialize, InvalidCharacter) {
     EXPECT_THROW(Graph6Serializer::Deserialize("D<Qc"), graph6InvalidCharacterError);
+}
+
+TEST(Graph6Deserialize, EncodingTooShort) {
+    EXPECT_THROW(Graph6Serializer::Deserialize("DX"), graph6FormatError);
+}
+
+TEST(Graph6Deserialize, EncodingTooLong) {
+    EXPECT_THROW(Graph6Serializer::Deserialize("DXXX"), graph6FormatError);
+}
+
+TEST(Graph6Deserialize, InvalidEncodingPadding) {
+    EXPECT_THROW(Graph6Serializer::Deserialize("DX~"), graph6FormatError);
 }
 
 TEST(Graph6Serialize, Path_5) {

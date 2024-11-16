@@ -18,14 +18,17 @@ const char* graph6InvalidCharacterError::what() const {
 }
 
 // Format specification: https://users.cecs.anu.edu.au/~bdm/data/formats.txt 
-
-constexpr unsigned char PRINT_MIN = 63, PRINT_MAX = 126, BIT_COUNT = 6, MSB_MASK = 0b100000;
+// Format parameters
+constexpr unsigned char PRINT_MIN = 63, PRINT_MAX = 126, BIT_COUNT = 6, MSB_MASK = 0b100000, FULL_MASK = 0b111111;
 constexpr std::string_view OPTIONAL_HEADER = ">>graph6<<";
+constexpr vertex ONE_BYTE_SIZE_LIMIT = 62, THREE_BYTE_SIZE_LIMIT = 258047, SIX_BYTE_SIZE_LIMIT = 68719476735;
 
 #define RANGE_CHECK(str, offset) \
     if (PRINT_MIN > str[offset] || str[offset] > PRINT_MAX) throw graph6InvalidCharacterError(offset + 1)
 
-std::pair<vertex, std::size_t> Graph6Serializer::DecodeSize(const std::string& graph6) {
+#define BITS_TO_CHAR(number, order) (char)(PRINT_MIN + ((number >> (order * BIT_COUNT)) & FULL_MASK))
+
+static std::pair<vertex, std::size_t> DecodeSize(const std::string& graph6) {
     vertex size = 0;
     std::size_t offset = 0;
 
@@ -58,7 +61,7 @@ std::pair<vertex, std::size_t> Graph6Serializer::DecodeSize(const std::string& g
             size |= (vertex)(graph6[offset + 6] - PRINT_MIN);
             size <<= BIT_COUNT;
             size |= (vertex)(graph6[offset + 7] - PRINT_MIN);
-            return std::make_pair(size, offset + 8);
+            return std::make_pair(size, offset + 7);
         }
 
         // Three bytes
@@ -67,42 +70,45 @@ std::pair<vertex, std::size_t> Graph6Serializer::DecodeSize(const std::string& g
 		size |= (vertex)(graph6[offset + 2] - PRINT_MIN);
 		size <<= BIT_COUNT;
 		size |= (vertex)(graph6[offset + 3] - PRINT_MIN);
-        return std::make_pair(size, offset + 4);
+        return std::make_pair(size, offset + 3);
     }
     
     // One byte
     size |= (vertex)(graph6[offset] - PRINT_MIN);
-    return std::make_pair(size, offset + 1);
+    return std::make_pair(size, offset);
 }
 
 core::Graph Graph6Serializer::Deserialize(const std::string& graph6) {
+
+    // Decode size
     auto [ size, offset ] = DecodeSize(graph6);
 
-    std::vector<bool> hasEdge;
-    hasEdge.reserve(size * (size + 1) / 2);
-    vertex i = 0;
-
-    for (std::size_t j = offset; j < graph6.size(); j++) {
-        RANGE_CHECK(graph6, j);
-        unsigned char mask = MSB_MASK;
-        while (mask && 2 * i < size * (size + 1)) {
-            hasEdge.push_back((graph6[j] - PRINT_MIN) & mask);
-            mask >>= 1;
-            i++;
-        }
-    }
-
+    // Create graph
     auto graph = core::Graph(size);
 
-    i = 0;
+    // Decode adjecency matrix
+    unsigned char mask = 0;
     for (vertex u = 0; u < size; u++) {
         for (vertex v = 0; v < u; v++) {
-            if (hasEdge[i]) {
+            if (!mask) {
+                mask = MSB_MASK;
+                offset++;
+                if (offset >= graph6.size()) throw graph6FormatError("Encoding too short");
+                RANGE_CHECK(graph6, offset);
+            }
+            if ((graph6[offset] - PRINT_MIN) & mask) {
                 graph.add_edge(u, v);
                 graph.add_edge(v, u);
             }
-            i++;
+            mask >>= 1;
         }
+    }
+
+    // Check padding
+    if (offset < graph6.size() - 1) throw graph6FormatError("Encoding too long");
+    while (mask) {
+        if ((graph6[offset] - PRINT_MIN) & mask) throw graph6FormatError("Invalid encoding padding");
+        mask >>= 1;
     }
 
     return graph;
@@ -111,25 +117,22 @@ core::Graph Graph6Serializer::Deserialize(const std::string& graph6) {
 std::string Graph6Serializer::Serialize(const core::Graph& graph) {
     std::stringstream graph6Stream;
 
-    if (graph.size() <= 62) {
-        graph6Stream << (char)(PRINT_MIN + ((graph.size() >> 0) & 0b111111));
-    } else if (graph.size() <= 258047) {
-        graph6Stream << PRINT_MAX;
-        graph6Stream << (char)(PRINT_MIN + ((graph.size() >> 12) & 0b111111));
-        graph6Stream << (char)(PRINT_MIN + ((graph.size() >> 6) & 0b111111));
-        graph6Stream << (char)(PRINT_MIN + ((graph.size() >> 0) & 0b111111));
-    } else if (graph.size() <= 68719476735) {
-        graph6Stream << PRINT_MAX << PRINT_MAX;
-        graph6Stream << (char)(PRINT_MIN + ((graph.size() >> 30) & 0b111111));
-        graph6Stream << (char)(PRINT_MIN + ((graph.size() >> 24) & 0b111111));
-        graph6Stream << (char)(PRINT_MIN + ((graph.size() >> 18) & 0b111111));
-        graph6Stream << (char)(PRINT_MIN + ((graph.size() >> 12) & 0b111111));
-        graph6Stream << (char)(PRINT_MIN + ((graph.size() >> 6) & 0b111111));
-        graph6Stream << (char)(PRINT_MIN + ((graph.size() >> 0) & 0b111111));
+    // Encode size
+    vertex size = graph.size();
+    if (size <= ONE_BYTE_SIZE_LIMIT) {
+        graph6Stream << BITS_TO_CHAR(size, 0);
+    } else if (size <= THREE_BYTE_SIZE_LIMIT) {
+        graph6Stream << PRINT_MAX
+                     << BITS_TO_CHAR(size, 2) << BITS_TO_CHAR(size, 1) << BITS_TO_CHAR(size, 0);
+    } else if (size <= SIX_BYTE_SIZE_LIMIT) {
+        graph6Stream << PRINT_MAX << PRINT_MAX
+                     << BITS_TO_CHAR(size, 5) << BITS_TO_CHAR(size, 4) << BITS_TO_CHAR(size, 3) 
+                     << BITS_TO_CHAR(size, 2) << BITS_TO_CHAR(size, 1) << BITS_TO_CHAR(size, 0);
     } else {
         throw graph6FormatError("Cannot encode graph size");
     }
 
+    // Encode adjecency matrix
     unsigned char bitBuffer = 0, bitCtr = 0;
     for (vertex u = 0; u < graph.size(); u++) {
         for (vertex v = 0; v < u; v++) {
@@ -144,6 +147,7 @@ std::string Graph6Serializer::Serialize(const core::Graph& graph) {
         }
     }
 
+    // Pad with zeros
     if (bitCtr > 0) {
         bitBuffer <<= BIT_COUNT - bitCtr;
         graph6Stream << (char)(PRINT_MIN + bitBuffer);

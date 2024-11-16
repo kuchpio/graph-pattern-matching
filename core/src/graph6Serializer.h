@@ -19,8 +19,6 @@ class graph6InvalidCharacterError : public graph6FormatError {
 };
 
 class Graph6Serializer {
-    static std::pair<vertex, std::size_t> DecodeSize(const std::string& graph6);
-
   public:
     static core::Graph Deserialize(const std::string& graph6);
     static std::string Serialize(const core::Graph& graph);
