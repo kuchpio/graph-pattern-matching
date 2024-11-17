@@ -4,6 +4,7 @@
 #include "pattern.h"
 #include "argraph.h"
 #include <optional>
+#include <tuple>
 
 namespace pattern
 {
