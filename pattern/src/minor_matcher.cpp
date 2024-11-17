@@ -2,6 +2,7 @@
 #include "core.h"
 #include "isomorphism_matcher.h"
 #include <optional>
+#include <vector>
 
 namespace pattern
 {
@@ -38,6 +39,40 @@ bool MinorMatcher::minor_recursion(const core::Graph& G, const core::Graph& H, v
     }
 
     return minor_recursion(G, H, v + 1, std::nullopt);
+}
+
+std::optional<std::vector<vertex>> MinorMatcher::minorRecursion(const core::Graph& G, const core::Graph& H, vertex v,
+                                                                std::optional<vertex> last_neighbour_index) {
+    if (H.size() > G.size()) return std::nullopt;
+
+    auto matching = this->isomorphismMatcher.matching(G, H);
+    if (matching.has_value()) return *matching;
+
+    if (v >= G.size()) return std::nullopt;
+
+    vertex start_neighbour_index = last_neighbour_index.value_or(0);
+
+    if (G.size() > H.size()) {
+        auto G_after_removal = remove_vertex(G, v);
+        auto matching = minorRecursion(G_after_removal, H, v + 1, std::nullopt);
+        if (matching.has_value()) return *matching;
+    }
+
+    for (vertex neighbour_index = start_neighbour_index; neighbour_index < G.get_neighbours(v).size();
+         neighbour_index++) {
+        auto neighbour = G.get_neighbours(v)[neighbour_index];
+
+        auto G_after_edge_removal = remove_edge(G, v, neighbour);
+
+        auto matching = minorRecursion(G_after_edge_removal, H, v + 1, std::nullopt);
+        if (matching.has_value()) return *matching;
+
+        auto G_after_edge_contraction = contract_edge(G, v, neighbour);
+        matching = minorRecursion(G_after_edge_contraction, H, v, neighbour_index);
+        if (matching.has_value()) return matching;
+    }
+
+    return minorRecursion(G, H, v + 1, std::nullopt);
 }
 
 core::Graph MinorMatcher::remove_vertex(const core::Graph& G, vertex v) {
