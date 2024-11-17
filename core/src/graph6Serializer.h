@@ -18,7 +18,7 @@ class graph6InvalidCharacterError : public graph6FormatError {
     char _message[32];
 
   public:
-    const char* what() const override;
+    const char* what() const noexcept override;
     graph6InvalidCharacterError(std::size_t at);
 };
 

@@ -3,7 +3,6 @@
 #include "wx/wfstream.h"
 #include "wx/txtstrm.h"
 #include "wx/notebook.h"
-#include <chrono>
 #include "utils.h"
 
 #include "graphPanel.h"
@@ -92,7 +91,7 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
     testPanel->SetSizerAndFit(testSizer);
     notebook->AddPage(testPanel, "Test");
 
-    sizer->Add(nameLabel, 0, wxALIGN_CENTER | wxTOP, 5);
+    sizer->Add(nameLabel, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, 5);
     sizer->Add(notebook, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
     this->SetSizerAndFit(sizer);
 

@@ -1,7 +1,7 @@
 #include "graph6Serializer.h"
 
 #include <sstream>
-#include <format>
+#include <cstring>
 
 namespace core
 {
@@ -13,7 +13,7 @@ graph6InvalidCharacterError::graph6InvalidCharacterError(std::size_t at) : graph
     if (snprintf(_message, 32, "Invalid character at %zd", at) < 0) strncpy(_message, graph6FormatError::what(), 32);
 }
 
-const char* graph6InvalidCharacterError::what() const {
+const char* graph6InvalidCharacterError::what() const noexcept {
     return _message;
 }
 
