@@ -10,10 +10,10 @@
 class Frame : public wxFrame {
     GraphPanel *patternPanel, *searchSpacePanel;
 
-    wxCheckBox *inducedCheckbox;
+    wxCheckBox* inducedCheckbox;
     wxRadioButton *subgraphRadioButton, *minorRadioButton, *topologicalMinorRadioButton;
     wxButton *startStopMatchingButton, *showMatchingButton;
-    wxStaticText *matchingStatus;
+    wxStaticText* matchingStatus;
 
     std::thread matcherThread;
     pattern::PatternMatcher* currentlyWorkingMatcher;
@@ -25,6 +25,7 @@ class Frame : public wxFrame {
     void OnCloseRequest(wxCloseEvent& event);
     void ClearMatching();
     pattern::PatternMatcher* GetSelectedMatcher() const;
+
   public:
     Frame(const wxString& title);
 };

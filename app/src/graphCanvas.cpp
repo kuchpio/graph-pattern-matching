@@ -9,8 +9,8 @@ GraphCanvas::GraphCanvas(wxWindow* parent, const wxGLAttributes& canvasAttrs) : 
     openGLContext = new wxGLContext(this, nullptr, &ctxAttrs);
 
     if (!openGLContext->IsOK()) {
-        wxMessageBox("This sample needs an OpenGL 3.3 capable driver.", "OpenGL version error", 
-            wxOK | wxICON_INFORMATION, this);
+        wxMessageBox("This sample needs an OpenGL 3.3 capable driver.", "OpenGL version error",
+                     wxOK | wxICON_INFORMATION, this);
         delete openGLContext;
         openGLContext = nullptr;
     }
@@ -33,20 +33,15 @@ void GraphCanvas::OnPaint(wxPaintEvent& WXUNUSED(event)) {
     glClear(GL_COLOR_BUFFER_BIT);
 
     glUseProgram(shaderProgram);
-    glUniform4f(
-        glGetUniformLocation(shaderProgram, "vertexColor"), 
-        vertexColor.Red() / 255.0f, 
-        vertexColor.Green() / 255.0f,
-        vertexColor.Blue() / 255.0f, 
-        1.0f
-    );
+    glUniform4f(glGetUniformLocation(shaderProgram, "vertexColor"), vertexColor.Red() / 255.0f,
+                vertexColor.Green() / 255.0f, vertexColor.Blue() / 255.0f, 1.0f);
 
-	glBindVertexArray(vertexArrayObject);
+    glBindVertexArray(vertexArrayObject);
 
-	glDrawElements(GL_LINES, edgesCount * 2, GL_UNSIGNED_INT, 0);
-	glDrawArrays(GL_POINTS, 0, vertexCount);
+    glDrawElements(GL_LINES, edgesCount * 2, GL_UNSIGNED_INT, 0);
+    glDrawArrays(GL_POINTS, 0, vertexCount);
 
-	glBindVertexArray(0);
+    glBindVertexArray(0);
 
     SwapBuffers();
 }
@@ -54,9 +49,9 @@ void GraphCanvas::OnPaint(wxPaintEvent& WXUNUSED(event)) {
 void GraphCanvas::OnSize(wxSizeEvent& event) {
     if (!isOpenGLInitialized) return;
 
-	auto viewPortSize = event.GetSize() * GetContentScaleFactor();
-	SetCurrent(*openGLContext);
-	glViewport(0, 0, viewPortSize.x, viewPortSize.y);
+    auto viewPortSize = event.GetSize() * GetContentScaleFactor();
+    SetCurrent(*openGLContext);
+    glViewport(0, 0, viewPortSize.x, viewPortSize.y);
 }
 
 bool GraphCanvas::InitializeOpenGL() {
@@ -65,8 +60,7 @@ bool GraphCanvas::InitializeOpenGL() {
     SetCurrent(*openGLContext);
 
     if (!InitializeOpenGLFunctions()) {
-        wxMessageBox("Error: Could not initialize OpenGL function pointers.",
-                     "OpenGL initialization error",
+        wxMessageBox("Error: Could not initialize OpenGL function pointers.", "OpenGL initialization error",
                      wxOK | wxICON_INFORMATION, this);
         return false;
     }
@@ -75,8 +69,7 @@ bool GraphCanvas::InitializeOpenGL() {
     wxLogDebug("OpenGL vendor: %s", reinterpret_cast<const char*>(glGetString(GL_VENDOR)));
 
     if (!InitializeShaders()) {
-        wxMessageBox("Error: Could not initialize OpenGL shaders.", 
-                     "OpenGL initialization error",
+        wxMessageBox("Error: Could not initialize OpenGL shaders.", "OpenGL initialization error",
                      wxOK | wxICON_INFORMATION, this);
         return false;
     }

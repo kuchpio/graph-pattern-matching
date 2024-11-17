@@ -8,7 +8,7 @@
 #include "graphPanel.h"
 #include "graphCanvas.h"
 
-GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<void()> fileOpenCallback) 
+GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<void()> fileOpenCallback)
     : wxPanel(parent), graph(0), fileOpenCallback(fileOpenCallback) {
     auto sizer = new wxBoxSizer(wxVERTICAL);
 
@@ -97,7 +97,7 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
 
     openButton->Bind(wxEVT_BUTTON, &GraphPanel::OpenFromFile, this);
     saveButton->Bind(wxEVT_BUTTON, &GraphPanel::SaveToFile, this);
-    initButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) { 
+    initButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
         graph = utils::GraphFactory::random_graph(5, 0.5f);
         InitGraphSimulation();
     });
@@ -117,8 +117,8 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
 }
 
 GraphPanel::~GraphPanel() {
-    if (vertexPositions2D[0])  delete[] vertexPositions2D[0];
-    if (vertexPositions2D[1])  delete[] vertexPositions2D[1];
+    if (vertexPositions2D[0]) delete[] vertexPositions2D[0];
+    if (vertexPositions2D[1]) delete[] vertexPositions2D[1];
     if (vertexVelocities2D[0]) delete[] vertexVelocities2D[0];
     if (vertexVelocities2D[1]) delete[] vertexVelocities2D[1];
 }
@@ -152,57 +152,55 @@ void GraphPanel::OnMatchingEnd() {
 }
 
 void GraphPanel::OpenFromFile(wxCommandEvent& event) {
-	auto fileDialog = new wxFileDialog(
-		this, "Choose a file to open", wxEmptyString, wxEmptyString,
-		"Graph6 files (*.g6)|*.g6", wxFD_OPEN);
+    auto fileDialog = new wxFileDialog(this, "Choose a file to open", wxEmptyString, wxEmptyString,
+                                       "Graph6 files (*.g6)|*.g6", wxFD_OPEN);
 
-	if (fileDialog->ShowModal() == wxID_OK) {
-		wxFileInputStream inputStream(fileDialog->GetPath());
-		
-		if (!inputStream.IsOk()) {
-			wxMessageBox("Could not open file: " + fileDialog->GetFilename());
-		} else {
-			wxTextInputStream graph6Stream(inputStream, wxT("\x09"), wxConvUTF8);
-			try {
-				graph = core::Graph6Serializer::Deserialize(graph6Stream.ReadLine().ToStdString());
-				fileInfoLabel->SetLabel(fileDialog->GetFilename() + " (Graph6)");
-				InitGraphSimulation();
+    if (fileDialog->ShowModal() == wxID_OK) {
+        wxFileInputStream inputStream(fileDialog->GetPath());
+
+        if (!inputStream.IsOk()) {
+            wxMessageBox("Could not open file: " + fileDialog->GetFilename());
+        } else {
+            wxTextInputStream graph6Stream(inputStream, wxT("\x09"), wxConvUTF8);
+            try {
+                graph = core::Graph6Serializer::Deserialize(graph6Stream.ReadLine().ToStdString());
+                fileInfoLabel->SetLabel(fileDialog->GetFilename() + " (Graph6)");
+                InitGraphSimulation();
                 fileOpenCallback();
-			} catch (const core::graph6FormatError& err) {
+            } catch (const core::graph6FormatError& err) {
                 wxMessageBox("Could not open file " + fileDialog->GetFilename() + "\nError: " + err.what());
-			}
-		}
-	}
+            }
+        }
+    }
 
-	fileDialog->Destroy();
+    fileDialog->Destroy();
 }
 
 void GraphPanel::SaveToFile(wxCommandEvent& event) {
-	auto fileDialog = new wxFileDialog(
-		this, "Save the graph to file", wxEmptyString, wxEmptyString,
-		"Graph6 files (*.g6)|*.g6", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    auto fileDialog = new wxFileDialog(this, "Save the graph to file", wxEmptyString, wxEmptyString,
+                                       "Graph6 files (*.g6)|*.g6", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
-	if (fileDialog->ShowModal() == wxID_OK) {
-		wxFileOutputStream outputStream(fileDialog->GetPath());
-		
-		if (!outputStream.IsOk()) {
-			wxMessageBox("Cannot save the graph in file: " + fileDialog->GetFilename());
-		} else {
-			wxTextOutputStream graph6Stream(outputStream, wxEOL_NATIVE, wxConvUTF8);
-			try {
-				graph6Stream << core::Graph6Serializer::Serialize(graph);
-			} catch (const core::graph6FormatError& err) {
+    if (fileDialog->ShowModal() == wxID_OK) {
+        wxFileOutputStream outputStream(fileDialog->GetPath());
+
+        if (!outputStream.IsOk()) {
+            wxMessageBox("Cannot save the graph in file: " + fileDialog->GetFilename());
+        } else {
+            wxTextOutputStream graph6Stream(outputStream, wxEOL_NATIVE, wxConvUTF8);
+            try {
+                graph6Stream << core::Graph6Serializer::Serialize(graph);
+            } catch (const core::graph6FormatError& err) {
                 wxMessageBox("Could save to file " + fileDialog->GetFilename() + "\nError: " + err.what());
-			}
-		}
-	}
+            }
+        }
+    }
 
-	fileDialog->Destroy();
+    fileDialog->Destroy();
 }
 
 void GraphPanel::InitGraphSimulation() {
-    if (vertexPositions2D[0])  delete[] vertexPositions2D[0];
-    if (vertexPositions2D[1])  delete[] vertexPositions2D[1];
+    if (vertexPositions2D[0]) delete[] vertexPositions2D[0];
+    if (vertexPositions2D[1]) delete[] vertexPositions2D[1];
     if (vertexVelocities2D[0]) delete[] vertexVelocities2D[0];
     if (vertexVelocities2D[1]) delete[] vertexVelocities2D[1];
 
@@ -251,9 +249,9 @@ void GraphPanel::OnIdle(wxIdleEvent& event) {
             float dx = x - vertexPositions2D[readBufferId][2 * j];
             float dy = y - vertexPositions2D[readBufferId][2 * j + 1];
             float dist = sqrtf(dx * dx + dy * dy);
-            
-            float springCoefficient = !graph.has_edge(i, j) || !graph.has_edge(j, i) || dist < 0.01f
-                ? 0.0f : C[0] * logf(dist / C[1]) / dist;
+
+            float springCoefficient =
+                !graph.has_edge(i, j) || !graph.has_edge(j, i) || dist < 0.01f ? 0.0f : C[0] * logf(dist / C[1]) / dist;
             float repelCoefficient = dist < 0.0001f ? 0.0f : C[2] / (dist * dist * dist);
 
             a_x += (repelCoefficient + springCoefficient) * x;
@@ -263,10 +261,10 @@ void GraphPanel::OnIdle(wxIdleEvent& event) {
         float v_x = vertexVelocities2D[readBufferId][2 * i];
         float v_y = vertexVelocities2D[readBufferId][2 * i + 1];
 
-		float tractionCoefficient = C[4];
-		a_x += tractionCoefficient * v_x;
-		a_y += tractionCoefficient * v_y;
-        
+        float tractionCoefficient = C[4];
+        a_x += tractionCoefficient * v_x;
+        a_y += tractionCoefficient * v_y;
+
         vertexVelocities2D[1 - readBufferId][2 * i] = v_x + a_x * elapsedSeconds.count();
         vertexVelocities2D[1 - readBufferId][2 * i + 1] = v_y + a_y * elapsedSeconds.count();
         vertexPositions2D[1 - readBufferId][2 * i] = x + v_x * elapsedSeconds.count();

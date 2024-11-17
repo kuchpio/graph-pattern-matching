@@ -11,16 +11,16 @@
 #include "frame.h"
 #include "graphPanel.h"
 
-Frame::Frame(const wxString& title) 
-    : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxDefaultSize), 
-      currentlyWorkingMatcher(nullptr),
+Frame::Frame(const wxString& title)
+    : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxDefaultSize), currentlyWorkingMatcher(nullptr),
       isCloseRequested(false) {
     auto sizer = new wxBoxSizer(wxVERTICAL);
 
     auto mainPanel = new wxPanel(this);
     auto modeLabel = new wxStaticText(mainPanel, wxID_ANY, "Mode:");
     inducedCheckbox = new wxCheckBox(mainPanel, wxID_ANY, "Induced");
-    subgraphRadioButton = new wxRadioButton(mainPanel, wxID_ANY, "Subgraph", wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
+    subgraphRadioButton =
+        new wxRadioButton(mainPanel, wxID_ANY, "Subgraph", wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
     minorRadioButton = new wxRadioButton(mainPanel, wxID_ANY, "Minor");
     topologicalMinorRadioButton = new wxRadioButton(mainPanel, wxID_ANY, "Topological minor");
     startStopMatchingButton = new wxButton(mainPanel, wxID_ANY, "Match");
@@ -58,7 +58,7 @@ Frame::Frame(const wxString& title)
 
     this->SetSizerAndFit(sizer);
 
-    startStopMatchingButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) { 
+    startStopMatchingButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
         if (currentlyWorkingMatcher) {
             OnMatchingStop();
         } else {
@@ -69,26 +69,27 @@ Frame::Frame(const wxString& title)
 }
 
 void Frame::OnMatchingStart() {
-	currentlyWorkingMatcher = GetSelectedMatcher();
+    currentlyWorkingMatcher = GetSelectedMatcher();
     startStopMatchingButton->SetLabel("Stop");
 
-	const core::Graph& patternGraph = patternPanel->GetGraph();
-	const core::Graph& searchSpaceGraph = searchSpacePanel->GetGraph();
+    const core::Graph& patternGraph = patternPanel->GetGraph();
+    const core::Graph& searchSpaceGraph = searchSpacePanel->GetGraph();
 
-	matchingStatus->SetLabel("Matching...");
+    matchingStatus->SetLabel("Matching...");
     patternPanel->OnMatchingStart();
     searchSpacePanel->OnMatchingStart();
 
-	matcherThread = std::thread([this](const core::Graph& patternGraph, const core::Graph& searchSpaceGraph) { 
+    matcherThread = std::thread(
+        [this](const core::Graph& patternGraph, const core::Graph& searchSpaceGraph) {
+            auto result = currentlyWorkingMatcher->match(searchSpaceGraph, patternGraph);
 
-		auto result = currentlyWorkingMatcher->match(searchSpaceGraph, patternGraph);
+            wxTheApp->CallAfter([this, result]() {
+                matcherThread.join();
 
-		wxTheApp->CallAfter([this, result]() { 
-			matcherThread.join();
-
-            OnMatchingComplete(result);
-		});
-	}, patternGraph, searchSpaceGraph);
+                OnMatchingComplete(result);
+            });
+        },
+        patternGraph, searchSpaceGraph);
 }
 
 void Frame::OnMatchingStop() {
@@ -101,29 +102,29 @@ void Frame::OnMatchingStop() {
 void Frame::OnMatchingComplete(bool matchFound) {
     delete currentlyWorkingMatcher;
     currentlyWorkingMatcher = nullptr;
-	startStopMatchingButton->SetLabel("Match");
-	startStopMatchingButton->Enable();
-	if (matchFound) {
-		matchingStatus->SetLabel("Match found");
-		showMatchingButton->Enable();
-	} else {
-		matchingStatus->SetLabel("Match not found");
-		showMatchingButton->Disable();
-	}
-	patternPanel->OnMatchingEnd();
-	searchSpacePanel->OnMatchingEnd();
+    startStopMatchingButton->SetLabel("Match");
+    startStopMatchingButton->Enable();
+    if (matchFound) {
+        matchingStatus->SetLabel("Match found");
+        showMatchingButton->Enable();
+    } else {
+        matchingStatus->SetLabel("Match not found");
+        showMatchingButton->Disable();
+    }
+    patternPanel->OnMatchingEnd();
+    searchSpacePanel->OnMatchingEnd();
 
-	if (isCloseRequested) Close();
+    if (isCloseRequested) Close();
 }
 
 void Frame::OnCloseRequest(wxCloseEvent& event) {
-	if (currentlyWorkingMatcher) {
-		event.Veto();
+    if (currentlyWorkingMatcher) {
+        event.Veto();
         OnMatchingStop();
         isCloseRequested = true;
-	} else {
-		this->Destroy();
-	}
+    } else {
+        this->Destroy();
+    }
 }
 
 void Frame::ClearMatching() {
@@ -133,25 +134,25 @@ void Frame::ClearMatching() {
 
 pattern::PatternMatcher* Frame::GetSelectedMatcher() const {
 
-	if (subgraphRadioButton->GetValue()) {
-		if (inducedCheckbox->GetValue()) {
+    if (subgraphRadioButton->GetValue()) {
+        if (inducedCheckbox->GetValue()) {
             return new pattern::InducedSubgraphMatcher();
-		}
-        
+        }
+
         return new pattern::SubgraphMatcher();
-	}
+    }
 
     if (minorRadioButton->GetValue()) {
-		if (inducedCheckbox->GetValue()) {
+        if (inducedCheckbox->GetValue()) {
             return new pattern::InducedMinorMatcher();
-		}
-        
-        return new pattern::MinorMatcher();
-	}
+        }
 
-	if (inducedCheckbox->GetValue()) {
-		return new pattern::TopologicalInducedMinorMatcher();
-	}
-	
+        return new pattern::MinorMatcher();
+    }
+
+    if (inducedCheckbox->GetValue()) {
+        return new pattern::TopologicalInducedMinorMatcher();
+    }
+
     return new pattern::TopologicalMinorMatcher();
 }

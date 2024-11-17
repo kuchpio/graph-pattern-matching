@@ -7,22 +7,12 @@
 #include "graphCanvas.h"
 
 class GraphPanel : public wxPanel {
-  public:
-    GraphPanel(wxWindow* parent, const wxString& title, std::function<void()> fileOpenCallback);
-    ~GraphPanel();
-
-    const core::Graph& GetGraph() const;
-    void OnMatchingStart();
-    void OnMatchingEnd();
-
-    const std::function<void()> fileOpenCallback;
-
-  private:
     GraphCanvas* canvas{nullptr};
-    wxButton *openButton;
+    wxButton* openButton;
     wxButton *addButton, *deleteButton, *connectButton, *disconnectButton, *contractButton, *subdivideButton;
-    wxButton *undoButton, *redoButton; 
-    wxStaticText *fileInfoLabel;
+    wxButton *undoButton, *redoButton;
+    wxStaticText* fileInfoLabel;
+    const std::function<void()> fileOpenCallback;
 
     core::Graph graph;
 
@@ -38,4 +28,12 @@ class GraphPanel : public wxPanel {
     void OnIdle(wxIdleEvent& event);
     void OpenFromFile(wxCommandEvent& event);
     void SaveToFile(wxCommandEvent& event);
+
+  public:
+    GraphPanel(wxWindow* parent, const wxString& title, std::function<void()> fileOpenCallback);
+    ~GraphPanel();
+
+    const core::Graph& GetGraph() const;
+    void OnMatchingStart();
+    void OnMatchingEnd();
 };
