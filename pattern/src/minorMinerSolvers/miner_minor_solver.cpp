@@ -35,6 +35,21 @@ bool MinerMinorMatcher::match(const core::Graph& G, const core::Graph& Q) {
     return find_embedding::findEmbedding(smallGraph, bigGraph, params, chains);
 }
 
+std::optional<std::vector<vertex>> MinerMinorMatcher::matching(const core::Graph& G, const core::Graph& H) {
+    find_embedding::optional_parameters params;
+    params.localInteractionPtr.reset(new MyCppInteractions);
+
+    auto bigGraph = this->convert_graph(G);
+    auto smallGraph = this->convert_graph(H);
+    std::vector<std::vector<int>> chains;
+    if (find_embedding::findEmbedding(smallGraph, bigGraph, params, chains) == false) return std::nullopt;
+    auto solution = std::vector<vertex>(H.size());
+
+    for (int i = 0; i < solution.size(); i++)
+        solution[i] = chains[0][i];
+    return solution;
+}
+
 graph::input_graph MinerMinorMatcher::convert_graph(const core::Graph& G) {
 
     auto edges = G.edges();
