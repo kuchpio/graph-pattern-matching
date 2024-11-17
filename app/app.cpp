@@ -2,7 +2,6 @@
 #include <iostream>
 
 #include "image.h"
-#include "isomorphism_matcher.h"
 #include "miner_minor_matcher.hpp"
 #include "minor_matcher.h"
 #include "pattern.h"

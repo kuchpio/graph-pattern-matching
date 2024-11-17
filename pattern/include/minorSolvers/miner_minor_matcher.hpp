@@ -2,9 +2,9 @@
 
 #include "core.h"
 #include "find_embedding/util.hpp"
-#include "isomorphism_matcher.h"
 #include "find_embedding/find_embedding.hpp"
 #include "find_embedding/graph.hpp"
+#include "pattern.h"
 namespace pattern
 {
 class MinerMinorMatcher : public PatternMatcher {

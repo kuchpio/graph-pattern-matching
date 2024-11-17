@@ -1,5 +1,5 @@
 #include "core.h"
-#include "isomorphism_matcher.h"
+#include "native_isomorphism_matcher.h"
 #include "minor_matcher.h"
 #include "subgraph_matcher.h"
 #include "topological_minor_matcher.h"
@@ -43,7 +43,7 @@ bool small_graph_not_isomorphic() {
     Q.add_edge(3, 2);
     Q.add_edge(2, 4);
 
-    auto matcher = pattern::IsomorphismMatcher();
+    auto matcher = pattern::NativeIsomorphismMatcher();
 
     return matcher.match(G, Q);
 }
@@ -65,7 +65,7 @@ bool small_graph_isomorphic() {
     Q.add_edge(3, 4); // corresponds to edge (1, 3) in G
     Q.add_edge(4, 0);
 
-    auto matcher = pattern::IsomorphismMatcher();
+    auto matcher = pattern::NativeIsomorphismMatcher();
 
     return matcher.match(G, Q);
 }
@@ -73,7 +73,7 @@ bool small_graph_isomorphic() {
 bool random_graph_isomorphism_test() {
     core::Graph G = utils::GraphFactory::random_connected_graph(30, 0.4f);
     core::Graph Q = utils::GraphFactory::isomoporhic_graph(G);
-    auto matcher = pattern::IsomorphismMatcher();
+    auto matcher = pattern::NativeIsomorphismMatcher();
     return matcher.match(G, Q);
 }
 

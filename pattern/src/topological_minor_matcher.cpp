@@ -1,5 +1,4 @@
 #include "topological_minor_matcher.h"
-#include "isomorphism_matcher.h"
 #include <optional>
 
 namespace pattern

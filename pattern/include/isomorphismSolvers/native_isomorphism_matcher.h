@@ -1,13 +1,13 @@
 #pragma once
 
 #include "core.h"
-#include "pattern.h"
+#include "isomorphism_matcher.h"
 #include <optional>
 #include <unordered_map>
 #include <vector>
 namespace pattern
 {
-class IsomorphismMatcher : public PatternMatcher {
+class NativeIsomorphismMatcher : public IsomorphismMatcher {
   public:
     bool match(const core::Graph& bigGraph, const core::Graph& smallGraph);
     std::optional<std::vector<vertex>> matching(const core::Graph& bigGraph, const core::Graph& smallGraph);

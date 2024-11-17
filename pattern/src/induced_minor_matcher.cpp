@@ -1,5 +1,4 @@
 #include "induced_minor_matcher.h"
-#include "isomorphism_matcher.h"
 
 namespace pattern
 {

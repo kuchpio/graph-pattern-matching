@@ -1,4 +1,4 @@
-#include "isomorphism_matcher.h"
+#include "native_isomorphism_matcher.h"
 #include <numeric>
 #include "core.h"
 #include "utils.h"
@@ -8,7 +8,7 @@
 #include <vector>
 namespace pattern
 {
-bool IsomorphismMatcher::match(const core::Graph& bigGraph, const core::Graph& smallGraph) {
+bool NativeIsomorphismMatcher::match(const core::Graph& bigGraph, const core::Graph& smallGraph) {
     if (bigGraph.size() != smallGraph.size()) return false;
     auto G_components = utils::GraphFactory::components(bigGraph);
     auto Q_components = utils::GraphFactory::components(smallGraph);
@@ -40,8 +40,9 @@ bool IsomorphismMatcher::match(const core::Graph& bigGraph, const core::Graph& s
     return match_isomorphism_components(G_components_by_size, Q_components_by_size);
 }
 
-bool IsomorphismMatcher::match_isomorphism_components(std::vector<std::vector<core::Graph>>& G_components_by_size,
-                                                      std::vector<std::vector<core::Graph>>& Q_components_by_size) {
+bool NativeIsomorphismMatcher::match_isomorphism_components(
+    std::vector<std::vector<core::Graph>>& G_components_by_size,
+    std::vector<std::vector<core::Graph>>& Q_components_by_size) {
     for (std::size_t size_index = 0; size_index < G_components_by_size.size(); size_index++) {
         for (const auto& G : G_components_by_size[size_index]) {
             bool match = false;
@@ -60,7 +61,7 @@ bool IsomorphismMatcher::match_isomorphism_components(std::vector<std::vector<co
     return true;
 }
 
-bool IsomorphismMatcher::connected_isomorphism(const core::Graph& G, const core::Graph& Q) {
+bool NativeIsomorphismMatcher::connected_isomorphism(const core::Graph& G, const core::Graph& Q) {
 
     if (G.size() != Q.size()) return false;
 
@@ -78,9 +79,9 @@ bool IsomorphismMatcher::connected_isomorphism(const core::Graph& G, const core:
     return is_isomorphism_recursion(G, Q, Q_G_mapping, G_Q_mapping, vertex_indices[0]);
 }
 
-bool IsomorphismMatcher::is_isomorphism_recursion(const core::Graph& G, const core::Graph& Q,
-                                                  std::unordered_map<vertex, vertex>& Q_G_mapping,
-                                                  std::unordered_map<vertex, vertex>& G_Q_mapping, vertex v) {
+bool NativeIsomorphismMatcher::is_isomorphism_recursion(const core::Graph& G, const core::Graph& Q,
+                                                        std::unordered_map<vertex, vertex>& Q_G_mapping,
+                                                        std::unordered_map<vertex, vertex>& G_Q_mapping, vertex v) {
 
     if (Q_G_mapping.size() == G.size()) return true;
 
@@ -106,8 +107,8 @@ bool IsomorphismMatcher::is_isomorphism_recursion(const core::Graph& G, const co
     return false;
 }
 
-std::optional<std::vector<vertex>> IsomorphismMatcher::connectedIsomorphism(const core::Graph& G,
-                                                                            const core::Graph& Q) {
+std::optional<std::vector<vertex>> NativeIsomorphismMatcher::connectedIsomorphism(const core::Graph& G,
+                                                                                  const core::Graph& Q) {
 
     if (G.size() != Q.size()) return std::nullopt;
 
@@ -122,7 +123,7 @@ std::optional<std::vector<vertex>> IsomorphismMatcher::connectedIsomorphism(cons
     return isomorphismRecursion(G, Q, Q_G_mapping, G_Q_mapping, vertex_indices[0]);
 }
 
-std::optional<std::vector<vertex>> IsomorphismMatcher::isomorphismRecursion(
+std::optional<std::vector<vertex>> NativeIsomorphismMatcher::isomorphismRecursion(
     const core::Graph& G, const core::Graph& Q, std::unordered_map<vertex, vertex>& Q_G_mapping,
     std::unordered_map<vertex, vertex>& G_Q_mapping, vertex v) {
 
@@ -151,7 +152,7 @@ std::optional<std::vector<vertex>> IsomorphismMatcher::isomorphismRecursion(
     return std::nullopt;
 }
 
-std::vector<vertex> IsomorphismMatcher::getMatching(std::unordered_map<vertex, vertex> mapping) {
+std::vector<vertex> NativeIsomorphismMatcher::getMatching(std::unordered_map<vertex, vertex> mapping) {
     std::vector<vertex> matching = std::vector<vertex>(mapping.size());
     for (const auto& pair : mapping) {
         matching[pair.first] = pair.second;

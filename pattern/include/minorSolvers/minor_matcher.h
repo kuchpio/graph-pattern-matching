@@ -1,7 +1,6 @@
 #pragma once
 
 #include "core.h"
-#include "isomorphism_matcher.h"
 #include "pattern.h"
 #include "vf2_isomorphism_solver.hpp"
 #include <optional>

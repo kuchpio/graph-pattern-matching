@@ -1,6 +1,5 @@
 #include "minor_matcher.h"
 #include "core.h"
-#include "isomorphism_matcher.h"
 #include <optional>
 #include <vector>
 
