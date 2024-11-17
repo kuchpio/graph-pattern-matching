@@ -169,7 +169,7 @@ void GraphPanel::OpenFromFile(wxCommandEvent& event) {
 				InitGraphSimulation();
                 fileOpenCallback();
 			} catch (const core::graph6FormatError& err) {
-				wxMessageBox(err.what());
+                wxMessageBox("Could not open file " + fileDialog->GetFilename() + "\nError: " + err.what());
 			}
 		}
 	}
@@ -192,7 +192,7 @@ void GraphPanel::SaveToFile(wxCommandEvent& event) {
 			try {
 				graph6Stream << core::Graph6Serializer::Serialize(graph);
 			} catch (const core::graph6FormatError& err) {
-				wxMessageBox(err.what());
+                wxMessageBox("Could save to file " + fileDialog->GetFilename() + "\nError: " + err.what());
 			}
 		}
 	}

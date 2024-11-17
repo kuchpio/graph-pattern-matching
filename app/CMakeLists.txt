@@ -6,10 +6,10 @@ if(MSVC)
 endif()
 
 set(APP_SRC 
-    "app.h" "app.cpp"
-    "frame.h" "frame.cpp" 
-    "graphCanvas.h" "graphCanvas.cpp" 
-    "graphPanel.h" "graphPanel.cpp"
+    "src/app.h" "src/app.cpp"
+    "src/frame.h" "src/frame.cpp" 
+    "src/graphCanvas.h" "src/graphCanvas.cpp" 
+    "src/graphPanel.h" "src/graphPanel.cpp"
 )
 
 add_executable (app ${APP_SRC} ${GLAD_SRC})

@@ -10,7 +10,7 @@ graph6FormatError::graph6FormatError(const std::string& message) : std::runtime_
 }
 
 graph6InvalidCharacterError::graph6InvalidCharacterError(std::size_t at) : graph6FormatError("Invalid character") {
-    if (snprintf(_message, 32, "Invalid character at %zd", at) < 0) strncpy(_message, graph6FormatError::what(), 32);
+    if (snprintf(_message, 32, "Invalid character at position %zd", at) < 0) strncpy(_message, graph6FormatError::what(), 32);
 }
 
 const char* graph6InvalidCharacterError::what() const noexcept {
