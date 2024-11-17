@@ -1,10 +1,10 @@
 #pragma once
 
-#include "minor_matcher.h"
+#include "native_minor_matcher.h"
 
 namespace pattern
 {
-class InducedMinorMatcher : public MinorMatcher {
+class InducedMinorMatcher : public NativeMinorMatcher {
   public:
     bool match(const core::Graph& G, const core::Graph& H) override;
 

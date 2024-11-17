@@ -2,11 +2,12 @@
 
 #include "core.h"
 #include "pattern.h"
+#include "subgraph_matcher.h"
 #include <unordered_map>
 
 namespace pattern
 {
-class InducedSubgraphMatcher : public PatternMatcher {
+class InducedSubgraphMatcher : public SubgraphMatcher {
   public:
     bool match(const core::Graph& bigGraph, const core::Graph& smallGraph) override;
 

@@ -1,5 +1,4 @@
 #include "induced_subgraph_matcher.h"
-#include "subgraph_matcher.h"
 
 #include <numeric>
 

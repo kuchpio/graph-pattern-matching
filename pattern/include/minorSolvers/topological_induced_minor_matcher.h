@@ -1,9 +1,9 @@
 #pragma once
 #include "core.h"
-#include "minor_matcher.h"
+#include "native_minor_matcher.h"
 namespace pattern
 {
-class TopologicalInducedMinorMatcher : public MinorMatcher {
+class TopologicalInducedMinorMatcher : public NativeMinorMatcher {
   public:
     bool match(const core::Graph& G, const core::Graph& H);
 

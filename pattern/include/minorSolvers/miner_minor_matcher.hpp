@@ -4,10 +4,10 @@
 #include "find_embedding/util.hpp"
 #include "find_embedding/find_embedding.hpp"
 #include "find_embedding/graph.hpp"
-#include "pattern.h"
+#include "minor_matcher.h"
 namespace pattern
 {
-class MinerMinorMatcher : public PatternMatcher {
+class MinerMinorMatcher : public MinorMatcher {
   public:
     bool match(const core::Graph& G, const core::Graph& H) override;
     std::optional<std::vector<vertex>> matching(const core::Graph& G, const core::Graph& H);

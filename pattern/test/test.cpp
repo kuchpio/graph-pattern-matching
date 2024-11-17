@@ -1,7 +1,7 @@
 #include "core.h"
 #include "native_isomorphism_matcher.h"
-#include "minor_matcher.h"
-#include "subgraph_matcher.h"
+#include "native_minor_matcher.h"
+#include "native_subgraph_matcher.h"
 #include "topological_minor_matcher.h"
 #include "utils.h"
 #include <cassert>
@@ -98,7 +98,7 @@ bool subgraph_not_sub_isomorphic() {
     Q.add_edge(2, 3);
     Q.add_edge(3, 0);
 
-    pattern::SubgraphMatcher matcher = pattern::SubgraphMatcher();
+    pattern::NativeSubgraphMatcher matcher = pattern::NativeSubgraphMatcher();
 
     // Check for subgraph isomorphism
     return matcher.match(G, Q);
@@ -125,7 +125,7 @@ bool small_graph_sub_isomorphic() {
     Q.add_edge(2, 3);
 
     // Check for subgraph isomorphism
-    pattern::SubgraphMatcher matcher = pattern::SubgraphMatcher();
+    pattern::NativeSubgraphMatcher matcher = pattern::NativeSubgraphMatcher();
 
     return matcher.match(G, Q);
 }
@@ -151,7 +151,7 @@ bool small_not_minor() {
     Q.add_edge(2, 3);
     Q.add_edge(3, 0);
 
-    auto matcher = pattern::MinorMatcher();
+    auto matcher = pattern::NativeMinorMatcher();
 
     // Check for minor relationship - expecting false because Q is a cycle but G is a chain
     return matcher.match(G, Q);
@@ -189,7 +189,7 @@ bool small_has_minor() {
     Q.add_edge(2, 4);
     Q.add_edge(3, 4);
 
-    auto matcher = pattern::MinorMatcher();
+    auto matcher = pattern::NativeMinorMatcher();
     // Check for minor relationship - expecting true because Q can be derived from G
     return matcher.match(G, Q);
 }

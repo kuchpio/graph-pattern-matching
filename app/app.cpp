@@ -3,9 +3,8 @@
 
 #include "image.h"
 #include "miner_minor_matcher.hpp"
-#include "minor_matcher.h"
+#include "native_minor_matcher.h"
 #include "pattern.h"
-#include "subgraph_matcher.h"
 #include "utils.h"
 #include "cudaTest.h"
 #include "vf2_induced_subgraph_solver.hpp"
@@ -29,7 +28,7 @@ int main() {
     core::Graph Q = utils::GraphFactory::isomoporhic_graph(G);
     auto matcher = pattern::Vf2InducedSubgraphSolver();
 
-    // auto matcher = pattern::MinorMatcher();
+    // auto matcher = pattern::NativeMinorMatcher();
 
     if (matcher.match(G, Q)) {
         std::cout << "Match found." << std::endl;

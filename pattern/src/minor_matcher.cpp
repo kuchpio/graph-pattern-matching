@@ -1,18 +1,18 @@
-#include "minor_matcher.h"
+#include "native_minor_matcher.h"
 #include "core.h"
 #include <optional>
 #include <vector>
 
 namespace pattern
 {
-bool MinorMatcher::match(const core::Graph& G, const core::Graph& H) {
+bool NativeMinorMatcher::match(const core::Graph& G, const core::Graph& H) {
     if (H.size() > G.size()) return false;
 
     return minor_recursion(G, H, 0, std::nullopt);
 };
 
-bool MinorMatcher::minor_recursion(const core::Graph& G, const core::Graph& H, vertex v,
-                                   std::optional<vertex> last_neighbour_index) {
+bool NativeMinorMatcher::minor_recursion(const core::Graph& G, const core::Graph& H, vertex v,
+                                         std::optional<vertex> last_neighbour_index) {
     if (H.size() > G.size()) return false;
 
     if (this->isomorphismMatcher.match(G, H)) return true;
@@ -40,8 +40,9 @@ bool MinorMatcher::minor_recursion(const core::Graph& G, const core::Graph& H, v
     return minor_recursion(G, H, v + 1, std::nullopt);
 }
 
-std::optional<std::vector<vertex>> MinorMatcher::minorRecursion(const core::Graph& G, const core::Graph& H, vertex v,
-                                                                std::optional<vertex> last_neighbour_index) {
+std::optional<std::vector<vertex>> NativeMinorMatcher::minorRecursion(const core::Graph& G, const core::Graph& H,
+                                                                      vertex v,
+                                                                      std::optional<vertex> last_neighbour_index) {
     if (H.size() > G.size()) return std::nullopt;
 
     auto matching = this->isomorphismMatcher.matching(G, H);
@@ -74,19 +75,19 @@ std::optional<std::vector<vertex>> MinorMatcher::minorRecursion(const core::Grap
     return minorRecursion(G, H, v + 1, std::nullopt);
 }
 
-core::Graph MinorMatcher::remove_vertex(const core::Graph& G, vertex v) {
+core::Graph NativeMinorMatcher::remove_vertex(const core::Graph& G, vertex v) {
     core::Graph Q = core::Graph(G);
     Q.remove_vertex(v);
     return Q;
 }
 
-core::Graph MinorMatcher::remove_edge(const core::Graph& G, vertex u, vertex v) {
+core::Graph NativeMinorMatcher::remove_edge(const core::Graph& G, vertex u, vertex v) {
     core::Graph Q = core::Graph(G);
     Q.remove_edge(u, v);
     return Q;
 }
 
-core::Graph MinorMatcher::contract_edge(const core::Graph& G, vertex u, vertex v) {
+core::Graph NativeMinorMatcher::contract_edge(const core::Graph& G, vertex u, vertex v) {
     core::Graph Q = core::Graph(G);
     Q.contract_edge(u, v);
     return Q;

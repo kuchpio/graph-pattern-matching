@@ -1,10 +1,10 @@
-#include "subgraph_matcher.h"
+#include "native_subgraph_matcher.h"
 
 #include <numeric>
 
 namespace pattern
 {
-bool SubgraphMatcher::match(const core::Graph& bigGraph, const core::Graph& smallGraph) {
+bool NativeSubgraphMatcher::match(const core::Graph& bigGraph, const core::Graph& smallGraph) {
     std::unordered_map<vertex, vertex> small_big_mapping = std::unordered_map<vertex, vertex>();
     std::unordered_map<vertex, vertex> big_small_mapping = std::unordered_map<vertex, vertex>();
 
@@ -18,9 +18,9 @@ bool SubgraphMatcher::match(const core::Graph& bigGraph, const core::Graph& smal
     return false;
 }
 
-bool SubgraphMatcher::sub_isomorphism_recursion(const core::Graph& bigGraph, const core::Graph& smallGraph,
-                                                std::unordered_map<vertex, vertex>& small_big_mapping,
-                                                std::unordered_map<vertex, vertex>& big_small_mapping, vertex v) {
+bool NativeSubgraphMatcher::sub_isomorphism_recursion(const core::Graph& bigGraph, const core::Graph& smallGraph,
+                                                      std::unordered_map<vertex, vertex>& small_big_mapping,
+                                                      std::unordered_map<vertex, vertex>& big_small_mapping, vertex v) {
 
     if (small_big_mapping.size() == smallGraph.size()) {
         return true;
@@ -56,10 +56,10 @@ bool SubgraphMatcher::sub_isomorphism_recursion(const core::Graph& bigGraph, con
     return false;
 }
 
-bool SubgraphMatcher::can_match_isomorphism(const core::Graph& bigGraph, const core::Graph& smallGraph,
-                                            const std::unordered_map<vertex, vertex>& mapping_big_small,
-                                            const std::unordered_map<vertex, vertex>& mapping_small_big, vertex v,
-                                            vertex big_v) {
+bool NativeSubgraphMatcher::can_match_isomorphism(const core::Graph& bigGraph, const core::Graph& smallGraph,
+                                                  const std::unordered_map<vertex, vertex>& mapping_big_small,
+                                                  const std::unordered_map<vertex, vertex>& mapping_small_big, vertex v,
+                                                  vertex big_v) {
     if (mapping_big_small.contains(big_v)) return false;
     if (mapping_small_big.contains(v)) return false;
 
@@ -74,7 +74,7 @@ bool SubgraphMatcher::can_match_isomorphism(const core::Graph& bigGraph, const c
     return true;
 }
 
-vertex SubgraphMatcher::find_first_unmapped(const core::Graph& G, std::unordered_map<vertex, vertex> map) {
+vertex NativeSubgraphMatcher::find_first_unmapped(const core::Graph& G, std::unordered_map<vertex, vertex> map) {
     for (vertex i = 0; i < G.size(); i++) {
         if (!map.contains(i)) return i;
     }
