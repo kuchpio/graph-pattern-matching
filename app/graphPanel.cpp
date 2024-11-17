@@ -2,6 +2,7 @@
 #include "wx/colordlg.h"
 #include "wx/wfstream.h"
 #include "wx/txtstrm.h"
+#include "wx/notebook.h"
 #include <chrono>
 #include "utils.h"
 
@@ -23,66 +24,76 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
 
     auto nameLabel = new wxStaticText(this, wxID_ANY, title);
 
-    auto fileBoxSizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "Files");
-    auto saveButton = new wxButton(fileBoxSizer->GetStaticBox(), wxID_ANY, "Save");
-    openButton = new wxButton(fileBoxSizer->GetStaticBox(), wxID_ANY, "Open");
-    fileInfoLabel = new wxStaticText(fileBoxSizer->GetStaticBox(), wxID_ANY, "Open a file to load the graph.");
-    auto vertexCountInput = new wxTextCtrl(fileBoxSizer->GetStaticBox(), wxID_ANY);
+    auto notebook = new wxNotebook(this, wxID_ANY);
+
+    auto filePanel = new wxPanel(notebook);
+    auto fileSizer = new wxBoxSizer(wxHORIZONTAL);
+    auto saveButton = new wxButton(filePanel, wxID_ANY, "Save");
+    openButton = new wxButton(filePanel, wxID_ANY, "Open");
+    fileInfoLabel = new wxStaticText(filePanel, wxID_ANY, "Open a file to load the graph.");
+    auto vertexCountInput = new wxTextCtrl(filePanel, wxID_ANY);
     vertexCountInput->SetHint("Vertex count");
     vertexCountInput->SetMinSize(wxSize(120, wxDefaultCoord));
     vertexCountInput->Disable();
-    auto loadButton = new wxButton(fileBoxSizer->GetStaticBox(), wxID_ANY, "Load");
+    auto loadButton = new wxButton(filePanel, wxID_ANY, "Load");
     loadButton->Disable();
-    fileBoxSizer->Add(saveButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
-    fileBoxSizer->Add(openButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
-    fileBoxSizer->Add(fileInfoLabel, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
-    fileBoxSizer->AddStretchSpacer(1);
-    fileBoxSizer->Add(vertexCountInput, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
-    fileBoxSizer->Add(loadButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM | wxRIGHT, 5);
+    fileSizer->Add(saveButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
+    fileSizer->Add(openButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
+    fileSizer->Add(fileInfoLabel, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
+    fileSizer->AddStretchSpacer(1);
+    fileSizer->Add(vertexCountInput, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
+    fileSizer->Add(loadButton, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT | wxTOP | wxBOTTOM, 5);
+    filePanel->SetSizerAndFit(fileSizer);
+    notebook->AddPage(filePanel, "File");
 
-    auto modifyBoxSizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "Modifications");
-    addButton = new wxButton(modifyBoxSizer->GetStaticBox(), wxID_ANY, "Add");
-    deleteButton = new wxButton(modifyBoxSizer->GetStaticBox(), wxID_ANY, "Delete");
-    connectButton = new wxButton(modifyBoxSizer->GetStaticBox(), wxID_ANY, "Connect");
-    disconnectButton = new wxButton(modifyBoxSizer->GetStaticBox(), wxID_ANY, "Disconnect");
-    contractButton = new wxButton(modifyBoxSizer->GetStaticBox(), wxID_ANY, "Contract");
-    subdivideButton = new wxButton(modifyBoxSizer->GetStaticBox(), wxID_ANY, "Subdivide");
-    undoButton = new wxButton(modifyBoxSizer->GetStaticBox(), wxID_ANY, "Undo");
-    redoButton = new wxButton(modifyBoxSizer->GetStaticBox(), wxID_ANY, "Redo");
-    modifyBoxSizer->Add(addButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
-    modifyBoxSizer->Add(deleteButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
-    modifyBoxSizer->Add(connectButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
-    modifyBoxSizer->Add(disconnectButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
-    modifyBoxSizer->Add(contractButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
-    modifyBoxSizer->Add(subdivideButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
-    modifyBoxSizer->AddStretchSpacer(1);
-    modifyBoxSizer->Add(undoButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
-    modifyBoxSizer->Add(redoButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM | wxRIGHT, 5);
+    auto modifyPanel = new wxPanel(notebook);
+    auto modifySizer = new wxBoxSizer(wxHORIZONTAL);
+    addButton = new wxButton(modifyPanel, wxID_ANY, "Add");
+    deleteButton = new wxButton(modifyPanel, wxID_ANY, "Delete");
+    connectButton = new wxButton(modifyPanel, wxID_ANY, "Connect");
+    disconnectButton = new wxButton(modifyPanel, wxID_ANY, "Disconnect");
+    contractButton = new wxButton(modifyPanel, wxID_ANY, "Contract");
+    subdivideButton = new wxButton(modifyPanel, wxID_ANY, "Subdivide");
+    undoButton = new wxButton(modifyPanel, wxID_ANY, "Undo");
+    redoButton = new wxButton(modifyPanel, wxID_ANY, "Redo");
+    modifySizer->Add(addButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
+    modifySizer->Add(deleteButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
+    modifySizer->Add(connectButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
+    modifySizer->Add(disconnectButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
+    modifySizer->Add(contractButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
+    modifySizer->Add(subdivideButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
+    modifySizer->AddStretchSpacer(1);
+    modifySizer->Add(undoButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
+    modifySizer->Add(redoButton, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT | wxTOP | wxBOTTOM, 5);
+    modifyPanel->SetSizerAndFit(modifySizer);
+    notebook->AddPage(modifyPanel, "Edit");
 
-    auto drawBoxSizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "Drawing");
-    auto anchorButton = new wxButton(drawBoxSizer->GetStaticBox(), wxID_ANY, "Anchor");
-    auto freeButton = new wxButton(drawBoxSizer->GetStaticBox(), wxID_ANY, "Free");
-    auto autoVertexPositioningCheckbox = 
-        new wxCheckBox(drawBoxSizer->GetStaticBox(), wxID_ANY, "Automatic vertex positioning");
-    auto showFPSCheckbox = new wxCheckBox(drawBoxSizer->GetStaticBox(), wxID_ANY, "Show FPS");
-    drawBoxSizer->Add(anchorButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
-    drawBoxSizer->Add(freeButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
-    drawBoxSizer->Add(autoVertexPositioningCheckbox, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
-    drawBoxSizer->AddStretchSpacer(1);
-    drawBoxSizer->Add(showFPSCheckbox, 0, wxALIGN_CENTER | wxRIGHT | wxBOTTOM, 5);
+    auto drawPanel = new wxPanel(notebook);
+    auto drawSizer = new wxBoxSizer(wxHORIZONTAL);
+    auto anchorButton = new wxButton(drawPanel, wxID_ANY, "Anchor");
+    auto freeButton = new wxButton(drawPanel, wxID_ANY, "Free");
+    auto autoVertexPositioningCheckbox = new wxCheckBox(drawPanel, wxID_ANY, "Automatic vertex positioning");
+    auto showFPSCheckbox = new wxCheckBox(drawPanel, wxID_ANY, "Show FPS");
+    drawSizer->Add(anchorButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
+    drawSizer->Add(freeButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
+    drawSizer->Add(autoVertexPositioningCheckbox, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
+    drawSizer->AddStretchSpacer(1);
+    drawSizer->Add(showFPSCheckbox, 0, wxALIGN_CENTER | wxRIGHT | wxTOP | wxBOTTOM, 5);
+    drawPanel->SetSizerAndFit(drawSizer);
+    notebook->AddPage(drawPanel, "View");
 
-    auto testBoxSizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "Testing");
-    auto initButton = new wxButton(testBoxSizer->GetStaticBox(), wxID_ANY, "Create");
-    auto colorButton = new wxButton(testBoxSizer->GetStaticBox(), wxID_ANY, "Color");
-    testBoxSizer->Add(initButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
-    testBoxSizer->Add(colorButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
-    testBoxSizer->AddStretchSpacer(1);
+    auto testPanel = new wxPanel(notebook);
+    auto testSizer = new wxBoxSizer(wxHORIZONTAL);
+    auto initButton = new wxButton(testPanel, wxID_ANY, "Create");
+    auto colorButton = new wxButton(testPanel, wxID_ANY, "Color");
+    testSizer->Add(initButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
+    testSizer->Add(colorButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
+    testSizer->AddStretchSpacer(1);
+    testPanel->SetSizerAndFit(testSizer);
+    notebook->AddPage(testPanel, "Test");
 
     sizer->Add(nameLabel, 0, wxALIGN_CENTER | wxTOP, 5);
-    sizer->Add(fileBoxSizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 5);
-    sizer->Add(modifyBoxSizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 5);
-    sizer->Add(drawBoxSizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
-    sizer->Add(testBoxSizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 5);
+    sizer->Add(notebook, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
     this->SetSizerAndFit(sizer);
 
     openButton->Bind(wxEVT_BUTTON, &GraphPanel::OpenFromFile, this);

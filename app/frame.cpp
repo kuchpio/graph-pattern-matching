@@ -1,6 +1,5 @@
 #include "wx/splitter.h"
 #include "wx/app.h"
-#include <chrono>
 
 #include "subgraph_matcher.h"
 #include "induced_subgraph_matcher.h"
@@ -46,7 +45,7 @@ Frame::Frame(const wxString& title)
     mainPanelPaddedSizer->Add(mainPanelSizer, 0, wxALL | wxEXPAND, 5);
     mainPanel->SetSizerAndFit(mainPanelPaddedSizer);
 
-    auto splitter = new wxSplitterWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_LIVE_UPDATE);
+    auto splitter = new wxSplitterWindow(this);
 
     patternPanel = new GraphPanel(splitter, "Pattern graph", [this]() { ClearMatching(); });
     searchSpacePanel = new GraphPanel(splitter, "Search space graph", [this]() { ClearMatching(); });
@@ -83,9 +82,6 @@ void Frame::OnMatchingStart() {
 	matcherThread = std::thread([this](const core::Graph& patternGraph, const core::Graph& searchSpaceGraph) { 
 
 		auto result = currentlyWorkingMatcher->match(searchSpaceGraph, patternGraph);
-
-        using namespace std::chrono_literals;
-        std::this_thread::sleep_for(5000ms);
 
 		wxTheApp->CallAfter([this, result]() { 
 			matcherThread.join();
