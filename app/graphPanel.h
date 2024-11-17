@@ -8,15 +8,24 @@
 
 class GraphPanel : public wxPanel {
   public:
-    GraphPanel(wxWindow* parent, const wxString& title);
+    GraphPanel(wxWindow* parent, const wxString& title, std::function<void()> fileOpenCallback);
     ~GraphPanel();
 
     const core::Graph& GetGraph() const;
+    void OnMatchingStart();
+    void OnMatchingEnd();
+
+    const std::function<void()> fileOpenCallback;
 
   private:
     GraphCanvas* canvas{nullptr};
+    wxButton *openButton;
+    wxButton *addButton, *deleteButton, *connectButton, *disconnectButton, *contractButton, *subdivideButton;
+    wxButton *undoButton, *redoButton; 
+    wxStaticText *fileInfoLabel;
 
     core::Graph graph;
+
     unsigned int readBufferId = 0;
     float* vertexPositions2D[2] = {nullptr, nullptr};
     float* vertexVelocities2D[2] = {nullptr, nullptr};
@@ -27,4 +36,6 @@ class GraphPanel : public wxPanel {
 
     void InitGraphSimulation();
     void OnIdle(wxIdleEvent& event);
+    void OpenFromFile(wxCommandEvent& event);
+    void SaveToFile(wxCommandEvent& event);
 };

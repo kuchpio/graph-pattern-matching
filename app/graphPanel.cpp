@@ -8,7 +8,8 @@
 #include "graphPanel.h"
 #include "graphCanvas.h"
 
-GraphPanel::GraphPanel(wxWindow* parent, const wxString& title) : wxPanel(parent), graph(0) {
+GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<void()> fileOpenCallback) 
+    : wxPanel(parent), graph(0), fileOpenCallback(fileOpenCallback) {
     auto sizer = new wxBoxSizer(wxVERTICAL);
 
     wxGLAttributes vAttrs;
@@ -24,12 +25,14 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title) : wxPanel(parent
 
     auto fileBoxSizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "Files");
     auto saveButton = new wxButton(fileBoxSizer->GetStaticBox(), wxID_ANY, "Save");
-    auto openButton = new wxButton(fileBoxSizer->GetStaticBox(), wxID_ANY, "Open");
-    auto fileInfoLabel = new wxStaticText(fileBoxSizer->GetStaticBox(), wxID_ANY, "Open a file to load the graph.");
+    openButton = new wxButton(fileBoxSizer->GetStaticBox(), wxID_ANY, "Open");
+    fileInfoLabel = new wxStaticText(fileBoxSizer->GetStaticBox(), wxID_ANY, "Open a file to load the graph.");
     auto vertexCountInput = new wxTextCtrl(fileBoxSizer->GetStaticBox(), wxID_ANY);
     vertexCountInput->SetHint("Vertex count");
     vertexCountInput->SetMinSize(wxSize(120, wxDefaultCoord));
+    vertexCountInput->Disable();
     auto loadButton = new wxButton(fileBoxSizer->GetStaticBox(), wxID_ANY, "Load");
+    loadButton->Disable();
     fileBoxSizer->Add(saveButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
     fileBoxSizer->Add(openButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
     fileBoxSizer->Add(fileInfoLabel, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
@@ -38,14 +41,14 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title) : wxPanel(parent
     fileBoxSizer->Add(loadButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM | wxRIGHT, 5);
 
     auto modifyBoxSizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "Modifications");
-    auto addButton = new wxButton(modifyBoxSizer->GetStaticBox(), wxID_ANY, "Add");
-    auto deleteButton = new wxButton(modifyBoxSizer->GetStaticBox(), wxID_ANY, "Delete");
-    auto connectButton = new wxButton(modifyBoxSizer->GetStaticBox(), wxID_ANY, "Connect");
-    auto disconnectButton = new wxButton(modifyBoxSizer->GetStaticBox(), wxID_ANY, "Disconnect");
-    auto contractButton = new wxButton(modifyBoxSizer->GetStaticBox(), wxID_ANY, "Contract");
-    auto subdivideButton = new wxButton(modifyBoxSizer->GetStaticBox(), wxID_ANY, "Subdivide");
-    auto undoButton = new wxButton(modifyBoxSizer->GetStaticBox(), wxID_ANY, "Undo");
-    auto redoButton = new wxButton(modifyBoxSizer->GetStaticBox(), wxID_ANY, "Redo");
+    addButton = new wxButton(modifyBoxSizer->GetStaticBox(), wxID_ANY, "Add");
+    deleteButton = new wxButton(modifyBoxSizer->GetStaticBox(), wxID_ANY, "Delete");
+    connectButton = new wxButton(modifyBoxSizer->GetStaticBox(), wxID_ANY, "Connect");
+    disconnectButton = new wxButton(modifyBoxSizer->GetStaticBox(), wxID_ANY, "Disconnect");
+    contractButton = new wxButton(modifyBoxSizer->GetStaticBox(), wxID_ANY, "Contract");
+    subdivideButton = new wxButton(modifyBoxSizer->GetStaticBox(), wxID_ANY, "Subdivide");
+    undoButton = new wxButton(modifyBoxSizer->GetStaticBox(), wxID_ANY, "Undo");
+    redoButton = new wxButton(modifyBoxSizer->GetStaticBox(), wxID_ANY, "Redo");
     modifyBoxSizer->Add(addButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
     modifyBoxSizer->Add(deleteButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
     modifyBoxSizer->Add(connectButton, 0, wxALIGN_CENTER | wxLEFT | wxBOTTOM, 5);
@@ -82,59 +85,12 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title) : wxPanel(parent
     sizer->Add(testBoxSizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 5);
     this->SetSizerAndFit(sizer);
 
-    openButton->Bind(wxEVT_BUTTON, [this, fileInfoLabel](wxCommandEvent& event) { 
-        auto fileDialog = new wxFileDialog(
-            this, "Choose a file to open", wxEmptyString, wxEmptyString,
-            "Graph6 files (*.g6)|*.g6", wxFD_OPEN);
-
-        if (fileDialog->ShowModal() == wxID_OK) {
-            wxFileInputStream inputStream(fileDialog->GetPath());
-            
-            if (!inputStream.IsOk()) {
-                wxMessageBox("Could not open file: " + fileDialog->GetFilename());
-            } else {
-                wxTextInputStream graph6Stream(inputStream, wxT("\x09"), wxConvUTF8);
-                try {
-                    graph = core::Graph6Serializer::Deserialize(graph6Stream.ReadLine().ToStdString());
-                    fileInfoLabel->SetLabel(fileDialog->GetFilename() + " (Graph6)");
-                    InitGraphSimulation();
-                } catch (const core::graph6FormatError& err) {
-                    wxMessageBox(err.what());
-                }
-            }
-        }
-
-        fileDialog->Destroy();
-    });
-
-    saveButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
-        auto fileDialog = new wxFileDialog(
-            this, "Save the graph to file", wxEmptyString, wxEmptyString,
-            "Graph6 files (*.g6)|*.g6", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-
-        if (fileDialog->ShowModal() == wxID_OK) {
-            wxFileOutputStream outputStream(fileDialog->GetPath());
-            
-            if (!outputStream.IsOk()) {
-                wxMessageBox("Cannot save the graph in file: " + fileDialog->GetFilename());
-            } else {
-                wxTextOutputStream graph6Stream(outputStream, wxEOL_NATIVE, wxConvUTF8);
-                try {
-                    graph6Stream << core::Graph6Serializer::Serialize(graph);
-                } catch (const core::graph6FormatError& err) {
-                    wxMessageBox(err.what());
-                }
-            }
-        }
-
-        fileDialog->Destroy();
-    });
-
+    openButton->Bind(wxEVT_BUTTON, &GraphPanel::OpenFromFile, this);
+    saveButton->Bind(wxEVT_BUTTON, &GraphPanel::SaveToFile, this);
     initButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) { 
         graph = utils::GraphFactory::random_graph(5, 0.5f);
         InitGraphSimulation();
     });
-
     colorButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
         wxColourData colorData;
         colorData.SetColour(this->canvas->vertexColor);
@@ -159,6 +115,79 @@ GraphPanel::~GraphPanel() {
 
 const core::Graph& GraphPanel::GetGraph() const {
     return graph;
+}
+
+void GraphPanel::OnMatchingStart() {
+    openButton->Disable();
+    addButton->Disable();
+    deleteButton->Disable();
+    connectButton->Disable();
+    disconnectButton->Disable();
+    contractButton->Disable();
+    subdivideButton->Disable();
+    undoButton->Disable();
+    redoButton->Disable();
+}
+
+void GraphPanel::OnMatchingEnd() {
+    openButton->Enable();
+    addButton->Enable();
+    deleteButton->Enable();
+    connectButton->Enable();
+    disconnectButton->Enable();
+    contractButton->Enable();
+    subdivideButton->Enable();
+    undoButton->Enable();
+    redoButton->Enable();
+}
+
+void GraphPanel::OpenFromFile(wxCommandEvent& event) {
+	auto fileDialog = new wxFileDialog(
+		this, "Choose a file to open", wxEmptyString, wxEmptyString,
+		"Graph6 files (*.g6)|*.g6", wxFD_OPEN);
+
+	if (fileDialog->ShowModal() == wxID_OK) {
+		wxFileInputStream inputStream(fileDialog->GetPath());
+		
+		if (!inputStream.IsOk()) {
+			wxMessageBox("Could not open file: " + fileDialog->GetFilename());
+		} else {
+			wxTextInputStream graph6Stream(inputStream, wxT("\x09"), wxConvUTF8);
+			try {
+				graph = core::Graph6Serializer::Deserialize(graph6Stream.ReadLine().ToStdString());
+				fileInfoLabel->SetLabel(fileDialog->GetFilename() + " (Graph6)");
+				InitGraphSimulation();
+                fileOpenCallback();
+			} catch (const core::graph6FormatError& err) {
+				wxMessageBox(err.what());
+			}
+		}
+	}
+
+	fileDialog->Destroy();
+}
+
+void GraphPanel::SaveToFile(wxCommandEvent& event) {
+	auto fileDialog = new wxFileDialog(
+		this, "Save the graph to file", wxEmptyString, wxEmptyString,
+		"Graph6 files (*.g6)|*.g6", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+	if (fileDialog->ShowModal() == wxID_OK) {
+		wxFileOutputStream outputStream(fileDialog->GetPath());
+		
+		if (!outputStream.IsOk()) {
+			wxMessageBox("Cannot save the graph in file: " + fileDialog->GetFilename());
+		} else {
+			wxTextOutputStream graph6Stream(outputStream, wxEOL_NATIVE, wxConvUTF8);
+			try {
+				graph6Stream << core::Graph6Serializer::Serialize(graph);
+			} catch (const core::graph6FormatError& err) {
+				wxMessageBox(err.what());
+			}
+		}
+	}
+
+	fileDialog->Destroy();
 }
 
 void GraphPanel::InitGraphSimulation() {
