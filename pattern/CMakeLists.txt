@@ -13,5 +13,5 @@ add_library(pattern STATIC
             "src/vf2libSolvers/vf2_isomorphism_solver.cpp"
             )
 target_include_directories(pattern PUBLIC "include" "include/minorSolvers" "include/subgraphSolvers" 
-                            "include/isomorphismSolvers" "include/subgraphSolvers"${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+                            "include/isomorphismSolvers" "include/subgraphSolvers" ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 target_link_libraries(pattern core utils minorminer vf2lib pthread )
