@@ -49,17 +49,17 @@ TEST(Graph6Deserialize, Star_5) {
     }
 }
 
-TEST(Graph6Deserialize, Full_4) {
-    const bool expectedAdjecencyMatrix[] = {0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0};
+TEST(Graph6Deserialize, Full_5) {
+    const bool expectedAdjecencyMatrix[] = {0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0};
 
-    auto graph = Graph6Serializer::Deserialize("C~");
+    auto graph = Graph6Serializer::Deserialize("D~{");
 
-    EXPECT_EQ(graph.size(), 4) << "Incorrect size";
-    for (vertex u = 0; u < 4; u++) {
-        for (vertex v = 0; v < 4; v++) {
-            EXPECT_EQ(graph.has_edge(u, v), expectedAdjecencyMatrix[u * 4 + v])
+    EXPECT_EQ(graph.size(), 5) << "Incorrect size";
+    for (vertex u = 0; u < 5; u++) {
+        for (vertex v = 0; v < 5; v++) {
+            EXPECT_EQ(graph.has_edge(u, v), expectedAdjecencyMatrix[u * 5 + v])
                 << "The edge between " << u << " and " << v << " should "
-                << (expectedAdjecencyMatrix[u * 4 + v] ? "not " : "") << " exist.";
+                << (expectedAdjecencyMatrix[u * 5 + v] ? "not " : "") << " exist.";
         }
     }
 }
@@ -153,24 +153,32 @@ TEST(Graph6Serialize, Star_5) {
     EXPECT_EQ(graph6, "DXG");
 }
 
-TEST(Graph6Serialize, Full_4) {
-    auto graph = core::Graph(4);
+TEST(Graph6Serialize, Full_5) {
+    auto graph = core::Graph(5);
     graph.add_edge(0, 1);
     graph.add_edge(1, 0);
     graph.add_edge(0, 2);
     graph.add_edge(2, 0);
     graph.add_edge(0, 3);
     graph.add_edge(3, 0);
+    graph.add_edge(0, 4);
+    graph.add_edge(4, 0);
     graph.add_edge(1, 2);
     graph.add_edge(2, 1);
     graph.add_edge(1, 3);
     graph.add_edge(3, 1);
+    graph.add_edge(1, 4);
+    graph.add_edge(4, 1);
     graph.add_edge(2, 3);
     graph.add_edge(3, 2);
+    graph.add_edge(2, 4);
+    graph.add_edge(4, 2);
+    graph.add_edge(3, 4);
+    graph.add_edge(4, 3);
 
     auto graph6 = Graph6Serializer::Serialize(graph);
 
-    EXPECT_EQ(graph6, "C~");
+    EXPECT_EQ(graph6, "D~{");
 }
 
 } // namespace core

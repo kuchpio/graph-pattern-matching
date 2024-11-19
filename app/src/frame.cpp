@@ -51,7 +51,7 @@ Frame::Frame(const wxString& title)
     searchSpacePanel = new GraphPanel(splitter, "Search space graph", [this]() { ClearMatching(); });
 
     splitter->SetSashGravity(0.5);
-    splitter->SplitVertically(patternPanel, searchSpacePanel);
+    splitter->SplitVertically(searchSpacePanel, patternPanel);
 
     sizer->Add(mainPanel, 0, wxEXPAND);
     sizer->Add(splitter, 1, wxEXPAND);
