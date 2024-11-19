@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <cstddef>
 #include <vector>
+#include <tuple>
 
 typedef std::size_t vertex;
 
