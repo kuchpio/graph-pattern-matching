@@ -32,3 +32,5 @@ class Graph {
     std::size_t degree_out(vertex v) const;
 };
 } // namespace core
+
+#include "../src/graph6Serializer.h"

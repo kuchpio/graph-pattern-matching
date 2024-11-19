@@ -1,28 +1,23 @@
 # Graph pattern matching
 
-Desktop application revolving around finding patterns in graphs.
+The project is a pattern matching tool in the domain of graphs.
+Graph *A* is considered a pattern in graph *B*, when *A* 
+is a (optionally induced) subgraph, minor, or topological minor of *B*.
 
-### Definition
-
-We will say that graph `A` is a pattern in graph `B`, when `A` is a subgraph, induced subgraph, minor, topological minor, or induced minor of `B`.
-
-### Algorithms
-Algorithms that can determine the relations mentioned above between two graphs are usually computationally expensive.
-Therefore we decided to parallelize these processes on GPU and hopefully achieve some performance gains. 
-
-### Graph vs image pattern matching
-Besides graphs, the application can also accept images as inputs. 
-Then machine learning algorithms produce graph drawings corresponding to shapes visible in given pictures.
+Besides being able to find certain patterns in graphs, 
+the application provides a graphical user interface 
+that can be used to manipulate them.
+As inputs, the program accepts graphs stored in `Graph6` format as well as images, 
+which are then processed to produce graph drawings corresponding to shapes visible in them.
 That way we may investigate how pattern matching in graphs relates to pattern matching in images.
 
-### Interface
-The graphs are visualized in real time using force-based simulations that provide a clear overview of their structure.
-At the same time, a user-friendly interface simplifies making small modifications to these graphs to see how little adjustments influence their relationship.
+### Building 
 
-### Proposed division of work
+After downloading the source code make sure that all required dependencies are present.
+Those are provided as `git submodules` and can be fetched by calling
+```
+git submodule update --init --recursive
+```
+in the project's root directory.
 
-| Author           | Area                        |
-|------------------|-----------------------------|
-| Piotr Kucharczyk | Graph visualisation         |
-| Borys Kurdek     | Pattern matching algorithms |
-| Bartosz Maj      | Image to graph conversion   |
+Once all dependencies are present, the program can be built using standard `CMake` commands.
