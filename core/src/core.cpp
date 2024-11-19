@@ -157,4 +157,40 @@ vertex Graph::degree_in(vertex v) const {
     return degree_in;
 }
 
+void Graph::reorder(const std::vector<vertex>& order) {
+    // create new graph with new labeling.
+    Graph G = Graph(this->size());
+
+    // create mapping
+    std::vector<vertex> mapping = std::vector<vertex>(order.size());
+    for (int i = 0; i < mapping.size(); i++) {
+        mapping[order[i]] = i;
+    }
+
+    for (auto [u, v] : this->edges()) {
+        G.add_edge(mapping[u], mapping[v]);
+    }
+
+    this->_adjacencyList = G._adjacencyList;
+}
+
+Graph Graph::reorder(const std::vector<vertex>& order) const {
+    auto G = Graph(this->edges());
+    G.reorder(order);
+    return G;
+}
+
+bool Graph::operator==(const core::Graph& G) const {
+    return this->_adjacencyList == G._adjacencyList;
+}
+
+bool Graph::is_subgraph(const core::Graph& subgprah) const {
+    for (auto v = 0; v < subgprah.size(); v++) {
+        for (auto u : subgprah.get_neighbours(v)) {
+            if (this->has_edge(v, u) == false) return false;
+        }
+    }
+    return true;
+}
+
 } // namespace core

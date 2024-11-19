@@ -3,3 +3,7 @@ add_subdirectory(googletest)
 
 set(wxBUILD_SHARED OFF)
 add_subdirectory(wxWidgets)
+
+add_subdirectory(minorminer)
+
+add_subdirectory(vf2lib)

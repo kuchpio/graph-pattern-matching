@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <cstddef>
 #include <vector>
+#include <tuple>
 
 typedef std::size_t vertex;
 
@@ -21,6 +22,10 @@ class Graph {
     bool remove_edge(vertex u, vertex v);
     bool has_edge(vertex u, vertex v) const;
     bool contract_edge(vertex u, vertex v);
+    bool is_subgraph(const core::Graph& G) const;
+
+    // operator
+    bool operator==(const core::Graph& G) const;
 
     std::size_t degree_in(vertex v) const;
     vertex size() const;
@@ -29,6 +34,8 @@ class Graph {
     std::vector<vertex> get_neighbours(vertex v) const;
 
     void topological_sort();
+    void reorder(const std::vector<vertex>& order);
+    Graph reorder(const std::vector<vertex>& order) const;
     std::size_t degree_out(vertex v) const;
 };
 } // namespace core

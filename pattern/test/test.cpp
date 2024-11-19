@@ -16,7 +16,7 @@ bool small_has_minor();
 
 bool small_graph_isomorphic();
 int main() {
-    // assert(random_graph_isomorphism_test() == true);
+    assert(random_graph_isomorphism_test() == true);
     assert(small_graph_not_isomorphic() == false);
     // assert(small_graph_isomorphic() == true); // Fix me!
     assert(small_graph_sub_isomorphic() == true);
@@ -71,7 +71,7 @@ bool small_graph_isomorphic() {
 }
 
 bool random_graph_isomorphism_test() {
-    core::Graph G = utils::GraphFactory::random_graph(30, 0.4f);
+    core::Graph G = utils::GraphFactory::random_connected_graph(30, 0.4f);
     core::Graph Q = utils::GraphFactory::isomoporhic_graph(G);
     auto matcher = pattern::IsomorphismMatcher();
     return matcher.match(G, Q);
@@ -108,8 +108,6 @@ bool small_graph_sub_isomorphic() {
     std::size_t graph_size = 6;
     std::size_t subgraph_size = 4;
 
-    pattern::SubgraphMatcher matcher = pattern::SubgraphMatcher();
-
     // Create the larger graph G
     core::Graph G = core::Graph(graph_size);
     core::Graph Q = core::Graph(subgraph_size);
@@ -127,6 +125,8 @@ bool small_graph_sub_isomorphic() {
     Q.add_edge(2, 3);
 
     // Check for subgraph isomorphism
+    pattern::SubgraphMatcher matcher = pattern::SubgraphMatcher();
+
     return matcher.match(G, Q);
 }
 
