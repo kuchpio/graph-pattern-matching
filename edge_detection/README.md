@@ -22,8 +22,8 @@ Before running the script, make sure you have Python installed on your system. F
 ## Usage
 After setting up the environment, you can generate a graph from an image by running the following command:
 
-    ```bash
+   ```bash
     python graph.py
-    ```
+   ```
     
 The script will process the image, detect edges, and generate a graph.
