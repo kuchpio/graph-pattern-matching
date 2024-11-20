@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <cstddef>
 #include <vector>
+#include <tuple>
 
 typedef std::size_t vertex;
 
@@ -38,3 +39,5 @@ class Graph {
     std::size_t degree_out(vertex v) const;
 };
 } // namespace core
+
+#include "../src/graph6Serializer.h"
