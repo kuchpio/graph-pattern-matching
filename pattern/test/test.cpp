@@ -45,7 +45,7 @@ bool small_graph_not_isomorphic() {
 
     auto matcher = pattern::NativeIsomorphismMatcher();
 
-    return matcher.match(G, Q);
+    return matcher.match(G, Q).has_value();
 }
 
 bool small_graph_isomorphic() {
@@ -67,14 +67,14 @@ bool small_graph_isomorphic() {
 
     auto matcher = pattern::NativeIsomorphismMatcher();
 
-    return matcher.match(G, Q);
+    return matcher.match(G, Q).has_value();
 }
 
 bool random_graph_isomorphism_test() {
     core::Graph G = utils::GraphFactory::random_connected_graph(30, 0.4f);
     core::Graph Q = utils::GraphFactory::isomoporhic_graph(G);
     auto matcher = pattern::NativeIsomorphismMatcher();
-    return matcher.match(G, Q);
+    return matcher.match(G, Q).has_value();
 }
 
 bool subgraph_not_sub_isomorphic() {
@@ -101,7 +101,7 @@ bool subgraph_not_sub_isomorphic() {
     pattern::NativeSubgraphMatcher matcher = pattern::NativeSubgraphMatcher();
 
     // Check for subgraph isomorphism
-    return matcher.match(G, Q);
+    return matcher.match(G, Q).has_value();
 }
 
 bool small_graph_sub_isomorphic() {
@@ -127,7 +127,7 @@ bool small_graph_sub_isomorphic() {
     // Check for subgraph isomorphism
     pattern::NativeSubgraphMatcher matcher = pattern::NativeSubgraphMatcher();
 
-    return matcher.match(G, Q);
+    return matcher.match(G, Q).has_value();
 }
 
 bool small_not_minor() {
@@ -154,7 +154,7 @@ bool small_not_minor() {
     auto matcher = pattern::NativeMinorMatcher();
 
     // Check for minor relationship - expecting false because Q is a cycle but G is a chain
-    return matcher.match(G, Q);
+    return matcher.match(G, Q).has_value();
 }
 
 bool small_has_minor() {
@@ -191,7 +191,7 @@ bool small_has_minor() {
 
     auto matcher = pattern::NativeMinorMatcher();
     // Check for minor relationship - expecting true because Q can be derived from G
-    return matcher.match(G, Q);
+    return matcher.match(G, Q).has_value();
 }
 
 bool has_minor_not_topological() {
@@ -229,5 +229,5 @@ bool has_minor_not_topological() {
 
     auto matcher = pattern::TopologicalMinorMatcher();
     // Check for minor relationship - expecting true because Q can be derived from G
-    return matcher.match(G, Q);
+    return matcher.match(G, Q).has_value();
 }

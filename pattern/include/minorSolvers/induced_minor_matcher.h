@@ -9,8 +9,7 @@ namespace pattern
 {
 class InducedMinorMatcher : public NativeMinorMatcher {
   public:
-    bool match(const core::Graph& G, const core::Graph& H) override;
-    std::optional<std::vector<vertex>> matching(const core::Graph& G, const core::Graph& Q);
+    std::optional<std::vector<vertex>> match(const core::Graph& G, const core::Graph& Q) override;
 
   private:
     bool minor_induced_recursion(const core::Graph& G, const core::Graph& H, vertex v,

@@ -1,47 +1,14 @@
 #include "native_isomorphism_matcher.h"
 #include <numeric>
 #include "core.h"
-#include "utils.h"
 #include <algorithm>
 #include <optional>
 #include <unordered_map>
 #include <vector>
 namespace pattern
 {
-bool NativeIsomorphismMatcher::match(const core::Graph& bigGraph, const core::Graph& smallGraph) {
-    if (bigGraph.size() != smallGraph.size()) return false;
-    auto G_components = utils::GraphFactory::components(bigGraph);
-    auto Q_components = utils::GraphFactory::components(smallGraph);
-
-    if (G_components.size() != Q_components.size()) return false;
-
-    auto G_components_by_size = std::vector<std::vector<core::Graph>>();
-    auto Q_components_by_size = std::vector<std::vector<core::Graph>>();
-
-    vertex previous_size = G_components[0].size();
-    auto current_G_components = std::vector<core::Graph>();
-    auto current_Q_components = std::vector<core::Graph>();
-
-    for (vertex i = 0; i < G_components.size(); i++) {
-        if (G_components[i].size() != Q_components[i].size()) return false;
-        if (G_components[i].size() != previous_size) {
-            G_components_by_size.push_back(current_G_components);
-            Q_components_by_size.push_back(current_Q_components);
-            current_G_components.clear();
-            current_Q_components.clear();
-        }
-        current_G_components.push_back(G_components[i]);
-        current_Q_components.push_back(Q_components[i]);
-    }
-    G_components_by_size.push_back(current_G_components);
-    Q_components_by_size.push_back(current_Q_components);
-
-    // try to match every
-    return match_isomorphism_components(G_components_by_size, Q_components_by_size);
-}
-
-std::optional<std::vector<vertex>> NativeIsomorphismMatcher::matching(const core::Graph& bigGraph,
-                                                                      const core::Graph& smallGraph) {
+std::optional<std::vector<vertex>> NativeIsomorphismMatcher::match(const core::Graph& bigGraph,
+                                                                   const core::Graph& smallGraph) {
     return connectedIsomorphism(bigGraph, smallGraph);
 }
 

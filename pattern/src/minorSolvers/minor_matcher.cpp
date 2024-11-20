@@ -5,13 +5,8 @@
 
 namespace pattern
 {
-bool NativeMinorMatcher::match(const core::Graph& G, const core::Graph& H) {
-    if (H.size() > G.size()) return false;
 
-    return minor_recursion(G, H, 0, std::nullopt);
-};
-
-std::optional<std::vector<vertex>> NativeMinorMatcher::matching(const core::Graph& G, const core::Graph& H) {
+std::optional<std::vector<vertex>> NativeMinorMatcher::match(const core::Graph& G, const core::Graph& H) {
     if (H.size() > G.size()) return std::nullopt;
 
     return minorRecursion(G, H, 0, std::nullopt);
@@ -51,8 +46,8 @@ std::optional<std::vector<vertex>> NativeMinorMatcher::minorRecursion(const core
                                                                       std::optional<vertex> last_neighbour_index) {
     if (H.size() > G.size()) return std::nullopt;
 
-    auto matching = this->isomorphismMatcher.matching(G, H);
-    if (matching.has_value()) return matching;
+    auto match = this->isomorphismMatcher.match(G, H);
+    if (match.has_value()) return match;
 
     if (v >= G.size()) return std::nullopt;
 
@@ -60,8 +55,8 @@ std::optional<std::vector<vertex>> NativeMinorMatcher::minorRecursion(const core
 
     if (G.size() > H.size()) {
         auto G_after_removal = remove_vertex(G, v);
-        auto matching = minorRecursion(G_after_removal, H, v + 1, std::nullopt);
-        if (matching.has_value()) return *matching;
+        auto match = minorRecursion(G_after_removal, H, v + 1, std::nullopt);
+        if (match.has_value()) return *match;
     }
 
     for (vertex neighbour_index = start_neighbour_index; neighbour_index < G.get_neighbours(v).size();
@@ -70,12 +65,12 @@ std::optional<std::vector<vertex>> NativeMinorMatcher::minorRecursion(const core
 
         auto G_after_edge_removal = remove_edge(G, v, neighbour);
 
-        auto matching = minorRecursion(G_after_edge_removal, H, v + 1, std::nullopt);
-        if (matching.has_value()) return *matching;
+        auto match = minorRecursion(G_after_edge_removal, H, v + 1, std::nullopt);
+        if (match.has_value()) return *match;
 
         auto G_after_edge_contraction = contract_edge(G, v, neighbour);
-        matching = minorRecursion(G_after_edge_contraction, H, v, neighbour_index);
-        if (matching.has_value()) return matching;
+        match = minorRecursion(G_after_edge_contraction, H, v, neighbour_index);
+        if (match.has_value()) return match;
     }
 
     return minorRecursion(G, H, v + 1, std::nullopt);

@@ -2,7 +2,6 @@
 
 #include "core.h"
 #include "minor_matcher.h"
-#include "pattern.h"
 #include "vf2_isomorphism_solver.hpp"
 #include <optional>
 #include <vector>
@@ -10,8 +9,7 @@ namespace pattern
 {
 class NativeMinorMatcher : public MinorMatcher {
   public:
-    bool match(const core::Graph& G, const core::Graph& H) override;
-    std::optional<std::vector<vertex>> matching(const core::Graph& G, const core::Graph& Q);
+    std::optional<std::vector<vertex>> match(const core::Graph& G, const core::Graph& Q) override;
 
   protected:
     bool minor_recursion(const core::Graph& G, const core::Graph& H, vertex v,

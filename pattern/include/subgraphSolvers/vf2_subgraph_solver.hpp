@@ -4,14 +4,12 @@
 #include "argraph.h"
 #include "subgraph_matcher.h"
 #include <optional>
-#include <tuple>
 
 namespace pattern
 {
 class Vf2SubgraphSolver : public SubgraphMatcher {
   public:
-    bool match(const core::Graph& bigGraph, const core::Graph& smallGraph);
-    std::optional<std::vector<vertex>> matching(const core::Graph& bigGraph, const core::Graph& smallGraph);
+    std::optional<std::vector<vertex>> match(const core::Graph& bigGraph, const core::Graph& smallGraph);
 
   private:
     Graph convert_graph(const core::Graph& G);

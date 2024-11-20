@@ -9,8 +9,7 @@ namespace pattern
 {
 class NativeIsomorphismMatcher : public IsomorphismMatcher {
   public:
-    bool match(const core::Graph& bigGraph, const core::Graph& smallGraph);
-    std::optional<std::vector<vertex>> matching(const core::Graph& bigGraph, const core::Graph& smallGraph);
+    std::optional<std::vector<vertex>> match(const core::Graph& bigGraph, const core::Graph& smallGraph);
 
   private:
     bool match_isomorphism_components(std::vector<std::vector<core::Graph>>& G_components_by_size,

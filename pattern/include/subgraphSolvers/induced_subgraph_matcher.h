@@ -1,7 +1,6 @@
 #pragma once
 
 #include "core.h"
-#include "pattern.h"
 #include "subgraph_matcher.h"
 #include <optional>
 #include <unordered_map>
@@ -11,8 +10,7 @@ namespace pattern
 {
 class InducedSubgraphMatcher : public SubgraphMatcher {
   public:
-    bool match(const core::Graph& bigGraph, const core::Graph& smallGraph) override;
-    std::optional<std::vector<vertex>> matching(const core::Graph& bigGraph, const core::Graph& smallGraph);
+    std::optional<std::vector<vertex>> match(const core::Graph& bigGraph, const core::Graph& smallGraph);
 
   private:
     bool induced_sub_isomorphism_recursion(const core::Graph& bigGraph, const core::Graph& smallGraph,

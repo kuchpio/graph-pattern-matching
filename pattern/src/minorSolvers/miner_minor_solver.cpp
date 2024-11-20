@@ -25,17 +25,7 @@ class MyCppInteractions : public find_embedding::LocalInteraction {
 
 namespace pattern
 {
-bool MinerMinorMatcher::match(const core::Graph& G, const core::Graph& Q) {
-    find_embedding::optional_parameters params;
-    params.localInteractionPtr.reset(new MyCppInteractions);
-
-    auto bigGraph = this->convert_graph(G);
-    auto smallGraph = this->convert_graph(Q);
-    std::vector<std::vector<int>> chains;
-    return find_embedding::findEmbedding(smallGraph, bigGraph, params, chains);
-}
-
-std::optional<std::vector<vertex>> MinerMinorMatcher::matching(const core::Graph& G, const core::Graph& H) {
+std::optional<std::vector<vertex>> MinerMinorMatcher::match(const core::Graph& G, const core::Graph& H) {
     find_embedding::optional_parameters params;
     params.localInteractionPtr.reset(new MyCppInteractions);
 

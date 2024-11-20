@@ -22,20 +22,8 @@ Graph pattern::Vf2IsomorphismSolver::convert_graph(const core::Graph& G) {
     return Graph(&ed);
 }
 
-bool pattern::Vf2IsomorphismSolver::match(const core::Graph& bigGraph, const core::Graph& smallGraph) {
-    auto G = convert_graph(bigGraph);
-    auto Q = convert_graph(smallGraph);
-
-    int n;
-    VF2State s0(&Q, &G);
-
-    std::vector<node_id> big_nodes(smallGraph.size()), small_nodes(smallGraph.size());
-
-    return vf2::match(&s0, &n, big_nodes.data(), small_nodes.data());
-}
-
-std::optional<std::vector<vertex>> pattern::Vf2IsomorphismSolver::matching(const core::Graph& bigGraph,
-                                                                           const core::Graph& smallGraph) {
+std::optional<std::vector<vertex>> pattern::Vf2IsomorphismSolver::match(const core::Graph& bigGraph,
+                                                                        const core::Graph& smallGraph) {
     auto G = convert_graph(bigGraph);
     auto Q = convert_graph(smallGraph);
 

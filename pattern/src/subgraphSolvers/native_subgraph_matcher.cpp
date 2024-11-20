@@ -6,23 +6,8 @@
 
 namespace pattern
 {
-bool NativeSubgraphMatcher::match(const core::Graph& bigGraph, const core::Graph& smallGraph) {
-    std::unordered_map<vertex, vertex> small_big_mapping = std::unordered_map<vertex, vertex>();
-    std::unordered_map<vertex, vertex> big_small_mapping = std::unordered_map<vertex, vertex>();
-
-    auto vertex_indices = std::vector<vertex>(smallGraph.size());
-    std::iota(vertex_indices.begin(), vertex_indices.end(), 0);
-
-    for (auto vertex : vertex_indices) {
-        if (sub_isomorphism_recursion(bigGraph, smallGraph, small_big_mapping, big_small_mapping,
-                                      vertex_indices[vertex]))
-            return true;
-    }
-    return false;
-}
-
-std::optional<std::vector<vertex>> NativeSubgraphMatcher::matching(const core::Graph& bigGraph,
-                                                                   const core::Graph& smallGraph) {
+std::optional<std::vector<vertex>> NativeSubgraphMatcher::match(const core::Graph& bigGraph,
+                                                                const core::Graph& smallGraph) {
     std::unordered_map<vertex, vertex> small_big_mapping = std::unordered_map<vertex, vertex>();
     std::unordered_map<vertex, vertex> big_small_mapping = std::unordered_map<vertex, vertex>();
 

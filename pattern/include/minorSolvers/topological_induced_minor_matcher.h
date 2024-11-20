@@ -5,8 +5,7 @@ namespace pattern
 {
 class TopologicalInducedMinorMatcher : public NativeMinorMatcher {
   public:
-    bool match(const core::Graph& G, const core::Graph& H);
-    std::optional<std::vector<vertex>> matching(const core::Graph& G, const core::Graph& Q);
+    std::optional<std::vector<vertex>> match(const core::Graph& G, const core::Graph& Q);
 
   private:
     bool topological_induced_minor_recursion(const core::Graph& G, const core::Graph& H, vertex v,
