@@ -40,6 +40,11 @@ bool NativeIsomorphismMatcher::match(const core::Graph& bigGraph, const core::Gr
     return match_isomorphism_components(G_components_by_size, Q_components_by_size);
 }
 
+std::optional<std::vector<vertex>> NativeIsomorphismMatcher::matching(const core::Graph& bigGraph,
+                                                                      const core::Graph& smallGraph) {
+    return connectedIsomorphism(bigGraph, smallGraph);
+}
+
 bool NativeIsomorphismMatcher::match_isomorphism_components(
     std::vector<std::vector<core::Graph>>& G_components_by_size,
     std::vector<std::vector<core::Graph>>& Q_components_by_size) {
@@ -151,13 +156,4 @@ std::optional<std::vector<vertex>> NativeIsomorphismMatcher::isomorphismRecursio
     }
     return std::nullopt;
 }
-
-std::vector<vertex> NativeIsomorphismMatcher::getMatching(std::unordered_map<vertex, vertex> mapping) {
-    std::vector<vertex> matching = std::vector<vertex>(mapping.size());
-    for (const auto& pair : mapping) {
-        matching[pair.first] = pair.second;
-    }
-    return matching;
-}
-
 } // namespace pattern

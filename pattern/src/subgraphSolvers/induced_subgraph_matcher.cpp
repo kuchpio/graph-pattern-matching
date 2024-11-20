@@ -1,6 +1,7 @@
 #include "induced_subgraph_matcher.h"
 
 #include <numeric>
+#include <optional>
 
 namespace pattern
 {
@@ -17,6 +18,22 @@ bool InducedSubgraphMatcher::match(const core::Graph& bigGraph, const core::Grap
             return true;
     }
     return false;
+}
+
+std::optional<std::vector<vertex>> InducedSubgraphMatcher::matching(const core::Graph& bigGraph,
+                                                                    const core::Graph& smallGraph) {
+    std::unordered_map<vertex, vertex> small_big_mapping = std::unordered_map<vertex, vertex>();
+    std::unordered_map<vertex, vertex> big_small_mapping = std::unordered_map<vertex, vertex>();
+
+    auto vertex_indices = std::vector<vertex>(smallGraph.size());
+    std::iota(vertex_indices.begin(), vertex_indices.end(), 0);
+
+    for (auto vertex : vertex_indices) {
+        auto matching = inducedSubIsomorphismRecursion(bigGraph, smallGraph, small_big_mapping, big_small_mapping,
+                                                       vertex_indices[vertex]);
+        if (matching) return matching;
+    }
+    return std::nullopt;
 }
 
 bool InducedSubgraphMatcher::induced_sub_isomorphism_recursion(const core::Graph& bigGraph,
@@ -60,6 +77,47 @@ bool InducedSubgraphMatcher::induced_sub_isomorphism_recursion(const core::Graph
         big_small_mapping.erase(big_v);
     }
     return false;
+}
+
+std::optional<std::vector<vertex>> InducedSubgraphMatcher::inducedSubIsomorphismRecursion(
+    const core::Graph& bigGraph, const core::Graph& smallGraph, std::unordered_map<vertex, vertex>& small_big_mapping,
+    std::unordered_map<vertex, vertex>& big_small_mapping, vertex v) {
+
+    if (small_big_mapping.size() == smallGraph.size()) {
+        return getMatching(small_big_mapping);
+    }
+
+    for (vertex big_v = 0; big_v < bigGraph.size(); big_v++) {
+
+        if (!can_match_induced_isomorphism(bigGraph, smallGraph, big_small_mapping, small_big_mapping, v, big_v))
+            continue;
+        big_small_mapping.insert({big_v, v});
+        small_big_mapping.insert({v, big_v});
+
+        if (small_big_mapping.size() == smallGraph.size()) {
+            return getMatching(small_big_mapping);
+        }
+
+        bool remaining_neighbours = false;
+        for (auto neighbour : smallGraph.get_neighbours(v)) {
+            if (small_big_mapping.contains(neighbour) == false) {
+                remaining_neighbours = true;
+                auto matching = inducedSubIsomorphismRecursion(bigGraph, smallGraph, small_big_mapping,
+                                                               big_small_mapping, neighbour);
+                if (matching) return matching;
+            }
+        }
+
+        if (remaining_neighbours == false) {
+            vertex first_unmapped = find_first_unmapped(smallGraph, small_big_mapping);
+            auto matching = inducedSubIsomorphismRecursion(bigGraph, smallGraph, small_big_mapping, big_small_mapping,
+                                                           first_unmapped);
+            if (matching) return matching;
+        }
+        small_big_mapping.erase(v);
+        big_small_mapping.erase(big_v);
+    }
+    return std::nullopt;
 }
 
 bool InducedSubgraphMatcher::can_match_induced_isomorphism(const core::Graph& bigGraph, const core::Graph& smallGraph,

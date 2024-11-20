@@ -28,7 +28,5 @@ class NativeIsomorphismMatcher : public IsomorphismMatcher {
     bool is_isomorphism_recursion(const core::Graph& G, const core::Graph& Q,
                                   std::unordered_map<vertex, vertex>& Q_G_mapping,
                                   std::unordered_map<vertex, vertex>& G_Q_mapping, vertex v);
-
-    std::vector<vertex> getMatching(std::unordered_map<vertex, vertex> mapping);
 };
 } // namespace pattern

@@ -3,18 +3,25 @@
 #include "core.h"
 #include "pattern.h"
 #include "subgraph_matcher.h"
+#include <optional>
 #include <unordered_map>
+#include <vector>
 
 namespace pattern
 {
 class InducedSubgraphMatcher : public SubgraphMatcher {
   public:
     bool match(const core::Graph& bigGraph, const core::Graph& smallGraph) override;
+    std::optional<std::vector<vertex>> matching(const core::Graph& bigGraph, const core::Graph& smallGraph);
 
   private:
     bool induced_sub_isomorphism_recursion(const core::Graph& bigGraph, const core::Graph& smallGraph,
                                            std::unordered_map<vertex, vertex>& small_big_mapping,
                                            std::unordered_map<vertex, vertex>& big_small_mapping, vertex v);
+    std::optional<std::vector<vertex>> inducedSubIsomorphismRecursion(
+        const core::Graph& bigGraph, const core::Graph& smallGraph,
+        std::unordered_map<vertex, vertex>& small_big_mapping, std::unordered_map<vertex, vertex>& big_small_mapping,
+        vertex v);
     bool can_match_induced_isomorphism(const core::Graph& bigGraph, const core::Graph& smallGraph,
                                        const std::unordered_map<vertex, vertex>& mapping_big_small,
                                        const std::unordered_map<vertex, vertex>& mapping_small_big, vertex v,
