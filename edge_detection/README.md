@@ -1,6 +1,6 @@
 # Graph Generator
 
-This project creates a graph based on the edges detected in an image.
+This module creates a graph based on the edges detected in an image.
 
 ## Installation
 
@@ -9,9 +9,10 @@ Before running the script, make sure you have Python installed on your system. F
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/your-repo/graph-generator.git
-   cd graph-generator
-
+   git clone https://github.com/kuchpio/graph-pattern-matching.git
+   cd edge_detection
+   ```
+   
 2. Install the required libraries using `requirements.txt`:
 
     ```bash
