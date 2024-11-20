@@ -11,6 +11,12 @@ bool NativeMinorMatcher::match(const core::Graph& G, const core::Graph& H) {
     return minor_recursion(G, H, 0, std::nullopt);
 };
 
+std::optional<std::vector<vertex>> NativeMinorMatcher::matching(const core::Graph& G, const core::Graph& H) {
+    if (H.size() > G.size()) return std::nullopt;
+
+    return minorRecursion(G, H, 0, std::nullopt);
+};
+
 bool NativeMinorMatcher::minor_recursion(const core::Graph& G, const core::Graph& H, vertex v,
                                          std::optional<vertex> last_neighbour_index) {
     if (H.size() > G.size()) return false;
@@ -46,7 +52,7 @@ std::optional<std::vector<vertex>> NativeMinorMatcher::minorRecursion(const core
     if (H.size() > G.size()) return std::nullopt;
 
     auto matching = this->isomorphismMatcher.matching(G, H);
-    if (matching.has_value()) return *matching;
+    if (matching.has_value()) return matching;
 
     if (v >= G.size()) return std::nullopt;
 
