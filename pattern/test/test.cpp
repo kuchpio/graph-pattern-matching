@@ -4,6 +4,7 @@
 #include "native_subgraph_matcher.h"
 #include "topological_minor_matcher.h"
 #include "utils.h"
+#include "vf2_subgraph_solver.hpp"
 #include <cassert>
 
 bool random_graph_isomorphism_test();
@@ -18,7 +19,7 @@ bool small_graph_isomorphic();
 int main() {
     assert(random_graph_isomorphism_test() == true);
     assert(small_graph_not_isomorphic() == false);
-    // assert(small_graph_isomorphic() == true); // Fix me!
+    assert(small_graph_isomorphic() == true); // Fix me!
     assert(small_graph_sub_isomorphic() == true);
     assert(subgraph_not_sub_isomorphic() == false);
     assert(small_not_minor() == false);
@@ -105,8 +106,8 @@ bool subgraph_not_sub_isomorphic() {
 }
 
 bool small_graph_sub_isomorphic() {
-    std::size_t graph_size = 6;
-    std::size_t subgraph_size = 4;
+    std::size_t graph_size = 5;
+    std::size_t subgraph_size = 5;
 
     // Create the larger graph G
     core::Graph G = core::Graph(graph_size);
@@ -114,18 +115,38 @@ bool small_graph_sub_isomorphic() {
 
     // Define edges for the larger graph G
     G.add_edge(0, 1);
+    G.add_edge(0, 2);
+    G.add_edge(0, 3);
+    G.add_edge(0, 4);
+
+    G.add_edge(1, 0);
     G.add_edge(1, 2);
+    G.add_edge(1, 3);
+    G.add_edge(1, 4);
+
+    G.add_edge(2, 1);
     G.add_edge(2, 3);
+    G.add_edge(2, 4);
+    G.add_edge(2, 0);
+
+    G.add_edge(3, 0);
+    G.add_edge(3, 1);
+    G.add_edge(3, 2);
     G.add_edge(3, 4);
-    G.add_edge(4, 5);
+
+    G.add_edge(4, 0);
+    G.add_edge(4, 1);
+    G.add_edge(4, 2);
+    G.add_edge(4, 3);
 
     // Define edges for the smaller subgraph Q
     Q.add_edge(0, 1);
     Q.add_edge(1, 2);
     Q.add_edge(2, 3);
-
+    Q.add_edge(3, 4);
+    Q.add_edge(4, 0);
     // Check for subgraph isomorphism
-    pattern::NativeSubgraphMatcher matcher = pattern::NativeSubgraphMatcher();
+    pattern::Vf2SubgraphSolver matcher = pattern::Vf2SubgraphSolver();
 
     return matcher.match(G, Q).has_value();
 }
