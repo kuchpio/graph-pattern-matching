@@ -202,12 +202,12 @@ bool Graph::is_subgraph(const core::Graph& subgprah) const {
 }
 
 bool Graph::is_induced_subgraph(const core::Graph& subgprah) const {
-    for (auto v = 0; v < subgprah.size(); v++) {
-        for (auto u : subgprah.get_neighbours(v)) {
-            if (this->has_edge(v, u) == false) return false;
-        }
-        for (auto u : this->get_neighbours(v)) {
-            if (subgprah.has_edge(v, u) == false) return false;
+    for (vertex v = 0; v < subgprah.size(); v++) {
+        for (vertex u = 0; u < subgprah.size(); u++) {
+            if (subgprah.has_edge(u, v))
+                if (this->has_edge(u, v) == false) return false;
+            if (this->has_edge(u, v))
+                if (subgprah.has_edge(u, v) == false) return false;
         }
     }
     return true;

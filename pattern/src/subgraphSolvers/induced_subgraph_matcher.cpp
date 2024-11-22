@@ -121,13 +121,13 @@ bool InducedSubgraphMatcher::can_match_induced_isomorphism(const core::Graph& bi
 
     for (auto neigbhour : bigGraph.get_neighbours(big_v)) {
         if (mapping_big_small.contains(neigbhour)) {
-            if (smallGraph.has_edge(mapping_big_small.at(neigbhour), v) == false) return false;
+            if (smallGraph.has_edge(v, mapping_big_small.at(neigbhour)) == false) return false;
         }
     }
 
     for (auto(pair) : mapping_small_big) {
         if (smallGraph.has_edge(pair.first, v) && bigGraph.has_edge(pair.second, big_v) == false) return false;
-        if (bigGraph.has_edge(pair.second, big_v) && smallGraph.has_edge(pair.first, v)) return false;
+        if (bigGraph.has_edge(pair.second, big_v) && smallGraph.has_edge(pair.first, v) == false) return false;
     }
     return true;
 }
