@@ -9,9 +9,10 @@ Before running the script, make sure you have Python installed on your system. F
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/your-repo/graph-generator.git
-   cd graph-generator
-
+   git clone https://github.com/kuchpio/graph-pattern-matching.git
+   cd edge_detection
+   ```
+   
 2. Install the required libraries using `requirements.txt`:
 
     ```bash
@@ -21,8 +22,8 @@ Before running the script, make sure you have Python installed on your system. F
 ## Usage
 After setting up the environment, you can generate a graph from an image by running the following command:
 
-    ```bash
+   ```bash
     python graph.py
-    ```
+   ```
     
 The script will process the image, detect edges, and generate a graph.
