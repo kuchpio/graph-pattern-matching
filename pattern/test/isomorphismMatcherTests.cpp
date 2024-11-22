@@ -4,7 +4,6 @@
 #include "vf2_isomorphism_solver.hpp"
 #include "gtest/gtest.h"
 #include <optional>
-#include <vector>
 
 namespace pattern
 {

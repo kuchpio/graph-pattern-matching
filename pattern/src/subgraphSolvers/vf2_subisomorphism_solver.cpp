@@ -36,7 +36,7 @@ std::optional<std::vector<vertex>> pattern::Vf2SubgraphSolver::match(const core:
 
         std::vector<vertex> result = std::vector<vertex>(smallGraph.size());
         for (int i = 0; i < result.size(); i++)
-            result[i] = big_nodes[i];
+            result[i] = small_nodes[i];
         return result;
     }
     return std::nullopt;

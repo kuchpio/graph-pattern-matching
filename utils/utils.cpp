@@ -204,4 +204,16 @@ bool MatchingChecker::checkIsomorphismMatching(const core::Graph& G, const core:
     return reorderedQ == G;
 }
 
+bool MatchingChecker::checkSubgraphMatching(const core::Graph& G, const core::Graph& Q,
+                                            const std::vector<vertex>& mapping) {
+    auto reorderedQ = Q.applyMapping(mapping);
+    return G.is_subgraph(reorderedQ);
+}
+
+bool MatchingChecker::checkInducedSubgraphMatching(const core::Graph& G, const core::Graph& Q,
+                                                   const std::vector<vertex>& mapping) {
+    auto reorderedQ = Q.applyMapping(mapping);
+    return G.is_induced_subgraph(reorderedQ);
+}
+
 } // namespace utils
