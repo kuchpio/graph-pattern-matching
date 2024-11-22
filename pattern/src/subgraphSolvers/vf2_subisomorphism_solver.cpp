@@ -1,4 +1,4 @@
-#include "vf2_sub_state.h"
+#include "vf2_mono_state.h"
 #include "vf2_subgraph_solver.hpp"
 
 #include "argedit.h"
@@ -28,7 +28,7 @@ std::optional<std::vector<vertex>> pattern::Vf2SubgraphSolver::match(const core:
     auto Q = convert_graph(smallGraph);
 
     int n;
-    VF2SubState s0(&Q, &G);
+    VF2MonoState s0(&Q, &G);
 
     std::vector<node_id> big_nodes(smallGraph.size()), small_nodes(smallGraph.size());
 

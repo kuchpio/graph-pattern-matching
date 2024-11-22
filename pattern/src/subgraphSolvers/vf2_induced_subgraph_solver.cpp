@@ -3,7 +3,7 @@
 #include "argedit.h"
 #include "argraph.h"
 #include "core.h"
-#include "vf2_mono_state.h"
+#include "vf2_sub_state.h"
 #include <optional>
 #include <vector>
 #include "match.h"
@@ -28,7 +28,7 @@ std::optional<std::vector<vertex>> pattern::Vf2InducedSubgraphSolver::match(cons
     auto Q = convert_graph(smallGraph);
 
     int n;
-    VF2MonoState s0(&Q, &G);
+    VF2SubState s0(&Q, &G);
 
     std::vector<node_id> big_nodes(smallGraph.size()), small_nodes(smallGraph.size());
 
