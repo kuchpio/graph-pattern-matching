@@ -1,6 +1,6 @@
 # Graph Generator
 
-This project creates a graph based on the edges detected in an image.
+This module creates a graph based on the edges detected in an image.
 
 ## Installation
 
