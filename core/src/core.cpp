@@ -157,26 +157,34 @@ vertex Graph::degree_in(vertex v) const {
     return degree_in;
 }
 
-void Graph::reorder(const std::vector<vertex>& order) {
-    // create new graph with new labeling.
+Graph Graph::applyMapping(const std::vector<vertex>& mapping) const {
     Graph G = Graph(this->size());
+    for (auto [u, v] : this->edges()) {
+        G.add_edge(mapping[u], mapping[v]);
+    }
+    return G;
+}
 
-    // create mapping
+void Graph::reorder(const std::vector<vertex>& order) {
+
     std::vector<vertex> mapping = std::vector<vertex>(order.size());
     for (int i = 0; i < mapping.size(); i++) {
         mapping[order[i]] = i;
     }
 
-    for (auto [u, v] : this->edges()) {
-        G.add_edge(mapping[u], mapping[v]);
-    }
+    auto G = this->applyMapping(mapping);
 
     this->_adjacencyList = G._adjacencyList;
 }
 
 Graph Graph::reorder(const std::vector<vertex>& order) const {
-    auto G = Graph(this->edges());
-    G.reorder(order);
+    std::vector<vertex> mapping = std::vector<vertex>(order.size());
+    for (int i = 0; i < mapping.size(); i++) {
+        mapping[order[i]] = i;
+    }
+
+    auto G = this->applyMapping(mapping);
+
     return G;
 }
 

@@ -1,5 +1,4 @@
 #include "core.h"
-#include "native_isomorphism_matcher.h"
 #include "native_minor_matcher.h"
 #include "native_subgraph_matcher.h"
 #include "topological_minor_matcher.h"
@@ -30,9 +29,9 @@ int main() {
 }
 
 bool small_graph_not_isomorphic() {
-    std::size_t small_size = 5;
-    core::Graph G = core::Graph(small_size);
-    core::Graph Q = core::Graph(small_size);
+    std::size_t graphSize = 5;
+    core::Graph G = core::Graph(graphSize);
+    core::Graph Q = core::Graph(graphSize);
 
     G.add_edge(0, 1);
     G.add_edge(0, 2);

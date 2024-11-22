@@ -9,7 +9,6 @@
 #include <stack>
 #include <tuple>
 #include <vector>
-#include <unordered_map>
 
 #define SEED 2000
 
@@ -196,6 +195,13 @@ std::vector<std::size_t> GraphFactory::shuffled_vertices(std::size_t vertex_coun
 
     std::shuffle(vertices.begin(), vertices.end(), std::mt19937());
     return vertices;
+}
+
+bool MatchingChecker::checkIsomorphismMatching(const core::Graph& G, const core::Graph& Q,
+                                               const std::vector<vertex>& mapping) {
+    auto reorderedQ = Q.applyMapping(mapping);
+
+    return reorderedQ == G;
 }
 
 } // namespace utils
