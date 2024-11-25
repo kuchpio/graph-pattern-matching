@@ -44,7 +44,6 @@ int main(int argc, char* argv[]) {
         for (const auto& edge : graph_data["edges"]) {
             edges.emplace_back(edge["source"], edge["target"]);
         }
-
         core::Graph graph(edges);
 
         std::vector<std::pair<vertex, std::pair<float, float>>> vertex_positions;
@@ -53,7 +52,6 @@ int main(int argc, char* argv[]) {
             auto pos = node["pos"];
             vertex_positions.emplace_back(id, std::make_pair(pos[0], pos[1]));
         }
-        
         std::cout << "oh yeah, everything is fine :-)\n";
         std::cout << "Graph created with " << graph.size() << " vertices and " << graph.edge_count() << " edges.\n";
 
@@ -61,7 +59,6 @@ int main(int argc, char* argv[]) {
         for (const auto& edge : graph.edges()) {
             std::cout << std::get<0>(edge) << " -- " << std::get<1>(edge) << "\n";
         }
-
         std::cout << "Vertex positions:\n";
         for (const auto& [id, pos] : vertex_positions) {
             std::cout << "Vertex " << id << ": x = " << pos.first << ", y = " << pos.second << "\n";
