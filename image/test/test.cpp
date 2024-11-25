@@ -33,10 +33,7 @@ int main(int argc, char* argv[]) {
     std::string imagePath = argv[1];
     int vertexCount = std::stoi(argv[2]);
 
-    std::string command =
-        "python "
-        "edge_detection/graph.py " +
-        imagePath + " " + std::to_string(vertexCount);
+    std::string command = "python edge_detection/graph.py " + imagePath + " " + std::to_string(vertexCount);
 
     try {
         std::string output = exec(command.c_str());
