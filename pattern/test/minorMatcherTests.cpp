@@ -3,7 +3,8 @@
 #include "native_minor_matcher.h"
 #include "topological_minor_matcher.h"
 #include "gtest/gtest.h"
-
+namespace pattern
+{
 TEST(NativeMinorIsomorphism, SmallNotMinor) {
     std::size_t graph_size = 6;
     std::size_t subgraph_size = 4;
@@ -25,7 +26,7 @@ TEST(NativeMinorIsomorphism, SmallNotMinor) {
     Q.add_edge(2, 3);
     Q.add_edge(3, 0);
 
-    auto matcher = pattern::NativeMinorMatcher();
+    auto matcher = NativeMinorMatcher();
 
     // Check for minor relationship - expecting false because Q is a cycle but G is a chain
     EXPECT_FALSE(matcher.match(G, Q).has_value());
@@ -52,7 +53,7 @@ TEST(minorMiner, SmallNotMinor) {
     Q.add_edge(2, 3);
     Q.add_edge(3, 0);
 
-    auto matcher = pattern::MinerMinorMatcher();
+    auto matcher = MinerMinorMatcher();
 
     // Check for minor relationship - expecting false because Q is a cycle but G is a chain
     EXPECT_FALSE(matcher.match(G, Q).has_value());
@@ -90,7 +91,7 @@ TEST(NativeMinorIsomorphism, SmallHasMinor) {
     Q.add_edge(2, 4);
     Q.add_edge(3, 4);
 
-    auto matcher = pattern::NativeMinorMatcher();
+    auto matcher = NativeMinorMatcher();
 
     // Check for minor relationship - expecting true because Q can be derived from G
     EXPECT_TRUE(matcher.match(G, Q).has_value());
@@ -128,7 +129,7 @@ TEST(minorMiner, SmallHasMinor) {
     Q.add_edge(2, 4);
     Q.add_edge(3, 4);
 
-    auto matcher = pattern::MinerMinorMatcher();
+    auto matcher = MinerMinorMatcher();
 
     // Check for minor relationship - expecting true because Q can be derived from G
     EXPECT_TRUE(matcher.match(G, Q).has_value());
@@ -166,8 +167,9 @@ TEST(TopologicalMinorIsomorphism, HasMinorNotTopological) {
     Q.add_edge(2, 4);
     Q.add_edge(3, 4);
 
-    auto matcher = pattern::TopologicalMinorMatcher();
+    auto matcher = TopologicalMinorMatcher();
 
     // Check for minor relationship - expecting true because Q can be derived from G
     EXPECT_FALSE(matcher.match(G, Q).has_value());
 }
+} // namespace pattern

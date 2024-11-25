@@ -36,7 +36,7 @@ std::optional<std::vector<vertex>> MinerMinorMatcher::match(const core::Graph& G
     auto solution = std::vector<vertex>(H.size());
 
     for (int i = 0; i < solution.size(); i++)
-        solution[i] = chains[0][i];
+        solution[i] = chains[i][0];
     return solution;
 }
 

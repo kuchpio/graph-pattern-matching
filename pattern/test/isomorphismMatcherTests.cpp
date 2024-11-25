@@ -12,7 +12,7 @@ TEST(NativeGraphIsomorphism, random_100_vertex_graph) {
 
     core::Graph G = utils::GraphFactory::random_connected_graph(10, 0.4f);
     core::Graph Q = utils::GraphFactory::isomoporhic_graph(G);
-    auto matcher = pattern::NativeIsomorphismMatcher();
+    auto matcher = NativeIsomorphismMatcher();
 
     auto match = matcher.match(G, Q);
 
@@ -40,7 +40,7 @@ TEST(Vf2GraphIsomorphism, small_graph_matching) {
     Q.add_edge(3, 4);
     Q.add_edge(4, 0);
 
-    auto matcher = pattern::Vf2IsomorphismSolver();
+    auto matcher = Vf2IsomorphismSolver();
 
     auto match = matcher.match(G, Q);
     EXPECT_EQ(match.has_value(), true);
@@ -63,7 +63,7 @@ TEST(NativeGraphIsomorphism, small_graph_not_isomorphic) {
     Q.add_edge(3, 2);
     Q.add_edge(2, 4);
 
-    auto matcher = pattern::NativeIsomorphismMatcher();
+    auto matcher = NativeIsomorphismMatcher();
     EXPECT_EQ(matcher.match(G, Q), std::nullopt);
 }
 
@@ -82,7 +82,7 @@ TEST(Vf2GraphIsomorphism, small_graph_not_isomorphic) {
     Q.add_edge(3, 2);
     Q.add_edge(2, 4);
 
-    auto matcher = pattern::Vf2IsomorphismSolver();
+    auto matcher = Vf2IsomorphismSolver();
     EXPECT_EQ(matcher.match(G, Q), std::nullopt);
 }
 
@@ -107,7 +107,7 @@ TEST(NativeGraphIsomorphism, small_graph_matching) {
     Q.add_edge(3, 4);
     Q.add_edge(4, 0);
 
-    auto matcher = pattern::NativeIsomorphismMatcher();
+    auto matcher = NativeIsomorphismMatcher();
 
     auto match = matcher.match(G, Q);
     EXPECT_EQ(match.has_value(), true);
@@ -120,7 +120,7 @@ TEST(VF2GraphIsomorphism, random_100_vertex_graph) {
 
     core::Graph G = utils::GraphFactory::random_connected_graph(100, 0.4f);
     core::Graph Q = utils::GraphFactory::isomoporhic_graph(G);
-    auto matcher = pattern::Vf2IsomorphismSolver();
+    auto matcher = Vf2IsomorphismSolver();
 
     auto match = matcher.match(G, Q);
 
