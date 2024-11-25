@@ -66,7 +66,6 @@ int main(int argc, char* argv[]) {
         for (const auto& [id, pos] : vertex_positions) {
             std::cout << "Vertex " << id << ": x = " << pos.first << ", y = " << pos.second << "\n";
         }
-
     } catch (const std::exception& ex) {
         std::cerr << "An error occurred: " << ex.what() << std::endl;
         return 1;
