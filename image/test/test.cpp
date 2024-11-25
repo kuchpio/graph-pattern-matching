@@ -5,6 +5,7 @@
 #include <string>
 #include <array>
 #include "json.hpp"
+#include "core.h"
 
 using json = nlohmann::json;
 
@@ -29,9 +30,8 @@ int main(int argc, char* argv[]) {
         std::cerr << "Usage: " << argv[0] << " <imagePath> <vertexCount>" << std::endl;
         return 1;
     }
-
-    std::string imagePath = argv[1];
-    int vertexCount = std::stoi(argv[2]);
+    std::string imagePath = argv[0];
+    int vertexCount = atoi(argv[1]);
 
     std::string command = "python edge_detection/graph.py " + imagePath + " " + std::to_string(vertexCount);
 
@@ -40,18 +40,33 @@ int main(int argc, char* argv[]) {
 
         json graph_data = json::parse(output);
 
-        int num_nodes = graph_data["nodes"].size();
+        std::vector<std::tuple<vertex, vertex>> edges;
         for (const auto& edge : graph_data["edges"]) {
-            int source = edge["source"];
-            int target = edge["target"];
-            std::cout << source << " -- " << target << std::endl;
+            edges.emplace_back(edge["source"], edge["target"]);
         }
-        for (const auto& vertex : graph_data["nodes"]) {
-            int id = vertex["id"];
-            auto pos = vertex["pos"];
-            std::cout << id << " -- "
-                      << "x: " << pos[0] << " y: " << pos[1] << std::endl;
+
+        core::Graph graph(edges);
+
+        std::vector<std::pair<vertex, std::pair<float, float>>> vertex_positions;
+        for (const auto& node : graph_data["nodes"]) {
+            int id = node["id"];
+            auto pos = node["pos"];
+            vertex_positions.emplace_back(id, std::make_pair(pos[0], pos[1]));
         }
+        
+        std::cout << "oh yeah, everything is fine :-)\n";
+        std::cout << "Graph created with " << graph.size() << " vertices and " << graph.edge_count() << " edges.\n";
+
+        std::cout << "Edges:\n";
+        for (const auto& edge : graph.edges()) {
+            std::cout << std::get<0>(edge) << " -- " << std::get<1>(edge) << "\n";
+        }
+
+        std::cout << "Vertex positions:\n";
+        for (const auto& [id, pos] : vertex_positions) {
+            std::cout << "Vertex " << id << ": x = " << pos.first << ", y = " << pos.second << "\n";
+        }
+
     } catch (const std::exception& ex) {
         std::cerr << "An error occurred: " << ex.what() << std::endl;
         return 1;
