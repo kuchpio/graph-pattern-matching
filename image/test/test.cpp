@@ -26,7 +26,7 @@ std::string exec(const char* cmd) {
     return result;
 }
 
-std::pair<core::Graph, std::vector<std::pair<vertex, std::pair<float, float>>>> generateGraphFromImage(const std::string& imagePath, int vertexCount) {
+std::pair<core::Graph, std::vector<std::pair<vertex, std::pair<float, float>>>> generateGraphFromImage(std::string& imagePath, int vertexCount) {
     std::string command = "python edge_detection/graph.py " + imagePath + " " + std::to_string(vertexCount);
 
     std::string output = exec(command.c_str());
