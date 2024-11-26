@@ -1,3 +1,7 @@
+#include "miner_minor_matcher.hpp"
+#include "native_subgraph_matcher.h"
+#include "vf2_induced_subgraph_solver.hpp"
+#include "vf2_subgraph_solver.hpp"
 #include "wx/splitter.h"
 #include "wx/app.h"
 
@@ -86,7 +90,7 @@ void Frame::OnMatchingStart() {
             wxTheApp->CallAfter([this, result]() {
                 matcherThread.join();
 
-                OnMatchingComplete(result);
+                OnMatchingComplete(result.has_value());
             });
         },
         patternGraph, searchSpaceGraph);
@@ -136,10 +140,10 @@ pattern::PatternMatcher* Frame::GetSelectedMatcher() const {
 
     if (subgraphRadioButton->GetValue()) {
         if (inducedCheckbox->GetValue()) {
-            return new pattern::InducedSubgraphMatcher();
+            return new pattern::Vf2InducedSubgraphSolver();
         }
 
-        return new pattern::SubgraphMatcher();
+        return new pattern::Vf2SubgraphSolver();
     }
 
     if (minorRadioButton->GetValue()) {
@@ -147,7 +151,7 @@ pattern::PatternMatcher* Frame::GetSelectedMatcher() const {
             return new pattern::InducedMinorMatcher();
         }
 
-        return new pattern::MinorMatcher();
+        return new pattern::MinerMinorMatcher();
     }
 
     if (inducedCheckbox->GetValue()) {

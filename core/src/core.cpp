@@ -157,26 +157,34 @@ vertex Graph::degree_in(vertex v) const {
     return degree_in;
 }
 
-void Graph::reorder(const std::vector<vertex>& order) {
-    // create new graph with new labeling.
+Graph Graph::applyMapping(const std::vector<vertex>& mapping) const {
     Graph G = Graph(this->size());
+    for (auto [u, v] : this->edges()) {
+        G.add_edge(mapping[u], mapping[v]);
+    }
+    return G;
+}
 
-    // create mapping
+void Graph::reorder(const std::vector<vertex>& order) {
+
     std::vector<vertex> mapping = std::vector<vertex>(order.size());
     for (int i = 0; i < mapping.size(); i++) {
         mapping[order[i]] = i;
     }
 
-    for (auto [u, v] : this->edges()) {
-        G.add_edge(mapping[u], mapping[v]);
-    }
+    auto G = this->applyMapping(mapping);
 
     this->_adjacencyList = G._adjacencyList;
 }
 
 Graph Graph::reorder(const std::vector<vertex>& order) const {
-    auto G = Graph(this->edges());
-    G.reorder(order);
+    std::vector<vertex> mapping = std::vector<vertex>(order.size());
+    for (int i = 0; i < mapping.size(); i++) {
+        mapping[order[i]] = i;
+    }
+
+    auto G = this->applyMapping(mapping);
+
     return G;
 }
 
@@ -188,6 +196,18 @@ bool Graph::is_subgraph(const core::Graph& subgprah) const {
     for (auto v = 0; v < subgprah.size(); v++) {
         for (auto u : subgprah.get_neighbours(v)) {
             if (this->has_edge(v, u) == false) return false;
+        }
+    }
+    return true;
+}
+
+bool Graph::is_induced_subgraph(const core::Graph& subgprah) const {
+    for (vertex v = 0; v < subgprah.size(); v++) {
+        for (vertex u = 0; u < subgprah.size(); u++) {
+            if (subgprah.has_edge(u, v))
+                if (this->has_edge(u, v) == false) return false;
+            if (this->has_edge(u, v))
+                if (subgprah.has_edge(u, v) == false) return false;
         }
     }
     return true;

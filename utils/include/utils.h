@@ -21,4 +21,13 @@ class GraphFactory {
     // static std::vector<core::Graph> components_with_reduced_vertices(const core::Graph& G);
 };
 
+class MatchingChecker {
+  public:
+    static bool checkIsomorphismMatching(const core::Graph& G, const core::Graph& Q,
+                                         const std::vector<vertex>& mapping);
+    static bool checkSubgraphMatching(const core::Graph& G, const core::Graph& Q, const std::vector<vertex>& mapping);
+    static bool checkInducedSubgraphMatching(const core::Graph& G, const core::Graph& Q,
+                                             const std::vector<vertex>& mapping);
+};
+
 } // namespace utils
