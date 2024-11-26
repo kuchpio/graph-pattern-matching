@@ -49,7 +49,6 @@ generateGraphFromImage(const std::string& imagePath, int vertexCount) {
     return {graph, vertex_positions};
 }
 
-
 int main(int argc, char* argv[]) {
     if (argc < 3) {
         std::cerr << "Usage: " << argv[0] << " <imagePath> <vertexCount>" << std::endl;
