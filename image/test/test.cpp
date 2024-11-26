@@ -26,10 +26,9 @@ std::string exec(const char* cmd) {
     return result;
 }
 
-std::pair<core::Graph, std::vector<std::pair<vertex, std::pair<float, float>>>> 
+std::pair<core::Graph, std::vector<std::pair<vertex, std::pair<float, float>>>>
 generateGraphFromImage(const std::string& imagePath, int vertexCount) {
     std::string command = "python edge_detection/graph.py " + imagePath + " " + std::to_string(vertexCount);
-
     std::string output = exec(command.c_str());
 
     json graph_data = json::parse(output);
@@ -49,6 +48,7 @@ generateGraphFromImage(const std::string& imagePath, int vertexCount) {
 
     return {graph, vertex_positions};
 }
+
 
 int main(int argc, char* argv[]) {
     if (argc < 3) {
