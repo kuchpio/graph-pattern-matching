@@ -1,3 +1,5 @@
-add_executable("pattern-test" "test.cpp")
-target_link_libraries("pattern-test" pattern)
-add_test(NAME "Graph-pattern-matching" COMMAND "pattern-test")
+add_executable("pattern-test"  "isomorphismMatcherTests.cpp" "subgraphMatcherTests.cpp" "minorMatcherTests.cpp")
+target_link_libraries("pattern-test" PUBLIC pattern GTest::gtest_main)
+include(GoogleTest)
+gtest_discover_tests("pattern-test")
+

@@ -3,9 +3,9 @@
 #include "argedit.h"
 #include "argraph.h"
 #include "core.h"
-#include "vf2_mono_state.h"
+#include "vf2_sub_state.h"
+#include <optional>
 #include <vector>
-
 #include "match.h"
 
 Graph pattern::Vf2InducedSubgraphSolver::convert_graph(const core::Graph& G) {
@@ -22,14 +22,22 @@ Graph pattern::Vf2InducedSubgraphSolver::convert_graph(const core::Graph& G) {
     return Graph(&ed);
 }
 
-bool pattern::Vf2InducedSubgraphSolver::match(const core::Graph& bigGraph, const core::Graph& smallGraph) {
+std::optional<std::vector<vertex>> pattern::Vf2InducedSubgraphSolver::match(const core::Graph& bigGraph,
+                                                                            const core::Graph& smallGraph) {
     auto G = convert_graph(bigGraph);
     auto Q = convert_graph(smallGraph);
 
     int n;
-    VF2MonoState s0(&Q, &G);
+    VF2SubState s0(&Q, &G);
 
     std::vector<node_id> big_nodes(smallGraph.size()), small_nodes(smallGraph.size());
 
-    return vf2::match(&s0, &n, big_nodes.data(), small_nodes.data());
+    if (vf2::match(&s0, &n, big_nodes.data(), small_nodes.data())) {
+
+        std::vector<vertex> result = std::vector<vertex>(smallGraph.size());
+        for (int i = 0; i < result.size(); i++)
+            result[i] = small_nodes[i];
+        return result;
+    }
+    return std::nullopt;
 }

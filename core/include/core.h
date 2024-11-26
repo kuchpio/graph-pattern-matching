@@ -23,6 +23,7 @@ class Graph {
     bool has_edge(vertex u, vertex v) const;
     bool contract_edge(vertex u, vertex v);
     bool is_subgraph(const core::Graph& G) const;
+    bool is_induced_subgraph(const core::Graph& G) const;
 
     // operator
     bool operator==(const core::Graph& G) const;
@@ -35,6 +36,7 @@ class Graph {
 
     void topological_sort();
     void reorder(const std::vector<vertex>& order);
+    Graph applyMapping(const std::vector<vertex>& mapping) const;
     Graph reorder(const std::vector<vertex>& order) const;
     std::size_t degree_out(vertex v) const;
 };
