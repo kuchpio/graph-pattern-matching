@@ -1,10 +1,15 @@
-﻿cmake_minimum_required (VERSION 3.16 FATAL_ERROR)
+﻿cmake_minimum_required (VERSION 3.18 FATAL_ERROR)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CUDA_LIBRARY_ARCHITECTURE x86_64-linux-gnu)
+
+set(CMAKE_CUDA_ARCHITECTURES 61)
+
 
 project("graph-pattern-matching")
 enable_language("CUDA")
+
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
