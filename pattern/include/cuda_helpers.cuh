@@ -27,7 +27,7 @@ template <class T> inline T* malloc(size_t count) {
     return ptr;
 }
 
-inline void ExclusiveSum(void* dst, void* src, size_t count) {
+template <class T> inline void ExclusiveSum(T* dst, T* src, size_t count) {
     void* d_temp_storage = NULL;
     size_t temp_storage_bytes = 0;
     cub::DeviceScan::ExclusiveSum(d_temp_storage, temp_storage_bytes, src, dst, count);
@@ -38,7 +38,7 @@ inline void ExclusiveSum(void* dst, void* src, size_t count) {
     cudaFree(d_temp_storage);
 }
 
-inline void InclusiveSum(void* dst, void* src, size_t count) {
+template <class T> inline void InclusiveSum(T* dst, T* src, size_t count) {
     void* d_temp_storage = NULL;
     size_t temp_storage_bytes = 0;
     cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, src, dst, count);

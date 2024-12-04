@@ -17,15 +17,15 @@
 
 namespace pattern
 {
-__global__ void createCandidateSetKernel(int u, bool* candidateSet, const CudaGraph& bigGraph,
+__global__ void createCandidateSetKernel(int u, uint32_t* candidateSet, const CudaGraph& bigGraph,
                                          const CudaGraph& smallGraph) {
     uint32_t v = blockDim.x * blockIdx.x + threadIdx.x;
     if (v >= *bigGraph.dev_size) return;
     // check neighbours
     uint32_t uNeighboursDegrees = 0;
     uint32_t vNeighboursDegrees = 0;
-    auto uNeighboursOut = smallGraph.neighboursOut(u);
-    auto vNeighboursOut = bigGraph.neighboursOut(v);
+    auto uNeighboursOut = smallGraph.dev_neighboursOut(u);
+    auto vNeighboursOut = bigGraph.dev_neighboursOut(v);
 
     for (int i = 0; i < vNeighboursOut; i++)
         vNeighboursDegrees += bigGraph.dev_neighbours[i + bigGraph.dev_neighboursOffset[v]];
@@ -37,7 +37,7 @@ __global__ void createCandidateSetKernel(int u, bool* candidateSet, const CudaGr
     // calculate signature
 }
 
-__global__ void filterCandidates(uint32_t* candidates, uint32_t* prefixScan, bool* candidateSet,
+__global__ void filterCandidates(uint32_t* candidates, uint32_t* prefixScan, uint32_t* candidateSet,
                                  uint32_t* candidatesCount, uint32_t* size) {
     uint32_t v = blockDim.x * blockIdx.x + threadIdx.x;
     if (v >= *size) return;
@@ -81,11 +81,18 @@ void CudaGraph::freeGPU() {
     cuda::free(dev_edgeCount);
 }
 
-__device__ uint32_t CudaGraph::neighboursOut(uint32_t v) const {
+__device__ uint32_t CudaGraph::dev_neighboursOut(uint32_t v) const {
     if (v < (*this->dev_size - 1)) {
         return this->dev_neighboursOffset[v + 1] - this->dev_neighboursOffset[v];
     }
     return this->edgeCount() - this->dev_neighboursOffset[v];
+}
+
+__host__ uint32_t CudaGraph::neighboursOut(uint32_t v) const {
+    if (v < (this->size() - 1)) {
+        return this->neighboursOffset[v + 1] - this->neighboursOffset[v];
+    }
+    return this->neighbours.size() - this->neighboursOffset[v];
 }
 
 std::optional<std::vector<vertex>> CudaSubgraphMatcher::match(const core::Graph& bigGraph,
@@ -120,15 +127,15 @@ std::vector<std::vector<uint32_t>> CudaSubgraphMatcher::createCandidateLists(con
 
     uint32_t num_blocks = (bigGraph.size() + block_size_ - 1) / block_size_;
 
-    bool* dev_candidateSet = cuda::malloc<bool>(bigGraph.size());
+    uint32_t* dev_candidateSet = cuda::malloc<uint32_t>(bigGraph.size());
     uint32_t* dev_prefixScan = cuda::malloc<uint32_t>(bigGraph.size());
     uint32_t* dev_candidates = cuda::malloc<uint32_t>(bigGraph.size());
     uint32_t* dev_candidateCount = cuda::malloc<uint32_t>(1);
 
     for (uint32_t u = 0; u < smallGraph.size(); u++) {
-        cuda::memset<bool>(dev_candidateSet, 0, bigGraph.size());
+        cuda::memset<uint32_t>(dev_candidateSet, 0, bigGraph.size());
         createCandidateSetKernel<<<num_blocks, block_size_>>>(u, dev_candidateSet, bigGraph, smallGraph);
-        cuda::ExclusiveSum(dev_prefixScan, dev_candidateSet, bigGraph.size());
+        cuda::ExclusiveSum<uint32_t>(dev_prefixScan, dev_candidateSet, bigGraph.size());
         filterCandidates<<<num_blocks, block_size_>>>(dev_candidates, dev_prefixScan, dev_candidateSet,
                                                       dev_candidateCount, bigGraph.dev_size);
         uint32_t candidateCount = 0;

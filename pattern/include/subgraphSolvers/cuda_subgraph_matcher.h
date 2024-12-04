@@ -17,7 +17,8 @@ class CudaGraph {
     __host__ uint32_t size() const {
         return neighboursOffset.size();
     }
-    __device__ uint32_t neighboursOut(uint32_t v) const;
+    __device__ uint32_t dev_neighboursOut(uint32_t v) const;
+    __host__ uint32_t neighboursOut(uint32_t v) const;
 
     uint32_t* dev_neighboursOffset;
     uint32_t* dev_neighbours;
