@@ -44,10 +44,11 @@ class CudaSubgraphMatcher : SubgraphMatcher {
     __host__ std::vector<std::vector<uint32_t>> createCandidateLists(const CudaGraph& bigGraph,
                                                                      const CudaGraph& smallGraph);
     uint32_t getNextVertex(const CudaGraph& graph, const std::vector<std::vector<uint32_t>>& candidateLists_,
-                           const std::set<vertex>& processedVertices);
+                           const std::set<uint32_t>& processedVertices);
 
     uint32_t* dev_result_;
     std::vector<std::vector<uint32_t>> candidateLists_;
     uint32_t block_size_ = kDefaultBlockSize;
+    std::set<uint32_t> processedVertices_;
 };
 } // namespace pattern

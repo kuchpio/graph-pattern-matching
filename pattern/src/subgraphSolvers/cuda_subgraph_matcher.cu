@@ -91,7 +91,6 @@ __device__ uint32_t CudaGraph::neighboursOut(uint32_t v) const {
 std::optional<std::vector<vertex>> CudaSubgraphMatcher::match(const core::Graph& bigGraph,
                                                               const core::Graph& smallGraph) {
     if (smallGraph.size() > bigGraph.size()) return std::nullopt;
-    auto processedVertices = std::set<vertex>();
 
     auto bigCudaGraph = CudaGraph(bigGraph);
     auto smallCudaGraph = CudaGraph(smallGraph);
@@ -101,12 +100,15 @@ std::optional<std::vector<vertex>> CudaSubgraphMatcher::match(const core::Graph&
     // SYNC CUDA
 
     // Process first vertex
-    uint32_t firstVertex = this->getNextVertex(smallGraph, candidateLists_, processedVertices);
-    processedVertices.insert(firstVertex);
+    uint32_t firstVertex = this->getNextVertex(smallGraph, candidateLists_, processedVertices_);
+    processedVertices_.insert(firstVertex);
+
     dev_result_ = cuda::malloc<uint32_t>(candidateLists_[firstVertex].size());
     cuda::memcpy_host_dev(dev_result_, candidateLists_[firstVertex].data(), candidateLists_[firstVertex].size());
 
     for (int v = 1; v < smallGraph.size(); v++) {
+        auto nextVertex = this->getNextVertex(smallGraph, candidateLists_, processedVertices_);
+        processedVertices_.insert(nextVertex);
     }
 
     return std::nullopt;
@@ -146,10 +148,10 @@ std::vector<std::vector<uint32_t>> CudaSubgraphMatcher::createCandidateLists(con
 
 uint32_t CudaSubgraphMatcher::getNextVertex(const CudaGraph& graph,
                                             const std::vector<std::vector<uint32_t>>& candidateLists,
-                                            const std::set<vertex>& processedVertices) {
+                                            const std::set<uint32_t>& processedVertices) {
     uint32_t highestScoreVertex = 0;
     uint32_t currentMax = 0;
-    for (vertex v = 0; v < graph.size(); v++) {
+    for (uint32_t v = 0; v < graph.size(); v++) {
         if (processedVertices.contains(v)) continue;
         if (candidateLists[v].size() / graph.neighboursOut(v) > currentMax) {
             currentMax = candidateLists[v].size() / graph.neighboursOut(v);
