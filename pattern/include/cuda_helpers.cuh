@@ -26,6 +26,10 @@ template <class T> inline T* malloc(size_t count) {
     return ptr;
 }
 
+template <class T> inline void memset(T* dst, T value, size_t count) {
+    CHECK_CUDA_ERROR(cudaMemset(dst, value, count * sizeof(T)));
+}
+
 template <class T> inline void memcpy(T* dst, T* src, size_t count, cudaMemcpyKind kind) {
     CHECK_CUDA_ERROR(cudaMemcpy(dst, src, count * sizeof(T), kind));
 }

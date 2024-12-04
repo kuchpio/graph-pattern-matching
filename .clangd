@@ -3,7 +3,9 @@ CompileFlags:
     - -std=c++20
     - -Wall
     - --cuda-gpu-arch=sm_61
+    - --cuda-host-only
     CompilationDatabase: out/build/x64-debug-linux/
     Remove:
       - -forward-unknown-to-host-compiler
       - --generate-code*
+      
