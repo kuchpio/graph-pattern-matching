@@ -4,8 +4,8 @@
 #include <vector>
 #include <algorithm>
 
-#include <thrust/scan.h>
-#include <thrust/device_vector.h>
+#include <cub/cub.cuh>
+#include <set>
 
 // for signatures
 #define SIGLEN 64 * 8
@@ -91,14 +91,20 @@ __device__ uint32_t CudaGraph::neighboursOut(uint32_t v) const {
 std::optional<std::vector<vertex>> CudaSubgraphMatcher::match(const core::Graph& bigGraph,
                                                               const core::Graph& smallGraph) {
     if (smallGraph.size() > bigGraph.size()) return std::nullopt;
+    auto processedVertices = std::set<vertex>();
 
     auto bigCudaGraph = CudaGraph(bigGraph);
     auto smallCudaGraph = CudaGraph(smallGraph);
 
     // DO IT ON GPU
     candidateLists_ = createCandidateLists(bigGraph, smallGraph);
-    scores_ = calculateScores(smallGraph, candidateLists_);
     // SYNC CUDA
+
+    // Process first vertex
+    uint32_t firstVertex = this->getNextVertex(smallGraph, candidateLists_, processedVertices);
+    processedVertices.insert(firstVertex);
+    dev_result_ = cuda::malloc<uint32_t>(candidateLists_[firstVertex].size());
+    cuda::memcpy_host_dev(dev_result_, candidateLists_[firstVertex].data(), candidateLists_[firstVertex].size());
 
     for (int v = 1; v < smallGraph.size(); v++) {
     }
@@ -106,7 +112,6 @@ std::optional<std::vector<vertex>> CudaSubgraphMatcher::match(const core::Graph&
     return std::nullopt;
 }
 
-// This should be done on GPU
 std::vector<std::vector<uint32_t>> CudaSubgraphMatcher::createCandidateLists(const CudaGraph& bigGraph,
                                                                              const CudaGraph& smallGraph) {
     auto candidateLists = std::vector<std::vector<uint32_t>>(smallGraph.size());
@@ -121,7 +126,7 @@ std::vector<std::vector<uint32_t>> CudaSubgraphMatcher::createCandidateLists(con
     for (uint32_t u = 0; u < smallGraph.size(); u++) {
         cuda::memset<bool>(dev_candidateSet, 0, bigGraph.size());
         createCandidateSetKernel<<<num_blocks, block_size_>>>(u, dev_candidateSet, bigGraph, smallGraph);
-        thrust::inclusive_scan(dev_candidateSet, dev_candidateSet + bigGraph.size(), dev_prefixScan);
+        cuda::ExclusiveSum(dev_prefixScan, dev_candidateSet, bigGraph.size());
         filterCandidates<<<num_blocks, block_size_>>>(dev_candidates, dev_prefixScan, dev_candidateSet,
                                                       dev_candidateCount, bigGraph.dev_size);
         uint32_t candidateCount = 0;
@@ -139,12 +144,19 @@ std::vector<std::vector<uint32_t>> CudaSubgraphMatcher::createCandidateLists(con
     return candidateLists;
 }
 
-std::vector<unsigned int> calculateScores(const core::Graph& smallGraph,
-                                          const std::vector<std::vector<uint32_t>>& candidateLists) {
-    auto scores = std::vector<unsigned int>(smallGraph.size());
-    for (unsigned int i = 0; i < smallGraph.size(); ++i) {
-        scores[i] = candidateLists[i].size() / smallGraph.degree_out(i);
+uint32_t CudaSubgraphMatcher::getNextVertex(const CudaGraph& graph,
+                                            const std::vector<std::vector<uint32_t>>& candidateLists,
+                                            const std::set<vertex>& processedVertices) {
+    uint32_t highestScoreVertex = 0;
+    uint32_t currentMax = 0;
+    for (vertex v = 0; v < graph.size(); v++) {
+        if (processedVertices.contains(v)) continue;
+        if (candidateLists[v].size() / graph.neighboursOut(v) > currentMax) {
+            currentMax = candidateLists[v].size() / graph.neighboursOut(v);
+            highestScoreVertex = v;
+        }
     }
-    return scores;
+    return highestScoreVertex;
 }
+
 } // namespace pattern

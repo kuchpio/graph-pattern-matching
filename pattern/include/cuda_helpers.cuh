@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include "cuda_runtime.h"
+#include <cub/cub.cuh>
 
 #define CUDA_HELPER_STRINGIFY(x) #x
 // do while statement ensures that macro behaves like a single statement
@@ -24,6 +25,28 @@ template <class T> inline T* malloc(size_t count) {
     T* ptr = nullptr;
     CHECK_CUDA_ERROR(cudaMalloc(reinterpret_cast<void**>(&ptr), count * sizeof(T)));
     return ptr;
+}
+
+inline void ExclusiveSum(void* dst, void* src, size_t count) {
+    void* d_temp_storage = NULL;
+    size_t temp_storage_bytes = 0;
+    cub::DeviceScan::ExclusiveSum(d_temp_storage, temp_storage_bytes, src, dst, count);
+
+    cudaMalloc(&d_temp_storage, temp_storage_bytes);
+
+    cub::DeviceScan::ExclusiveSum(d_temp_storage, temp_storage_bytes, src, dst, count);
+    cudaFree(d_temp_storage);
+}
+
+inline void InclusiveSum(void* dst, void* src, size_t count) {
+    void* d_temp_storage = NULL;
+    size_t temp_storage_bytes = 0;
+    cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, src, dst, count);
+
+    cudaMalloc(&d_temp_storage, temp_storage_bytes);
+
+    cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, src, dst, count);
+    cudaFree(d_temp_storage);
 }
 
 template <class T> inline void memset(T* dst, T value, size_t count) {
