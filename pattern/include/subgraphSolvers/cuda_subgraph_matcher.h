@@ -6,6 +6,7 @@
 
 namespace pattern
 {
+
 class CudaGraph {
   public:
     CudaGraph(const core::Graph& G);
@@ -42,16 +43,17 @@ class CudaSubgraphMatcher : SubgraphMatcher {
     std::vector<uint32_t> calculateScores(const core::Graph& smallGraph,
                                           const std::vector<std::vector<uint32_t>>& candidateLists);
 
-    __host__ std::vector<std::vector<uint32_t>> createCandidateLists(const CudaGraph& bigGraph,
-                                                                     const CudaGraph& smallGraph);
-    uint32_t getNextVertex(const CudaGraph& graph, const std::vector<std::vector<uint32_t>>& candidateLists_,
+    __host__ std::vector<uint32_t> createCandidateLists(const CudaGraph& bigGraph, const CudaGraph& smallGraph,
+                                                        uint32_t** candidates);
+    uint32_t getNextVertex(const CudaGraph& graph, const std::vector<uint32_t>& candidatesSizes_,
                            const std::set<uint32_t>& processedVertices);
 
     void addVertexToResultTable(int v, const std::vector<std::vector<uint32_t>>& candidateLists_,
                                 const core::Graph& Graph);
 
+    uint32_t** dev_candidates_;
     uint32_t* dev_result_;
-    std::vector<std::vector<uint32_t>> candidateLists_;
+    std::vector<uint32_t> candidatesSizes_;
     uint32_t block_size_ = kDefaultBlockSize;
     std::set<uint32_t> processedVertices_;
 };

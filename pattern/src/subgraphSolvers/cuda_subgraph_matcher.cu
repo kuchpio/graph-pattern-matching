@@ -29,13 +29,10 @@ __global__ void createCandidateSetKernel(int u, uint32_t* candidateSet, const Cu
     // calculate signature
 }
 
-__global__ void filterCandidates(uint32_t* candidates, uint32_t* prefixScan, uint32_t* candidateSet,
-                                 uint32_t* candidatesCount, uint32_t* size) {
+__global__ void filterCandidates(uint32_t* candidates, uint32_t* prefixScan, uint32_t* candidateSet, uint32_t* size) {
     uint32_t v = blockDim.x * blockIdx.x + threadIdx.x;
     if (v >= *size) return;
     if (candidateSet[v]) candidates[prefixScan[v]] = v;
-
-    if (v == *size - 1) *candidatesCount = prefixScan[v];
 }
 
 CudaGraph::CudaGraph(const core::Graph& G) {
@@ -94,64 +91,59 @@ std::optional<std::vector<vertex>> CudaSubgraphMatcher::match(const core::Graph&
     auto bigCudaGraph = CudaGraph(bigGraph);
     auto smallCudaGraph = CudaGraph(smallGraph);
 
-    candidateLists_ = createCandidateLists(bigGraph, smallGraph);
+    candidatesSizes_ = createCandidateLists(bigGraph, smallGraph, dev_candidates_);
 
     // Process first vertex
-    uint32_t firstVertex = this->getNextVertex(smallGraph, candidateLists_, processedVertices_);
+    uint32_t firstVertex = this->getNextVertex(smallGraph, candidatesSizes_, processedVertices_);
     processedVertices_.insert(firstVertex);
-
-    dev_result_ = cuda::malloc<uint32_t>(candidateLists_[firstVertex].size());
-    cuda::memcpy_host_dev(dev_result_, candidateLists_[firstVertex].data(), candidateLists_[firstVertex].size());
+    dev_result_ = dev_candidates_[firstVertex];
 
     for (int v = 1; v < smallGraph.size(); v++) {
-        auto nextVertex = this->getNextVertex(smallGraph, candidateLists_, processedVertices_);
+        auto nextVertex = this->getNextVertex(smallGraph, candidatesSizes_, processedVertices_);
         processedVertices_.insert(nextVertex);
     }
 
     return std::nullopt;
 }
 
-std::vector<std::vector<uint32_t>> CudaSubgraphMatcher::createCandidateLists(const CudaGraph& bigGraph,
-                                                                             const CudaGraph& smallGraph) {
-    auto candidateLists = std::vector<std::vector<uint32_t>>(smallGraph.size());
+std::vector<uint32_t> CudaSubgraphMatcher::createCandidateLists(const CudaGraph& bigGraph, const CudaGraph& smallGraph,
+                                                                uint32_t** dev_candidatesList) {
+    auto candidateListsSizes = std::vector<uint32_t>(smallGraph.size());
 
     uint32_t num_blocks = (bigGraph.size() + block_size_ - 1) / block_size_;
 
     uint32_t* dev_candidateSet = cuda::malloc<uint32_t>(bigGraph.size());
     uint32_t* dev_prefixScan = cuda::malloc<uint32_t>(bigGraph.size());
-    uint32_t* dev_candidates = cuda::malloc<uint32_t>(bigGraph.size());
+
     uint32_t* dev_candidateCount = cuda::malloc<uint32_t>(1);
 
     for (uint32_t u = 0; u < smallGraph.size(); u++) {
         cuda::memset<uint32_t>(dev_candidateSet, 0, bigGraph.size());
         createCandidateSetKernel<<<num_blocks, block_size_>>>(u, dev_candidateSet, bigGraph, smallGraph);
         cuda::ExclusiveSum<uint32_t>(dev_prefixScan, dev_candidateSet, bigGraph.size());
-        filterCandidates<<<num_blocks, block_size_>>>(dev_candidates, dev_prefixScan, dev_candidateSet,
-                                                      dev_candidateCount, bigGraph.dev_size);
-        uint32_t candidateCount = 0;
-        cuda::memcpy_dev_host<uint32_t>(&candidateCount, dev_candidateCount, 1);
+        cuda::memcpy_dev_host<uint32_t>(&candidateListsSizes[u], &dev_prefixScan[bigGraph.size() - 1], 1);
 
-        auto candidates = std::vector<uint32_t>(candidateCount);
-        cuda::memcpy_dev_host(candidates.data(), dev_candidates, candidateCount);
-        candidateLists[u] = candidates;
+        uint32_t* dev_candidates = cuda::malloc<uint32_t>(candidateListsSizes[u]);
+        filterCandidates<<<num_blocks, block_size_>>>(dev_candidates, dev_prefixScan, dev_candidateSet,
+                                                      &candidateListsSizes[u]);
+        dev_candidatesList[u] = dev_candidates;
     }
 
     cuda::free(dev_candidateSet);
     cuda::free(dev_prefixScan);
-    cuda::free(dev_candidates);
+    // cuda::free(dev_candidates);
     cuda::free(dev_candidateCount);
-    return candidateLists;
+    return candidateListsSizes;
 }
 
-uint32_t CudaSubgraphMatcher::getNextVertex(const CudaGraph& graph,
-                                            const std::vector<std::vector<uint32_t>>& candidateLists,
+uint32_t CudaSubgraphMatcher::getNextVertex(const CudaGraph& graph, const std::vector<uint32_t>& candidateListsSizes,
                                             const std::set<uint32_t>& processedVertices) {
     uint32_t highestScoreVertex = 0;
     uint32_t currentMax = 0;
     for (uint32_t v = 0; v < graph.size(); v++) {
         if (processedVertices.contains(v)) continue;
-        if (candidateLists[v].size() / graph.neighboursOut(v) > currentMax) {
-            currentMax = candidateLists[v].size() / graph.neighboursOut(v);
+        if (candidateListsSizes[v] / graph.neighboursOut(v) > currentMax) {
+            currentMax = candidateListsSizes[v] / graph.neighboursOut(v);
             highestScoreVertex = v;
         }
     }
