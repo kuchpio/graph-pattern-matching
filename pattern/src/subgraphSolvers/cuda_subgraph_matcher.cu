@@ -162,22 +162,24 @@ std::vector<uint32_t> CudaSubgraphMatcher::getMappedNeighboursIn(int v, const Cu
     return neighboursIn;
 }
 
-void CudaSubgraphMatcher::addVertexToResultTable(int v, uint32_t* dev_candidates, const core::Graph& graph) {
-    auto neighboursIn = getMappedNeighboursIn(v, graph);
+void CudaSubgraphMatcher::addVertexToResultTable(int v, uint32_t* dev_candidates, const CudaGraph& bigGraph,
+                                                 const CudaGraph& smallGraph) {
+    auto neighboursIn = getMappedNeighboursIn(v, smallGraph);
     uint32_t* dev_GBA;
-    allocateMemoryForJoining(v, dev_GBA, resultTable_, graph);
+    allocateMemoryForJoining(v, dev_GBA, resultTable_, bigGraph);
     for (auto u : neighboursIn) {
         }
 }
 
-std::vector<uint32_t> CudaSubgraphMatcher::allocateMemoryForJoining(int v, uint32_t*& GBA, ResultTable resultTable,
-                                                                    CudaGraph graph) {
+std::vector<uint32_t> CudaSubgraphMatcher::allocateMemoryForJoining(int v, uint32_t*& GBA,
+                                                                    const ResultTable& resultTable,
+                                                                    const CudaGraph& bigGraph) {
     auto GBAOffsets = std::vector<uint32_t>(resultTable.rowCount + 1);
     auto mappedV = resultTable.mapping[v];
 
     GBAOffsets[0] = 0;
     for (uint32_t i = 0; i < resultTable.rowCount; i++) {
-        GBAOffsets[i + 1] = GBAOffsets[i] + graph.neighboursOut(mappedV + i * resultTable.size);
+        GBAOffsets[i + 1] = GBAOffsets[i] + bigGraph.neighboursOut(mappedV + i * resultTable.size);
     }
     GBA = cuda::malloc<uint32_t>(GBAOffsets.back());
     return GBAOffsets;
