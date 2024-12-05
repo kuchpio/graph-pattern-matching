@@ -47,6 +47,9 @@ class CudaSubgraphMatcher : SubgraphMatcher {
     uint32_t getNextVertex(const CudaGraph& graph, const std::vector<std::vector<uint32_t>>& candidateLists_,
                            const std::set<uint32_t>& processedVertices);
 
+    void addVertexToResultTable(int v, const std::vector<std::vector<uint32_t>>& candidateLists_,
+                                const core::Graph& Graph);
+
     uint32_t* dev_result_;
     std::vector<std::vector<uint32_t>> candidateLists_;
     uint32_t block_size_ = kDefaultBlockSize;

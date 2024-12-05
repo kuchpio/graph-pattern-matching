@@ -7,14 +7,6 @@
 #include <cub/cub.cuh>
 #include <set>
 
-// for signatures
-#define SIGLEN 64 * 8
-#define VLEN 32
-#define SIGNUM SIGLEN / VLEN
-#define SIGBYTE sizeof(unsigned) * SIGNUM
-#define HASHSEED 17
-#define HASHSEED2 53
-
 namespace pattern
 {
 __global__ void createCandidateSetKernel(int u, uint32_t* candidateSet, const CudaGraph& bigGraph,
@@ -102,9 +94,7 @@ std::optional<std::vector<vertex>> CudaSubgraphMatcher::match(const core::Graph&
     auto bigCudaGraph = CudaGraph(bigGraph);
     auto smallCudaGraph = CudaGraph(smallGraph);
 
-    // DO IT ON GPU
     candidateLists_ = createCandidateLists(bigGraph, smallGraph);
-    // SYNC CUDA
 
     // Process first vertex
     uint32_t firstVertex = this->getNextVertex(smallGraph, candidateLists_, processedVertices_);
@@ -166,6 +156,10 @@ uint32_t CudaSubgraphMatcher::getNextVertex(const CudaGraph& graph,
         }
     }
     return highestScoreVertex;
+}
+
+void addVertexToResultTable(int v, const std::vector<std::vector<uint32_t>>& candidateLists_,
+                            const core::Graph& Graph) {
 }
 
 } // namespace pattern
