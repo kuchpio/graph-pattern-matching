@@ -27,8 +27,6 @@ __global__ void createCandidateSetKernel(int u, uint32_t* candidateSet, const Cu
         uNeighboursDegrees += smallGraph.dev_neighbours[i + smallGraph.dev_neighboursOffset[u]];
 
     if (uNeighboursDegrees == vNeighboursDegrees) candidateSet[v] = true;
-
-    // calculate signature
 }
 
 __global__ void filterCandidates(uint32_t* candidates, uint32_t* prefixScan, uint32_t* candidateSet, uint32_t* size) {
@@ -37,13 +35,16 @@ __global__ void filterCandidates(uint32_t* candidates, uint32_t* prefixScan, uin
     if (candidateSet[v]) candidates[prefixScan[v]] = v;
 }
 
-__global__ void joinResultTableRowFirst(uint32_t rowCount, const ResultTable& resultTable, uint32_t* buf,
-                                        uint32_t bufSize, uint32_t* neighbours, uint32_t* candidates,
+__global__ void joinResultTableRowFirst(uint32_t rowCount, const ResultTable& resultTable, uint32_t* GBA,
+                                        uint32_t* GBAOffsets, uint32_t* neighbours, uint32_t* candidates,
                                         uint32_t candidatesSize) {
     uint32_t row = blockDim.x * blockIdx.x;
     uint32_t index = threadIdx.x;
 
     if (row >= rowCount) return;
+
+    uint32_t bufSize = GBAOffsets[row + 1] - GBAOffsets[row];
+    uint32_t* buf = GBA + GBAOffsets[row];
 
     auto mOffset = row * resultTable.size;
 
@@ -73,13 +74,16 @@ __global__ void joinResultTableRowFirst(uint32_t rowCount, const ResultTable& re
     }
 }
 
-__global__ void joinResultTableRowSecond(uint32_t rowCount, uint32_t* buf, uint32_t bufSize,
+__global__ void joinResultTableRowSecond(uint32_t rowCount, uint32_t* GBA, uint32_t* GBAOffsets,
                                          uint32_t* currentNeighbours, uint32_t currentNeighboursSize,
                                          uint32_t* baseNeighbours) {
     uint32_t row = blockDim.x * blockIdx.x;
     uint32_t index = threadIdx.x;
 
     if (row >= rowCount) return;
+
+    uint32_t bufSize = GBAOffsets[row + 1] - GBAOffsets[row];
+    uint32_t* buf = GBA + GBAOffsets[row];
 
     extern __shared__ uint32_t sharedRow[];
     // buf(i) & N(v)
@@ -111,7 +115,7 @@ __device__ uint32_t binarySearch(const uint32_t* arr, uint32_t size, uint32_t ta
 
 CudaGraph::CudaGraph(const core::Graph& G) {
     neighbours = std::vector<uint32_t>(G.edge_count());
-    neighboursOffset = std::vector<uint32_t>(G.size());
+    neighboursOffset = std::vector<uint32_t>(G.size() + 1);
 
     uint32_t offset = 0;
     for (uint32_t v = 0; v < G.size(); v++) {
@@ -119,7 +123,9 @@ CudaGraph::CudaGraph(const core::Graph& G) {
         for (uint32_t u : G.get_neighbours(v)) {
             neighbours[offset++] = u;
         }
+        std::sort(neighbours.begin() + neighboursOffset[v], neighbours.begin() + offset);
     }
+    neighboursOffset.back() = offset;
     this->allocGPU();
 }
 
@@ -145,17 +151,11 @@ void CudaGraph::freeGPU() {
 }
 
 __device__ uint32_t CudaGraph::dev_neighboursOut(uint32_t v) const {
-    if (v < (*this->dev_size - 1)) {
-        return this->dev_neighboursOffset[v + 1] - this->dev_neighboursOffset[v];
-    }
-    return this->edgeCount() - this->dev_neighboursOffset[v];
+    return this->dev_neighboursOffset[v + 1] - this->dev_neighboursOffset[v];
 }
 
 __host__ uint32_t CudaGraph::neighboursOut(uint32_t v) const {
-    if (v < (this->size() - 1)) {
-        return this->neighboursOffset[v + 1] - this->neighboursOffset[v];
-    }
-    return this->neighbours.size() - this->neighboursOffset[v];
+    return this->neighboursOffset[v + 1] - this->neighboursOffset[v];
 }
 
 std::optional<std::vector<vertex>> CudaSubgraphMatcher::match(const core::Graph& bigGraph,
@@ -201,7 +201,8 @@ std::vector<uint32_t> CudaSubgraphMatcher::createCandidateLists(const CudaGraph&
         uint32_t* dev_candidates = cuda::malloc<uint32_t>(candidateListsSizes[u]);
         filterCandidates<<<num_blocks, block_size_>>>(dev_candidates, dev_prefixScan, dev_candidateSet,
                                                       &candidateListsSizes[u]);
-        cuda::radixSort(dev_candidates, candidateListsSizes[u]); // for speed up of set operations
+        cuda::radixSort<uint32_t>(dev_candidates, dev_candidates,
+                                  candidateListsSizes[u]); // for speed up of set operations
         dev_candidatesList[u] = dev_candidates;
     }
 
@@ -241,8 +242,32 @@ void CudaSubgraphMatcher::addVertexToResultTable(int v, uint32_t* dev_candidates
                                                  const CudaGraph& smallGraph) {
     auto neighboursIn = getMappedNeighboursIn(v, smallGraph);
     uint32_t* dev_GBA;
-    allocateMemoryForJoining(v, dev_GBA, resultTable_, bigGraph);
+    auto GBAOfssets = allocateMemoryForJoining(v, dev_GBA, resultTable_, bigGraph);
+
+    uint32_t* dev_GBAOfssets = cuda::malloc<uint32_t>(GBAOfssets.size());
+    cuda::memcpy_host_dev<uint32_t>(dev_GBAOfssets, GBAOfssets.data(), GBAOfssets.size());
+
+    uint32_t firstNeighbour = neighboursIn.front();
+    uint32_t num_blocks = (GBAOfssets.size() - 1 + joiningBlockSize_ - 1) / joiningBlockSize_;
+
+    uint32_t* dev_baseNeighbours =
+        bigGraph.dev_neighbours + bigGraph.dev_neighboursOffset[resultTable_.mapping[firstNeighbour]];
+
     for (auto u : neighboursIn) {
+        uint32_t bigUVertex = resultTable_.mapping[u];
+        if (u == firstNeighbour) {
+            joinResultTableRowFirst<<<num_blocks, joiningBlockSize_>>>(
+                GBAOfssets.size() - 1, resultTable_, dev_GBA, dev_GBAOfssets,
+                bigGraph.dev_neighbours + bigGraph.dev_neighboursOffset[bigUVertex], dev_candidates,
+                candidatesSizes_[v]);
+        } else {
+            uint32_t* dev_currentNeighbours =
+                bigGraph.dev_neighbours + bigGraph.dev_neighboursOffset[resultTable_.mapping[u]];
+            uint32_t currentNeighboursSize = bigGraph.neighboursOut(bigUVertex);
+            joinResultTableRowSecond<<<num_blocks, joiningBlockSize_>>>(GBAOfssets.size() - 1, dev_GBA, dev_GBAOfssets,
+                                                                        dev_currentNeighbours, currentNeighboursSize,
+                                                                        dev_baseNeighbours);
+        }
     }
 }
 

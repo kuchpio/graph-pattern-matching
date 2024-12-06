@@ -60,7 +60,8 @@ class CudaSubgraphMatcher : SubgraphMatcher {
                                                         uint32_t** candidates);
     uint32_t getNextVertex(const CudaGraph& graph, const std::vector<uint32_t>& candidatesSizes_);
 
-    void addVertexToResultTable(int v, uint32_t* dev_candidates, const CudaGraph& bigGraph, const CudaGraph& smallGraph);
+    void addVertexToResultTable(int v, uint32_t* dev_candidates, const CudaGraph& bigGraph,
+                                const CudaGraph& smallGraph);
 
     std::vector<uint32_t> getMappedNeighboursIn(int v, const CudaGraph& graph);
     std::vector<uint32_t> allocateMemoryForJoining(int v, uint32_t*& GBA, const ResultTable& resultTable,
@@ -70,5 +71,6 @@ class CudaSubgraphMatcher : SubgraphMatcher {
     ResultTable resultTable_;
     std::vector<uint32_t> candidatesSizes_;
     uint32_t block_size_ = kDefaultBlockSize;
+    uint32_t joiningBlockSize_ = 128;
 };
 } // namespace pattern
