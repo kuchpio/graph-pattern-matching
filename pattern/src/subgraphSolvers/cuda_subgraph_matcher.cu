@@ -28,6 +28,7 @@ __global__ void linkingKernel(uint32_t* dst, const ResultTable& resultTable, uin
                 dst[startDstIndex * (resultTable.size + 1) + i] = resultTable.dev_data[row * resultTable.size + i];
             }
             dst[startDstIndex * (resultTable.size + 1) + resultTable.size] = neighbours[index];
+            startDstIndex++;
         }
     };
 }
@@ -296,9 +297,14 @@ void CudaSubgraphMatcher::addVertexToResultTable(int v, uint32_t* dev_candidates
 }
 
 void linkGBAWithResult(uint32_t* dev_GBA, const std::vector<uint32_t>& GBAOffsets, uint32_t* dev_GBAOffsets,
-                       ResultTable& resultTable) {
+                       ResultTable& resultTable, uint32_t* neighbours) {
     uint32_t* dev_GBAPrefixScan = cuda::malloc<uint32_t>(GBAOffsets.back());
     cuda::ExclusiveSum<uint32_t>(dev_GBAPrefixScan, dev_GBA, GBAOffsets.back());
+    uint32_t maxValue = 0;
+    cuda::memcpy_dev_host<uint32_t>(&maxValue, &dev_GBAPrefixScan[GBAOffsets.back() - 1], 1);
+    uint32_t* dev_newResultTableData = cuda::malloc<uint32_t>(maxValue);
+
+    linkingKernel(dev_newResultTableData, resultTable, dev_GBAPrefixScan, dev_GBA, dev_GBAOffsets, neighbours);
 }
 
 std::vector<uint32_t> CudaSubgraphMatcher::allocateMemoryForJoining(int v, uint32_t*& GBA,
