@@ -9,6 +9,8 @@
 
 namespace pattern
 {
+__device__ uint32_t binarySearch(const uint32_t* arr, uint32_t size, uint32_t target);
+
 __global__ void createCandidateSetKernel(int u, uint32_t* candidateSet, const CudaGraph& bigGraph,
                                          const CudaGraph& smallGraph) {
     uint32_t v = blockDim.x * blockIdx.x + threadIdx.x;
@@ -33,6 +35,78 @@ __global__ void filterCandidates(uint32_t* candidates, uint32_t* prefixScan, uin
     uint32_t v = blockDim.x * blockIdx.x + threadIdx.x;
     if (v >= *size) return;
     if (candidateSet[v]) candidates[prefixScan[v]] = v;
+}
+
+__global__ void joinResultTableRowFirst(uint32_t rowCount, const ResultTable& resultTable, uint32_t* buf,
+                                        uint32_t bufSize, uint32_t* neighbours, uint32_t* candidates,
+                                        uint32_t candidatesSize) {
+    uint32_t row = blockDim.x * blockIdx.x;
+    uint32_t index = threadIdx.x;
+
+    if (row >= rowCount) return;
+
+    auto mOffset = row * resultTable.size;
+
+    extern __shared__ uint32_t sharedRow[];
+
+    // use shared memory here :)
+
+    // do N(v) - m_i
+    while (index < bufSize) {
+        uint32_t mIndex = mOffset + index;
+        while (mIndex < resultTable.size) {
+            if (resultTable.dev_data[mIndex] == neighbours[index]) buf[index] = 0;
+            mIndex *= 2;
+        }
+        index *= 2;
+    }
+    __syncthreads(); // commentable see if speeds up!
+
+    index = threadIdx.x;
+    // buf(i) & C(v)
+    while (index < bufSize) {
+        if (buf[index] == 0) continue;
+        if (binarySearch(candidates, candidatesSize, neighbours[index]) == UINT32_MAX) {
+            buf[index] = 0;
+        }
+        index *= 2;
+    }
+}
+
+__global__ void joinResultTableRowSecond(uint32_t rowCount, uint32_t* buf, uint32_t bufSize,
+                                         uint32_t* currentNeighbours, uint32_t currentNeighboursSize,
+                                         uint32_t* baseNeighbours) {
+    uint32_t row = blockDim.x * blockIdx.x;
+    uint32_t index = threadIdx.x;
+
+    if (row >= rowCount) return;
+
+    extern __shared__ uint32_t sharedRow[];
+    // buf(i) & N(v)
+    while (index < bufSize) {
+        if (buf[index] == 0) continue;
+        if (binarySearch(currentNeighbours, currentNeighboursSize, baseNeighbours[index]) == UINT32_MAX) {
+            buf[index] = 0;
+        }
+        index *= 2;
+    }
+}
+
+__device__ uint32_t binarySearch(const uint32_t* arr, uint32_t size, uint32_t target) {
+    uint32_t left = 0, right = size - 1;
+
+    while (left <= right) {
+        uint32_t mid = left + (right - left) / 2;
+
+        if (arr[mid] == target) {
+            return mid; // Target found
+        } else if (arr[mid] < target) {
+            left = mid + 1; // Search right half
+        } else {
+            right = mid - 1; // Search left half
+        }
+    }
+    return UINT32_MAX; // Target not found
 }
 
 CudaGraph::CudaGraph(const core::Graph& G) {
@@ -127,6 +201,7 @@ std::vector<uint32_t> CudaSubgraphMatcher::createCandidateLists(const CudaGraph&
         uint32_t* dev_candidates = cuda::malloc<uint32_t>(candidateListsSizes[u]);
         filterCandidates<<<num_blocks, block_size_>>>(dev_candidates, dev_prefixScan, dev_candidateSet,
                                                       &candidateListsSizes[u]);
+        cuda::radixSort(dev_candidates, candidateListsSizes[u]); // for speed up of set operations
         dev_candidatesList[u] = dev_candidates;
     }
 
@@ -168,7 +243,7 @@ void CudaSubgraphMatcher::addVertexToResultTable(int v, uint32_t* dev_candidates
     uint32_t* dev_GBA;
     allocateMemoryForJoining(v, dev_GBA, resultTable_, bigGraph);
     for (auto u : neighboursIn) {
-        }
+    }
 }
 
 std::vector<uint32_t> CudaSubgraphMatcher::allocateMemoryForJoining(int v, uint32_t*& GBA,
@@ -182,6 +257,7 @@ std::vector<uint32_t> CudaSubgraphMatcher::allocateMemoryForJoining(int v, uint3
         GBAOffsets[i + 1] = GBAOffsets[i] + bigGraph.neighboursOut(mappedV + i * resultTable.size);
     }
     GBA = cuda::malloc<uint32_t>(GBAOffsets.back());
+    cuda::memset<uint32_t>(GBA, 2, GBAOffsets.back()); // set everything to 2 to speed ub set operations
     return GBAOffsets;
 }
 

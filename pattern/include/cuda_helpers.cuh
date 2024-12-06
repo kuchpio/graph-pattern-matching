@@ -49,6 +49,16 @@ template <class T> inline void InclusiveSum(T* dst, T* src, size_t count) {
     cudaFree(d_temp_storage);
 }
 
+template <class T> inline void radixSort(T* src, size_t count) {
+    void* d_temp_storage = NULL;
+    size_t temp_storage_bytes = 0;
+    cub::DeviceRadixSort::SortKeys(d_temp_storage, temp_storage_bytes, src, count);
+
+    cudaMalloc(&d_temp_storage, temp_storage_bytes);
+    cub::DeviceRadixSort::SortKeys(d_temp_storage, temp_storage_bytes, src, count);
+    cudaFree(d_temp_storage);
+}
+
 template <class T> inline void memset(T* dst, T value, size_t count) {
     CHECK_CUDA_ERROR(cudaMemset(dst, value, count * sizeof(T)));
 }
