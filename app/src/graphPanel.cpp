@@ -84,9 +84,9 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
     auto testPanel = new wxPanel(notebook);
     auto testSizer = new wxBoxSizer(wxHORIZONTAL);
     auto initButton = new wxButton(testPanel, wxID_ANY, "Create");
-    auto colorButton = new wxButton(testPanel, wxID_ANY, "Color");
+    auto selectButton = new wxButton(testPanel, wxID_ANY, "Select");
     testSizer->Add(initButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
-    testSizer->Add(colorButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
+    testSizer->Add(selectButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
     testSizer->AddStretchSpacer(1);
     testPanel->SetSizerAndFit(testSizer);
     notebook->AddPage(testPanel, "Test");
@@ -101,15 +101,11 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
         graph = utils::GraphFactory::random_graph(5, 0.5f);
         InitGraphSimulation();
     });
-    colorButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
-        wxColourData colorData;
-        colorData.SetColour(this->canvas->vertexColor);
-        wxColourDialog dialog(this, &colorData);
-
-        if (dialog.ShowModal() == wxID_OK) {
-            canvas->vertexColor = dialog.GetColourData().GetColour();
-            canvas->Refresh();
-        }
+    selectButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
+        std::size_t i = rand() % graph.size();
+        vertexStates[i] = 1 - vertexStates[i];
+        canvas->SetVertexStates(vertexStates, graph.size());
+		canvas->Refresh();
     });
 
     lastFrameTime = animationClock::now();
@@ -121,6 +117,7 @@ GraphPanel::~GraphPanel() {
     if (vertexPositions2D[1]) delete[] vertexPositions2D[1];
     if (vertexVelocities2D[0]) delete[] vertexVelocities2D[0];
     if (vertexVelocities2D[1]) delete[] vertexVelocities2D[1];
+    if (vertexStates) delete[] vertexStates;
 }
 
 const core::Graph& GraphPanel::GetGraph() const {
@@ -203,11 +200,13 @@ void GraphPanel::InitGraphSimulation() {
     if (vertexPositions2D[1]) delete[] vertexPositions2D[1];
     if (vertexVelocities2D[0]) delete[] vertexVelocities2D[0];
     if (vertexVelocities2D[1]) delete[] vertexVelocities2D[1];
+    if (vertexStates) delete[] vertexStates;
 
     vertexPositions2D[0] = new float[2 * graph.size()];
     vertexPositions2D[1] = new float[2 * graph.size()];
     vertexVelocities2D[0] = new float[2 * graph.size()];
     vertexVelocities2D[1] = new float[2 * graph.size()];
+    vertexStates = new unsigned int[graph.size()];
 
     std::vector<unsigned int> edges;
     for (unsigned int i = 0; i < graph.size(); i++) {
@@ -220,8 +219,10 @@ void GraphPanel::InitGraphSimulation() {
         vertexPositions2D[readBufferId][2 * i] = 2 * ((float)rand() / RAND_MAX) - 1;
         vertexPositions2D[readBufferId][2 * i + 1] = 2 * ((float)rand() / RAND_MAX) - 1;
         vertexVelocities2D[readBufferId][2 * i] = vertexVelocities2D[readBufferId][2 * i + 1] = 0.0f;
+        vertexStates[i] = 0;
     }
     canvas->SetVertexPositions(vertexPositions2D[readBufferId], graph.size());
+    canvas->SetVertexStates(vertexStates, graph.size());
     canvas->SetEdges(edges.data(), edges.size() / 2);
 }
 

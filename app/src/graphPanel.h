@@ -19,6 +19,7 @@ class GraphPanel : public wxPanel {
     unsigned int readBufferId = 0;
     float* vertexPositions2D[2] = {nullptr, nullptr};
     float* vertexVelocities2D[2] = {nullptr, nullptr};
+    unsigned int* vertexStates = nullptr;
 
     const float C[5] = {-2.0f, 0.1f, 0.2f, -0.01f, -10.0f};
     using animationClock = std::chrono::high_resolution_clock;
