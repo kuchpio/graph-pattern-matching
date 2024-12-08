@@ -10,6 +10,7 @@ set(APP_SRC
     "src/frame.h" "src/frame.cpp" 
     "src/graphCanvas.h" "src/graphCanvas.cpp" 
     "src/graphPanel.h" "src/graphPanel.cpp"
+    "src/graphManager.h" "src/graphManager.cpp"
 )
 
 add_executable (app ${APP_SRC} ${GLAD_SRC})

@@ -9,7 +9,7 @@
 #include "graphCanvas.h"
 
 GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<void()> fileOpenCallback)
-    : wxPanel(parent), graph(0), fileOpenCallback(fileOpenCallback) {
+    : wxPanel(parent), fileOpenCallback(fileOpenCallback) {
     auto sizer = new wxBoxSizer(wxVERTICAL);
 
     wxGLAttributes vAttrs;
@@ -98,13 +98,21 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
     openButton->Bind(wxEVT_BUTTON, &GraphPanel::OpenFromFile, this);
     saveButton->Bind(wxEVT_BUTTON, &GraphPanel::SaveToFile, this);
     initButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
-        graph = utils::GraphFactory::random_graph(5, 0.5f);
-        InitGraphSimulation();
+        auto graph = utils::GraphFactory::random_graph(5, 0.5f);
+
+        manager.Initialize(std::move(graph));
+
+        auto& vertexPositions2D = manager.Positions2D();
+        canvas->SetVertexPositions(vertexPositions2D.data(), vertexPositions2D.size() / 2);
+        auto& vertexStates = manager.States();
+		canvas->SetVertexStates(vertexStates.data(), vertexStates.size());
+        auto edges = manager.GetEdges();
+		canvas->SetEdges(edges.data(), edges.size() / 2);
     });
     selectButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
-        std::size_t i = rand() % graph.size();
-        vertexStates[i] = 1 - vertexStates[i];
-        canvas->SetVertexStates(vertexStates, graph.size());
+        manager.HandleClick();
+        auto& vertexStates = manager.States();
+        canvas->SetVertexStates(vertexStates.data(), vertexStates.size());
 		canvas->Refresh();
     });
 
@@ -112,16 +120,8 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
     Bind(wxEVT_IDLE, &GraphPanel::OnIdle, this);
 }
 
-GraphPanel::~GraphPanel() {
-    if (vertexPositions2D[0]) delete[] vertexPositions2D[0];
-    if (vertexPositions2D[1]) delete[] vertexPositions2D[1];
-    if (vertexVelocities2D[0]) delete[] vertexVelocities2D[0];
-    if (vertexVelocities2D[1]) delete[] vertexVelocities2D[1];
-    if (vertexStates) delete[] vertexStates;
-}
-
 const core::Graph& GraphPanel::GetGraph() const {
-    return graph;
+    return manager.Graph();
 }
 
 void GraphPanel::OnMatchingStart() {
@@ -160,9 +160,17 @@ void GraphPanel::OpenFromFile(wxCommandEvent& event) {
         } else {
             wxTextInputStream graph6Stream(inputStream, wxT("\x09"), wxConvUTF8);
             try {
-                graph = core::Graph6Serializer::Deserialize(graph6Stream.ReadLine().ToStdString());
+                auto graph = core::Graph6Serializer::Deserialize(graph6Stream.ReadLine().ToStdString());
                 fileInfoLabel->SetLabel(fileDialog->GetFilename() + " (Graph6)");
-                InitGraphSimulation();
+
+				manager.Initialize(std::move(graph));
+
+				auto& vertexPositions2D = manager.Positions2D();
+				canvas->SetVertexPositions(vertexPositions2D.data(), vertexPositions2D.size() / 2);
+				auto& vertexStates = manager.States();
+				canvas->SetVertexStates(vertexStates.data(), vertexStates.size());
+				auto edges = manager.GetEdges();
+				canvas->SetEdges(edges.data(), edges.size() / 2);
                 fileOpenCallback();
             } catch (const core::graph6FormatError& err) {
                 wxMessageBox("Could not open file " + fileDialog->GetFilename() + "\nError: " + err.what());
@@ -185,7 +193,7 @@ void GraphPanel::SaveToFile(wxCommandEvent& event) {
         } else {
             wxTextOutputStream graph6Stream(outputStream, wxEOL_NATIVE, wxConvUTF8);
             try {
-                graph6Stream << core::Graph6Serializer::Serialize(graph);
+                graph6Stream << core::Graph6Serializer::Serialize(manager.Graph());
             } catch (const core::graph6FormatError& err) {
                 wxMessageBox("Could save to file " + fileDialog->GetFilename() + "\nError: " + err.what());
             }
@@ -193,37 +201,6 @@ void GraphPanel::SaveToFile(wxCommandEvent& event) {
     }
 
     fileDialog->Destroy();
-}
-
-void GraphPanel::InitGraphSimulation() {
-    if (vertexPositions2D[0]) delete[] vertexPositions2D[0];
-    if (vertexPositions2D[1]) delete[] vertexPositions2D[1];
-    if (vertexVelocities2D[0]) delete[] vertexVelocities2D[0];
-    if (vertexVelocities2D[1]) delete[] vertexVelocities2D[1];
-    if (vertexStates) delete[] vertexStates;
-
-    vertexPositions2D[0] = new float[2 * graph.size()];
-    vertexPositions2D[1] = new float[2 * graph.size()];
-    vertexVelocities2D[0] = new float[2 * graph.size()];
-    vertexVelocities2D[1] = new float[2 * graph.size()];
-    vertexStates = new unsigned int[graph.size()];
-
-    std::vector<unsigned int> edges;
-    for (unsigned int i = 0; i < graph.size(); i++) {
-        for (unsigned int j = 0; j < i; j++) {
-            if (graph.has_edge(i, j)) {
-                edges.push_back(i);
-                edges.push_back(j);
-            }
-        }
-        vertexPositions2D[readBufferId][2 * i] = 2 * ((float)rand() / RAND_MAX) - 1;
-        vertexPositions2D[readBufferId][2 * i + 1] = 2 * ((float)rand() / RAND_MAX) - 1;
-        vertexVelocities2D[readBufferId][2 * i] = vertexVelocities2D[readBufferId][2 * i + 1] = 0.0f;
-        vertexStates[i] = 0;
-    }
-    canvas->SetVertexPositions(vertexPositions2D[readBufferId], graph.size());
-    canvas->SetVertexStates(vertexStates, graph.size());
-    canvas->SetEdges(edges.data(), edges.size() / 2);
 }
 
 void GraphPanel::OnIdle(wxIdleEvent& event) {
@@ -235,45 +212,10 @@ void GraphPanel::OnIdle(wxIdleEvent& event) {
         return;
     }
 
-    for (unsigned int i = 0; i < graph.size(); i++) {
-        float x = vertexPositions2D[readBufferId][2 * i];
-        float y = vertexPositions2D[readBufferId][2 * i + 1];
+    manager.UpdatePositions(elapsedSeconds.count());
 
-        float distOrigin = sqrtf(x * x + y * y);
-        float gravityCoefficient = distOrigin < 0.1f ? 0.0f : C[3] / (distOrigin * distOrigin * distOrigin);
-
-        float a_x = gravityCoefficient * x;
-        float a_y = gravityCoefficient * y;
-
-        for (unsigned int j = 0; j < graph.size(); j++) {
-            if (i == j) continue;
-            float dx = x - vertexPositions2D[readBufferId][2 * j];
-            float dy = y - vertexPositions2D[readBufferId][2 * j + 1];
-            float dist = sqrtf(dx * dx + dy * dy);
-
-            float springCoefficient =
-                !graph.has_edge(i, j) || !graph.has_edge(j, i) || dist < 0.01f ? 0.0f : C[0] * logf(dist / C[1]) / dist;
-            float repelCoefficient = dist < 0.0001f ? 0.0f : C[2] / (dist * dist * dist);
-
-            a_x += (repelCoefficient + springCoefficient) * x;
-            a_y += (repelCoefficient + springCoefficient) * y;
-        }
-
-        float v_x = vertexVelocities2D[readBufferId][2 * i];
-        float v_y = vertexVelocities2D[readBufferId][2 * i + 1];
-
-        float tractionCoefficient = C[4];
-        a_x += tractionCoefficient * v_x;
-        a_y += tractionCoefficient * v_y;
-
-        vertexVelocities2D[1 - readBufferId][2 * i] = v_x + a_x * elapsedSeconds.count();
-        vertexVelocities2D[1 - readBufferId][2 * i + 1] = v_y + a_y * elapsedSeconds.count();
-        vertexPositions2D[1 - readBufferId][2 * i] = x + v_x * elapsedSeconds.count();
-        vertexPositions2D[1 - readBufferId][2 * i + 1] = y + v_y * elapsedSeconds.count();
-    }
-
-    readBufferId = 1 - readBufferId;
-    canvas->SetVertexPositions(vertexPositions2D[readBufferId], graph.size());
+    auto& vertexPositions2D = manager.Positions2D();
+    canvas->SetVertexPositions(vertexPositions2D.data(), vertexPositions2D.size() / 2);
 
     canvas->Refresh();
     event.RequestMore();

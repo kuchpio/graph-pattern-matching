@@ -232,7 +232,8 @@ void GraphCanvas::SetVertexPositions(const float* positions2D, unsigned int vert
         if (y > maxY) maxY = y;
     }
 
-    SetBoundingSize(maxX - minX, maxY - minY);
+    float boundingSize = std::max(maxX - minX, maxY - minY);
+    SetBoundingSize(boundingSize, boundingSize);
     SetCenterPosition((minX + maxX) / 2, (minY + maxY) / 2);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexCount * 2, positions2D, GL_DYNAMIC_DRAW);
