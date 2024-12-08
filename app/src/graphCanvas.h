@@ -7,11 +7,6 @@ class GraphCanvas : public wxGLCanvas {
 
     wxGLContext* openGLContext;
     bool isOpenGLInitialized = false, isOpenGLInitializationAttempted = false;
-    float centerX = 0.0f, centerY = 0.0f;
-    float boundingBoxWidth = 0.0f, boundingBoxHeight = 0.0f;
-    int canvasWidth = 0, canvasHeight = 0;
-
-    const float EDGE_WIDTH = 2.0f;
 
     unsigned int vertexArrayObject = 0;
     unsigned int vertexBuffer = 0;
@@ -19,6 +14,7 @@ class GraphCanvas : public wxGLCanvas {
     unsigned int edgesBuffer = 0;
     unsigned int nodeShaderProgram = 0;
     unsigned int edgeShaderProgram = 0;
+    unsigned int settingsUniformBufferObject = 0;
 
     unsigned int vertexCount = 0;
     unsigned int edgesCount = 0;
@@ -27,6 +23,10 @@ class GraphCanvas : public wxGLCanvas {
     bool InitializeOpenGL();
     std::optional<unsigned int> GraphCanvas::InitializeShader(const char* vertexShaderSource,
                                                               const char* fragmentShaderSource);
+    void SetCanvasSize(int width, int height) const;
+    void SetBoundingSize(float width, float height) const;
+    void SetCenterPosition(float x, float y) const;
+    void SetNodeSize(float radius, float border) const;
 
     void OnPaint(wxPaintEvent& event);
     void OnSize(wxSizeEvent& event);

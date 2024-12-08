@@ -25,24 +25,17 @@ GraphCanvas::~GraphCanvas() {
 }
 
 void GraphCanvas::OnPaint(wxPaintEvent& WXUNUSED(event)) {
-    if (!isOpenGLInitializationAttempted) isOpenGLInitialized = InitializeOpenGL();
     if (!isOpenGLInitialized) return;
-
     SetCurrent(*openGLContext);
+
     glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     glUseProgram(edgeShaderProgram);
-    glUniform2f(glGetUniformLocation(edgeShaderProgram, "canvasSize"), canvasWidth, canvasHeight);
-    glUniform2f(glGetUniformLocation(edgeShaderProgram, "boundingSize"), boundingBoxWidth, boundingBoxHeight);
-    glUniform2f(glGetUniformLocation(edgeShaderProgram, "centerPos"), centerX, centerY);
     glBindVertexArray(vertexArrayObject);
     glDrawElements(GL_LINES, edgesCount * 2, GL_UNSIGNED_INT, 0);
 
     glUseProgram(nodeShaderProgram);
-    glUniform2f(glGetUniformLocation(nodeShaderProgram, "canvasSize"), canvasWidth, canvasHeight);
-    glUniform2f(glGetUniformLocation(nodeShaderProgram, "boundingSize"), boundingBoxWidth, boundingBoxHeight);
-    glUniform2f(glGetUniformLocation(nodeShaderProgram, "centerPos"), centerX, centerY);
     glBindVertexArray(vertexArrayObject);
     glDrawArraysInstanced(GL_TRIANGLES, 0, 6, vertexCount);
 
@@ -52,14 +45,14 @@ void GraphCanvas::OnPaint(wxPaintEvent& WXUNUSED(event)) {
 }
 
 void GraphCanvas::OnSize(wxSizeEvent& event) {
-    auto viewPortSize = event.GetSize() * GetContentScaleFactor();
-    canvasWidth = viewPortSize.GetWidth();
-    canvasHeight = viewPortSize.GetHeight();
+    if (!isOpenGLInitializationAttempted) isOpenGLInitialized = InitializeOpenGL();
 
     if (!isOpenGLInitialized) return;
-
     SetCurrent(*openGLContext);
+
+    auto viewPortSize = event.GetSize() * GetContentScaleFactor();
     glViewport(0, 0, viewPortSize.x, viewPortSize.y);
+    SetCanvasSize(viewPortSize.GetWidth(), viewPortSize.GetHeight());
 }
 
 bool GraphCanvas::InitializeOpenGL() {
@@ -97,6 +90,7 @@ bool GraphCanvas::InitializeOpenGL() {
     glGenBuffers(1, &vertexBuffer);
     glGenBuffers(1, &vertexStateBuffer);
     glGenBuffers(1, &edgesBuffer);
+    glGenBuffers(1, &settingsUniformBufferObject);
 
     glBindVertexArray(vertexArrayObject);
 
@@ -114,7 +108,17 @@ bool GraphCanvas::InitializeOpenGL() {
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, edgesBuffer);
 
-    glLineWidth(EDGE_WIDTH);
+    unsigned int uniformBlockIndexNode = glGetUniformBlockIndex(nodeShaderProgram, "settings");
+    unsigned int uniformBlockIndexEdge = glGetUniformBlockIndex(edgeShaderProgram, "settings");
+    glUniformBlockBinding(nodeShaderProgram, uniformBlockIndexNode, 0);
+    glUniformBlockBinding(edgeShaderProgram, uniformBlockIndexEdge, 0);
+    glBindBuffer(GL_UNIFORM_BUFFER, settingsUniformBufferObject);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * (2 + 2 + 2 + 1 + 1), NULL, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    glBindBufferRange(GL_UNIFORM_BUFFER, 0, settingsUniformBufferObject, 0, sizeof(float) * (2 + 2 + 2 + 1 + 1));
+
+    SetNodeSize(20.0, 3.0);
+    glLineWidth(2.0);
 
     glBindVertexArray(0);
 
@@ -194,10 +198,8 @@ void GraphCanvas::SetVertexPositions(const float* positions2D, unsigned int vert
         if (y > maxY) maxY = y;
     }
 
-    centerX = (minX + maxX) / 2;
-    centerY = (minY + maxY) / 2;
-    boundingBoxWidth = maxX - minX;
-    boundingBoxHeight = maxY - minY;
+    SetBoundingSize(maxX - minX, maxY - minY);
+    SetCenterPosition((minX + maxX) / 2, (minY + maxY) / 2);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexCount * 2, positions2D, GL_DYNAMIC_DRAW);
 
@@ -230,10 +232,14 @@ char* GraphCanvas::nodeVertexShaderSource = R"(
     out vec2 quadCoord;
     flat out uint nodeColorIndex;
 
-	uniform vec2 canvasSize;
-	uniform vec2 boundingSize;
-	uniform vec2 centerPos;
-	uniform float radius = 20.0;
+    layout (std140) uniform settings
+    {
+	    vec2 canvasSize;
+	    vec2 boundingSize;
+	    vec2 centerPos;
+	    float nodeRadius;
+	    float nodeBorder;
+    };
 
 	void main()
 	{
@@ -248,7 +254,7 @@ char* GraphCanvas::nodeVertexShaderSource = R"(
 
 		quadCoord = quadCoordArray[gl_VertexID % 6];
         nodeColorIndex = nodeState;
-        vec2 radiusScaled = vec2(radius, radius) / canvasSize;
+        vec2 radiusScaled = vec2(nodeRadius, nodeRadius) / canvasSize;
         vec2 quadOffset = quadCoord * radiusScaled;
 		vec2 vertexOffset = 2 * (nodePos - centerPos) / (boundingSize * (1 + 2 * radiusScaled));
 
@@ -263,8 +269,14 @@ char* GraphCanvas::nodeFragmentShaderSource = R"(
     flat in uint nodeColorIndex;
 	out vec4 FragColor;
 
-	uniform float radius = 20.0;
-	uniform float border = 3.0;
+    layout (std140) uniform settings
+    {
+	    vec2 canvasSize;
+	    vec2 boundingSize;
+	    vec2 centerPos;
+	    float nodeRadius;
+	    float nodeBorder;
+    };
 
 	void main()
 	{
@@ -273,7 +285,7 @@ char* GraphCanvas::nodeFragmentShaderSource = R"(
 			vec4(0.4, 0.4, 1.0, 1.0)
 		);
 
-		float borderThreshold = (1.0 - border / radius) * (1.0 - border / radius);
+		float borderThreshold = (1.0 - nodeBorder / nodeRadius) * (1.0 - nodeBorder / nodeRadius);
 		float d = dot(quadCoord, quadCoord);
 		if (d <= 1.0) {
 			FragColor = d < borderThreshold ? nodeColorArray[nodeColorIndex] : vec4(0.0, 0.0, 0.0, 1.0);
@@ -288,14 +300,18 @@ char* GraphCanvas::edgeVertexShaderSource = R"(
 
 	layout (location = 0) in vec2 nodePos;
 
-	uniform vec2 canvasSize;
-	uniform vec2 boundingSize;
-	uniform vec2 centerPos;
-	uniform float radius = 20.0;
+    layout (std140) uniform settings
+    {
+	    vec2 canvasSize;
+	    vec2 boundingSize;
+	    vec2 centerPos;
+	    float nodeRadius;
+	    float nodeBorder;
+    };
 
 	void main()
 	{
-        vec2 radiusScaled = vec2(radius, radius) / canvasSize;
+        vec2 radiusScaled = vec2(nodeRadius, nodeRadius) / canvasSize;
 		vec2 vertexOffset = 2 * (nodePos - centerPos) / (boundingSize * (1 + 2 * radiusScaled));
 
 		gl_Position = vec4(vertexOffset.x, vertexOffset.y, 0.0, 1.0);
@@ -309,6 +325,34 @@ char* GraphCanvas::edgeFragmentShaderSource = R"(
 
 	void main()
 	{
-		FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+		FragColor = vec4(0.1, 0.1, 0.1, 1.0);
 	}
 )";
+
+void GraphCanvas::SetCanvasSize(int width, int height) const {
+    float canvasSize[] = { (float)width, (float)height };
+    glBindBuffer(GL_UNIFORM_BUFFER, settingsUniformBufferObject);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(float) * 2, canvasSize);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
+void GraphCanvas::SetBoundingSize(float width, float height) const {
+    float boundingSize[] = { width, height };
+    glBindBuffer(GL_UNIFORM_BUFFER, settingsUniformBufferObject);
+    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float) * 2, sizeof(float) * 2, boundingSize);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
+void GraphCanvas::SetCenterPosition(float x, float y) const {
+    float centerPosition[] = { x, y };
+    glBindBuffer(GL_UNIFORM_BUFFER, settingsUniformBufferObject);
+    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float) * 4, sizeof(float) * 2, centerPosition);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
+void GraphCanvas::SetNodeSize(float radius, float border) const {
+    float nodeSize[] = { radius, border };
+    glBindBuffer(GL_UNIFORM_BUFFER, settingsUniformBufferObject);
+    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float) * 6, sizeof(float) * 2, nodeSize);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
