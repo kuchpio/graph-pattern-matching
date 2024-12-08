@@ -1,6 +1,8 @@
 #include "glad/glad.h"
 #include "wx/msgdlg.h"
 #include <optional>
+#include <fstream>
+#include <sstream>
 
 #include "graphCanvas.h"
 
@@ -70,7 +72,7 @@ bool GraphCanvas::InitializeOpenGL() {
     wxLogDebug("OpenGL version: %s", reinterpret_cast<const char*>(glGetString(GL_VERSION)));
     wxLogDebug("OpenGL vendor: %s", reinterpret_cast<const char*>(glGetString(GL_VENDOR)));
 
-    if (auto result = InitializeShader(nodeVertexShaderSource, nodeFragmentShaderSource)) {
+    if (auto result = InitializeShader(nodeVertexShaderPath, nodeFragmentShaderPath)) {
         nodeShaderProgram = result.value();
     } else {
         wxMessageBox("Error: Could not initialize OpenGL shaders.", "OpenGL initialization error",
@@ -78,7 +80,7 @@ bool GraphCanvas::InitializeOpenGL() {
         return false;
     }
 
-    if (auto result = InitializeShader(edgeVertexShaderSource, edgeFragmentShaderSource)) {
+    if (auto result = InitializeShader(edgeVertexShaderPath, edgeFragmentShaderPath)) {
         edgeShaderProgram = result.value();
     } else {
         wxMessageBox("Error: Could not initialize OpenGL shaders.", "OpenGL initialization error",
@@ -138,7 +140,25 @@ bool GraphCanvas::InitializeOpenGLFunctions() {
     return true;
 }
 
-std::optional<unsigned int> GraphCanvas::InitializeShader(const char* vertexShaderSource, const char* fragmentShaderSource) {
+std::optional<unsigned int> GraphCanvas::InitializeShader(const char* vertexShaderPath, const char* fragmentShaderPath) {
+
+    std::string shaderCode;
+    std::ifstream shaderFile;
+    shaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+
+    // Read and compile vertex shader
+    try {
+        shaderFile.open(vertexShaderPath);
+        std::stringstream shaderStream;
+        shaderStream << shaderFile.rdbuf();
+        shaderFile.close();
+        shaderCode = shaderStream.str();
+    } catch (std::ifstream::failure e) {
+        wxLogDebug("Could not read vertex shader source code from %s", vertexShaderPath);
+        return {};
+    }
+    const char* vertexShaderSource = shaderCode.c_str();
+
     unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
     glCompileShader(vertexShader);
@@ -149,9 +169,22 @@ std::optional<unsigned int> GraphCanvas::InitializeShader(const char* vertexShad
 
     if (!success) {
         glGetShaderInfoLog(vertexShader, 512, nullptr, infoLog);
-        wxLogDebug("Vertex Shader Compilation Failed: %s", infoLog);
+        wxLogDebug("Vertex shader compilation failed: %s", infoLog);
         return {};
     }
+
+    // Read and compile fragment shader
+    try {
+        shaderFile.open(fragmentShaderPath);
+        std::stringstream shaderStream;
+        shaderStream << shaderFile.rdbuf();
+        shaderFile.close();
+        shaderCode = shaderStream.str();
+    } catch (std::ifstream::failure e) {
+        wxLogDebug("Could not read fragment shader source code from %s", fragmentShaderPath);
+        return {};
+    }
+    const char* fragmentShaderSource = shaderCode.c_str();
 
     unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
@@ -161,10 +194,11 @@ std::optional<unsigned int> GraphCanvas::InitializeShader(const char* vertexShad
 
     if (!success) {
         glGetShaderInfoLog(fragmentShader, 512, nullptr, infoLog);
-        wxLogDebug("Fragment Shader Compilation Failed: %s", infoLog);
+        wxLogDebug("Fragment shader compilation failed: %s", infoLog);
         return {};
     }
 
+    // Link shaders
     auto shaderProgram = glCreateProgram();
     glAttachShader(shaderProgram, vertexShader);
     glAttachShader(shaderProgram, fragmentShader);
@@ -223,111 +257,6 @@ void GraphCanvas::SetEdges(const unsigned int* edges, unsigned int edgesCount) {
 
     this->edgesCount = edgesCount;
 }
-
-char* GraphCanvas::nodeVertexShaderSource = R"(
-	#version 330 core
-
-	layout (location = 1) in vec2 nodePos;
-    layout (location = 2) in uint nodeState;
-    out vec2 quadCoord;
-    flat out uint nodeColorIndex;
-
-    layout (std140) uniform settings
-    {
-	    vec2 canvasSize;
-	    vec2 boundingSize;
-	    vec2 centerPos;
-	    float nodeRadius;
-	    float nodeBorder;
-    };
-
-	void main()
-	{
-		const vec2 quadCoordArray[6] = vec2[6] (
-			vec2(1.0, -1.0),
-			vec2(1.0, 1.0),
-			vec2(-1.0, 1.0),
-			vec2(-1.0, 1.0),
-			vec2(-1.0, -1.0),
-			vec2(1.0, -1.0)
-		);
-
-		quadCoord = quadCoordArray[gl_VertexID % 6];
-        nodeColorIndex = nodeState;
-        vec2 radiusScaled = vec2(nodeRadius, nodeRadius) / canvasSize;
-        vec2 quadOffset = quadCoord * radiusScaled;
-		vec2 vertexOffset = 2 * (nodePos - centerPos) / (boundingSize * (1 + 2 * radiusScaled));
-
-		gl_Position = vec4(vertexOffset.x + quadOffset.x, vertexOffset.y + quadOffset.y, 0.0, 1.0);
-	}
-)";
-
-char* GraphCanvas::nodeFragmentShaderSource = R"(
-	#version 330 core
-
-	in vec2 quadCoord;
-    flat in uint nodeColorIndex;
-	out vec4 FragColor;
-
-    layout (std140) uniform settings
-    {
-	    vec2 canvasSize;
-	    vec2 boundingSize;
-	    vec2 centerPos;
-	    float nodeRadius;
-	    float nodeBorder;
-    };
-
-	void main()
-	{
-		const vec4 nodeColorArray[2] = vec4[2] (
-			vec4(0.7, 0.7, 0.7, 1.0),
-			vec4(0.4, 0.4, 1.0, 1.0)
-		);
-
-		float borderThreshold = (1.0 - nodeBorder / nodeRadius) * (1.0 - nodeBorder / nodeRadius);
-		float d = dot(quadCoord, quadCoord);
-		if (d <= 1.0) {
-			FragColor = d < borderThreshold ? nodeColorArray[nodeColorIndex] : vec4(0.0, 0.0, 0.0, 1.0);
-		} else {
-			discard;
-		}
-	}
-)";
-
-char* GraphCanvas::edgeVertexShaderSource = R"(
-	#version 330 core
-
-	layout (location = 0) in vec2 nodePos;
-
-    layout (std140) uniform settings
-    {
-	    vec2 canvasSize;
-	    vec2 boundingSize;
-	    vec2 centerPos;
-	    float nodeRadius;
-	    float nodeBorder;
-    };
-
-	void main()
-	{
-        vec2 radiusScaled = vec2(nodeRadius, nodeRadius) / canvasSize;
-		vec2 vertexOffset = 2 * (nodePos - centerPos) / (boundingSize * (1 + 2 * radiusScaled));
-
-		gl_Position = vec4(vertexOffset.x, vertexOffset.y, 0.0, 1.0);
-	}
-)";
-
-char* GraphCanvas::edgeFragmentShaderSource = R"(
-	#version 330 core
-
-	out vec4 FragColor;
-
-	void main()
-	{
-		FragColor = vec4(0.1, 0.1, 0.1, 1.0);
-	}
-)";
 
 void GraphCanvas::SetCanvasSize(int width, int height) const {
     float canvasSize[] = { (float)width, (float)height };

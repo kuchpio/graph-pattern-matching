@@ -3,7 +3,10 @@
 #include "wx/glcanvas.h"
 
 class GraphCanvas : public wxGLCanvas {
-    static char *nodeVertexShaderSource, *nodeFragmentShaderSource, *edgeVertexShaderSource, *edgeFragmentShaderSource;
+    const char* nodeVertexShaderPath = "./shaders/node.vsh";
+    const char* nodeFragmentShaderPath = "./shaders/node.fsh";
+    const char* edgeVertexShaderPath = "./shaders/edge.vsh";
+    const char* edgeFragmentShaderPath = "./shaders/edge.fsh";
 
     wxGLContext* openGLContext;
     bool isOpenGLInitialized = false, isOpenGLInitializationAttempted = false;
@@ -21,8 +24,8 @@ class GraphCanvas : public wxGLCanvas {
 
     bool InitializeOpenGLFunctions();
     bool InitializeOpenGL();
-    std::optional<unsigned int> GraphCanvas::InitializeShader(const char* vertexShaderSource,
-                                                              const char* fragmentShaderSource);
+    std::optional<unsigned int> GraphCanvas::InitializeShader(const char* vertexShaderPath,
+                                                              const char* fragmentShaderPath);
     void SetCanvasSize(int width, int height) const;
     void SetBoundingSize(float width, float height) const;
     void SetCenterPosition(float x, float y) const;

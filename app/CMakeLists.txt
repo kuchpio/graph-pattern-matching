@@ -19,3 +19,9 @@ set_target_properties(app PROPERTIES CUDA_ARCHITECTURES "50" CXX_STANDARD 17)
 target_link_libraries(app core image pattern utils wx::core wx::base wx::gl)
 target_include_directories(app PUBLIC ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 target_compile_options(app PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CUDA>,$<CONFIG:DEBUG>>:-G>)
+
+add_custom_target(copy-shaders ALL 
+	COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/shaders" "${CMAKE_CURRENT_BINARY_DIR}/shaders" 
+	COMMENT "Copying shaders"
+)
+add_dependencies(app copy-shaders)
