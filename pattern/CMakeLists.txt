@@ -14,5 +14,10 @@ add_library(pattern STATIC
             "src/subgraphSolvers/cuda_subgraph_matcher.cu"
             )
 target_include_directories(pattern PUBLIC "include" "include/minorSolvers" "include/subgraphSolvers" 
-                            "include/isomorphismSolvers" "include/subgraphSolvers" ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+                            "include/isomorphismSolvers"  ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+
+set_target_properties(pattern PROPERTIES CUDA_ARCHITECTURES "61" CXX_STANDARD 20)
+
 target_link_libraries(pattern core utils minorminer vf2lib)
+target_compile_options(pattern PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CUDA>,$<CONFIG:DEBUG>>:-G>)
+

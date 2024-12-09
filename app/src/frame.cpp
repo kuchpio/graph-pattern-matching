@@ -2,6 +2,7 @@
 #include "native_subgraph_matcher.h"
 #include "vf2_induced_subgraph_solver.hpp"
 #include "vf2_subgraph_solver.hpp"
+#include "cuda_subgraph_matcher.h"
 #include "wx/splitter.h"
 #include "wx/app.h"
 
@@ -143,7 +144,7 @@ pattern::PatternMatcher* Frame::GetSelectedMatcher() const {
             return new pattern::Vf2InducedSubgraphSolver();
         }
 
-        return new pattern::Vf2SubgraphSolver();
+        return new pattern::CudaSubgraphMatcher();
     }
 
     if (minorRadioButton->GetValue()) {

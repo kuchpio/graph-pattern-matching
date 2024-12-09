@@ -4,18 +4,15 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CUDA_LIBRARY_ARCHITECTURE x86_64-linux-gnu)
 
-set(CMAKE_CUDA_ARCHITECTURES 61)
-
 
 project("graph-pattern-matching")
 enable_language("CUDA")
-
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 enable_testing()
 
-add_subdirectory("external")
+add_subdirectory("external")    
 
 add_subdirectory("core")
 add_subdirectory("core/test")
