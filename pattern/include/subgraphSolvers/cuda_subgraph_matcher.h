@@ -44,6 +44,8 @@ class CudaGraph {
     uint32_t* dev_neighbours;
     uint32_t* dev_size;
     uint32_t* dev_edgeCount;
+        std::vector<uint32_t> neighboursOffset;
+    std::vector<uint32_t> neighbours;
     ~CudaGraph() {
         freeGPU();
     };
@@ -51,9 +53,6 @@ class CudaGraph {
   private:
     void allocGPU();
     void freeGPU();
-
-    std::vector<uint32_t> neighboursOffset;
-    std::vector<uint32_t> neighbours;
 };
 
 class CudaSubgraphMatcher : public SubgraphMatcher {
@@ -66,7 +65,7 @@ class CudaSubgraphMatcher : public SubgraphMatcher {
                                           const std::vector<std::vector<uint32_t>>& candidateLists);
 
     __host__ std::vector<uint32_t> createCandidateLists(const CudaGraph& bigGraph, const CudaGraph& smallGraph,
-                                                        uint32_t** candidates);
+                                                        std::vector<uint32_t*>& candidates);
     uint32_t getNextVertex(const CudaGraph& graph, const std::vector<uint32_t>& candidatesSizes_);
 
     void addVertexToResultTable(int v, uint32_t* dev_candidates, const CudaGraph& bigGraph,
@@ -80,7 +79,7 @@ class CudaSubgraphMatcher : public SubgraphMatcher {
 
     std::optional<std::vector<vertex>> obtainResult(const ResultTable& resultTable);
 
-    uint32_t** dev_candidates_;
+    std::vector<uint32_t*> candidates_;
     ResultTable resultTable_ = ResultTable();
     std::vector<uint32_t> candidatesSizes_ = std::vector<uint32_t>();
     uint32_t block_size_ = kDefaultBlockSize;
