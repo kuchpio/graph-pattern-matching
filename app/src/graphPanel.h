@@ -12,12 +12,16 @@ class GraphPanel : public wxPanel {
     wxButton* openButton;
     wxButton *addButton, *deleteButton, *connectButton, *disconnectButton, *contractButton, *subdivideButton;
     wxButton *undoButton, *redoButton;
-    wxStaticText* fileInfoLabel;
+    wxStaticText *fileInfoLabel, *FPSInfoLabel;
+    wxCheckBox *autoVertexPositioningCheckbox;
     const std::function<void()> fileOpenCallback;
 
     GraphManager manager;
     using animationClock = std::chrono::high_resolution_clock;
     std::chrono::time_point<animationClock> lastFrameTime;
+    static const unsigned int FPS_ANALYSIS_COUNT = 50;
+    float fpsArray[FPS_ANALYSIS_COUNT] = {0.0};
+    unsigned int fpsIndex = 0;
 
     void OnIdle(wxIdleEvent& event);
     void OpenFromFile(wxCommandEvent& event);

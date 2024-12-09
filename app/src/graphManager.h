@@ -17,7 +17,9 @@ class GraphManager {
     GraphManager();
     void Initialize(core::Graph&& graph);
     void UpdatePositions(float deltaTimeSeconds);
-    void HandleClick(float x, float y, float nodeRadius);
+    void HandleClick(float x, float y, float nodeRadius, bool isCtrl);
+    void AnchorSelection();
+    void FreeSelection();
     const std::vector<float>& Positions2D() const;
     const std::vector<unsigned int>& States() const;
     const core::Graph& Graph() const;

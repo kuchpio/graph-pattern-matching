@@ -3,7 +3,9 @@
 #include "wx/wfstream.h"
 #include "wx/txtstrm.h"
 #include "wx/notebook.h"
+#include "wx/numformatter.h"
 #include "utils.h"
+#include <numeric>
 
 #include "graphPanel.h"
 #include "graphCanvas.h"
@@ -72,15 +74,30 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
     auto drawSizer = new wxBoxSizer(wxHORIZONTAL);
     auto anchorButton = new wxButton(drawPanel, wxID_ANY, "Anchor");
     auto freeButton = new wxButton(drawPanel, wxID_ANY, "Free");
-    auto autoVertexPositioningCheckbox = new wxCheckBox(drawPanel, wxID_ANY, "Automatic vertex positioning");
-    auto showFPSCheckbox = new wxCheckBox(drawPanel, wxID_ANY, "Show FPS");
+    autoVertexPositioningCheckbox = new wxCheckBox(drawPanel, wxID_ANY, "Automatic vertex positioning");
+    FPSInfoLabel = new wxStaticText(drawPanel, wxID_ANY, "FPS: 00000");
     drawSizer->Add(anchorButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
     drawSizer->Add(freeButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
     drawSizer->Add(autoVertexPositioningCheckbox, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
-    drawSizer->AddStretchSpacer(1);
-    drawSizer->Add(showFPSCheckbox, 0, wxALIGN_CENTER | wxRIGHT | wxTOP | wxBOTTOM, 5);
+	drawSizer->AddStretchSpacer(1);
+    drawSizer->Add(FPSInfoLabel, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
     drawPanel->SetSizerAndFit(drawSizer);
     notebook->AddPage(drawPanel, "View");
+
+    anchorButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) { 
+        manager.AnchorSelection(); 
+
+		auto& vertexStates = manager.States();
+		canvas->SetVertexStates(vertexStates.data(), vertexStates.size());
+		canvas->Refresh();
+    });
+    freeButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
+        manager.FreeSelection(); 
+
+		auto& vertexStates = manager.States();
+		canvas->SetVertexStates(vertexStates.data(), vertexStates.size());
+		canvas->Refresh();
+    });
 
     auto testPanel = new wxPanel(notebook);
     auto testSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -216,7 +233,13 @@ void GraphPanel::OnIdle(wxIdleEvent& event) {
         return;
     }
 
-    manager.UpdatePositions(elapsedSeconds.count());
+    if (autoVertexPositioningCheckbox->IsChecked())
+        manager.UpdatePositions(elapsedSeconds.count());
+
+    fpsArray[fpsIndex++] = (int)(1.0 / elapsedSeconds.count());
+    if (fpsIndex >= FPS_ANALYSIS_COUNT) fpsIndex = 0;
+    int avgFPS = (int)(std::accumulate(fpsArray, fpsArray + FPS_ANALYSIS_COUNT, 0) / FPS_ANALYSIS_COUNT);
+    FPSInfoLabel->SetLabel(wxString::Format("FPS: %5d", avgFPS));
 
     auto& vertexPositions2D = manager.Positions2D();
     auto [boundingWidth, boundingHeight] = manager.BoundingSize();
@@ -243,7 +266,7 @@ void GraphPanel::OnCanvasClick(wxMouseEvent& event) {
     );
     float worldX = (point.x - canvasWidth / 2) * ratio + centerX;
     float worldY = (canvasHeight / 2 - point.y) * ratio + centerY;
-    manager.HandleClick(worldX, worldY, canvas->NODE_RADIUS * 0.5f * ratio);
+    manager.HandleClick(worldX, worldY, canvas->NODE_RADIUS * 0.5f * ratio, event.ControlDown());
 
 	auto& vertexStates = manager.States();
 	canvas->SetVertexStates(vertexStates.data(), vertexStates.size());
