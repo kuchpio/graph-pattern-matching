@@ -14,16 +14,24 @@ class GraphManager {
 
     const float C[5] = {-2.0f, 0.1f, 0.2f, -0.01f, -10.0f};
 
+    void AddVertex(float x, float y);
+
   public:
     GraphManager();
+
     void Initialize(core::Graph&& graph);
     void UpdatePositions(float deltaTimeSeconds);
-    void HandleClick(float x, float y, float nodeRadius, bool isCtrl);
-    void AnchorSelection();
-    void FreeSelection();
+
+    void HandleClick(float x, float y, float nodeRadius, bool isCtrl, bool isDouble);
     void OnDrag(float dx, float dy);
     void OnDrop();
     void Stop();
+
+    void ConnectSelection();
+    void DisconnectSelection();
+    void AnchorSelection();
+    void FreeSelection();
+
     const std::vector<float>& Positions2D() const;
     const std::vector<unsigned int>& States() const;
     const core::Graph& Graph() const;

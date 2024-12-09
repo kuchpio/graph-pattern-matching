@@ -30,6 +30,11 @@ vertex Graph::size() const {
     return this->_adjacencyList.size();
 }
 
+vertex Graph::add_vertex() {
+    this->_adjacencyList.emplace_back(std::vector<vertex>());
+    return this->_adjacencyList.size() - 1;
+}
+
 void Graph::add_edge(vertex u, vertex v) {
     if (std::find(this->_adjacencyList[u].begin(), this->_adjacencyList[u].end(), v) != this->_adjacencyList[u].end())
         return;

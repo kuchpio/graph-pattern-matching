@@ -10,10 +10,10 @@
 class GraphPanel : public wxPanel {
     GraphCanvas* canvas{nullptr};
     wxButton* openButton;
-    wxButton *addButton, *deleteButton, *connectButton, *disconnectButton, *contractButton, *subdivideButton;
+    wxButton *deleteButton, *connectButton, *disconnectButton, *contractButton, *subdivideButton;
     wxButton *undoButton, *redoButton;
     wxStaticText *fileInfoLabel, *FPSInfoLabel;
-    wxCheckBox *autoVertexPositioningCheckbox;
+    wxCheckBox* autoVertexPositioningCheckbox;
     const std::function<void()> fileOpenCallback;
 
     GraphManager manager;

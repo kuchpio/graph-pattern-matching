@@ -1,6 +1,6 @@
 #include "graphManager.h"
 
-GraphManager::GraphManager() : graph(0), boundingWidth(0), boundingHeight(0), centerX(0), centerY(0) {
+GraphManager::GraphManager() : graph(0), boundingWidth(0), boundingHeight(0), centerX(0), centerY(0), dragging(false) {
 }
 
 void GraphManager::Initialize(core::Graph&& newGraph) {
@@ -61,8 +61,7 @@ void GraphManager::UpdatePositions(float deltaTimeSeconds) {
         float v_x = vertexVelocities2D[readBufferId][2 * i];
         float v_y = vertexVelocities2D[readBufferId][2 * i + 1];
 
-        if (vertexStates[i] & 0b10u || dragging && vertexStates[i] & 0b01u)
-            v_x = v_y = 0.0f;
+        if (vertexStates[i] & 0b10u || dragging && vertexStates[i] & 0b01u) v_x = v_y = 0.0f;
 
         float tractionCoefficient = C[4];
         a_x += tractionCoefficient * v_x;
@@ -72,7 +71,7 @@ void GraphManager::UpdatePositions(float deltaTimeSeconds) {
         vertexVelocities2D[1 - readBufferId][2 * i + 1] = v_y + a_y * deltaTimeSeconds;
         float newX = vertexPositions2D[1 - readBufferId][2 * i] = x + v_x * deltaTimeSeconds;
         float newY = vertexPositions2D[1 - readBufferId][2 * i + 1] = y + v_y * deltaTimeSeconds;
-        
+
         if (newX < minX) minX = newX;
         if (newX > maxX) maxX = newX;
         if (newY < minY) minY = newY;
@@ -88,13 +87,48 @@ void GraphManager::UpdatePositions(float deltaTimeSeconds) {
     centerY = (minY + maxY) / 2;
 }
 
-void GraphManager::HandleClick(float x, float y, float nodeRadius, bool isCtrl) {
+void GraphManager::HandleClick(float x, float y, float nodeRadius, bool isCtrl, bool isDouble) {
+    unsigned int selectedCtr = 0;
     for (unsigned int i = 0; i < graph.size(); i++) {
-		float dx = x - vertexPositions2D[readBufferId][2 * i];
-		float dy = y - vertexPositions2D[readBufferId][2 * i + 1];
+        float dx = x - vertexPositions2D[readBufferId][2 * i];
+        float dy = y - vertexPositions2D[readBufferId][2 * i + 1];
         if (!isCtrl) vertexStates[i] &= 0b10u;
-        if (dx * dx + dy * dy <= nodeRadius * nodeRadius)
+        if (dx * dx + dy * dy <= nodeRadius * nodeRadius) {
             vertexStates[i] ^= 0b01u;
+            selectedCtr++;
+        }
+    }
+    if (selectedCtr == 0 && isDouble) {
+        AddVertex(x, y);
+    }
+}
+
+void GraphManager::AddVertex(float x, float y) {
+    graph.add_vertex();
+    vertexPositions2D[readBufferId].push_back(x);
+    vertexPositions2D[readBufferId].push_back(y);
+    vertexPositions2D[1 - readBufferId].push_back(0.0f);
+    vertexPositions2D[1 - readBufferId].push_back(0.0f);
+    vertexVelocities2D[readBufferId].push_back(0.0f);
+    vertexVelocities2D[readBufferId].push_back(0.0f);
+    vertexVelocities2D[1 - readBufferId].push_back(0.0f);
+    vertexVelocities2D[1 - readBufferId].push_back(0.0f);
+    vertexStates.push_back(0b01u);
+}
+
+void GraphManager::ConnectSelection() {
+    for (unsigned int i = 0; i < graph.size(); i++) {
+        for (unsigned int j = 0; j < i; j++) {
+            if (vertexStates[i] & vertexStates[j] & 0b01u) graph.add_edge(i, j);
+        }
+    }
+}
+
+void GraphManager::DisconnectSelection() {
+    for (unsigned int i = 0; i < graph.size(); i++) {
+        for (unsigned int j = 0; j < i; j++) {
+            if (vertexStates[i] & vertexStates[j] & 0b01u) graph.remove_edge(i, j);
+        }
     }
 }
 

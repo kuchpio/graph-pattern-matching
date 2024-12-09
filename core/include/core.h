@@ -15,6 +15,7 @@ class Graph {
     Graph(const Graph& G);
     Graph(vertex size);
     Graph(std::vector<std::tuple<vertex, vertex>> edges);
+    vertex add_vertex();
     void add_edge(vertex u, vertex v);
     void add_edges(std::vector<std::tuple<vertex, vertex>> edges);
     bool remove_vertex(vertex v);

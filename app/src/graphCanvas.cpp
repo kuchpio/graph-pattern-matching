@@ -136,7 +136,8 @@ bool GraphCanvas::InitializeOpenGLFunctions() {
     return true;
 }
 
-std::optional<unsigned int> GraphCanvas::InitializeShader(const char* vertexShaderPath, const char* fragmentShaderPath) {
+std::optional<unsigned int> GraphCanvas::InitializeShader(const char* vertexShaderPath,
+                                                          const char* fragmentShaderPath) {
 
     std::string shaderCode;
     std::ifstream shaderFile;
@@ -249,7 +250,7 @@ void GraphCanvas::UpdateCanvasSize() const {
     auto width = viewPortSize.GetWidth();
     auto height = viewPortSize.GetHeight();
     glViewport(0, 0, width, height);
-    float canvasSize[] = { (float)width, (float)height };
+    float canvasSize[] = {(float)width, (float)height};
     glBindBuffer(GL_UNIFORM_BUFFER, settingsUniformBufferObject);
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(float) * 2, canvasSize);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
@@ -263,7 +264,7 @@ void GraphCanvas::SetBoundingSize(float width, float height) const {
     if (!isOpenGLInitialized) return;
     SetCurrent(*openGLContext);
 
-    float boundingSize[] = { width, height };
+    float boundingSize[] = {width, height};
     glBindBuffer(GL_UNIFORM_BUFFER, settingsUniformBufferObject);
     glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float) * 2, sizeof(float) * 2, boundingSize);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
@@ -273,14 +274,14 @@ void GraphCanvas::SetCenterPosition(float x, float y) const {
     if (!isOpenGLInitialized) return;
     SetCurrent(*openGLContext);
 
-    float centerPosition[] = { x, y };
+    float centerPosition[] = {x, y};
     glBindBuffer(GL_UNIFORM_BUFFER, settingsUniformBufferObject);
     glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float) * 4, sizeof(float) * 2, centerPosition);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void GraphCanvas::SetNodeSize(float radius, float border) const {
-    float nodeSize[] = { radius, border };
+    float nodeSize[] = {radius, border};
     glBindBuffer(GL_UNIFORM_BUFFER, settingsUniformBufferObject);
     glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float) * 6, sizeof(float) * 2, nodeSize);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
