@@ -28,6 +28,7 @@ void GraphManager::Initialize(core::Graph&& newGraph) {
     boundingHeight = maxY - minY;
     centerX = (minX + maxX) / 2;
     centerY = (minY + maxY) / 2;
+    dragging = false;
 }
 
 void GraphManager::UpdatePositions(float deltaTimeSeconds) {
@@ -57,8 +58,11 @@ void GraphManager::UpdatePositions(float deltaTimeSeconds) {
             a_y += (repelCoefficient + springCoefficient) * y;
         }
 
-        float v_x = vertexStates[i] & 0b10u ? 0.0 : vertexVelocities2D[readBufferId][2 * i];
-        float v_y = vertexStates[i] & 0b10u ? 0.0 : vertexVelocities2D[readBufferId][2 * i + 1];
+        float v_x = vertexVelocities2D[readBufferId][2 * i];
+        float v_y = vertexVelocities2D[readBufferId][2 * i + 1];
+
+        if (vertexStates[i] & 0b10u || dragging && vertexStates[i] & 0b01u)
+            v_x = v_y = 0.0f;
 
         float tractionCoefficient = C[4];
         a_x += tractionCoefficient * v_x;
@@ -76,6 +80,8 @@ void GraphManager::UpdatePositions(float deltaTimeSeconds) {
     }
 
     readBufferId = 1 - readBufferId;
+
+    if (dragging) return;
     boundingWidth = maxX - minX;
     boundingHeight = maxY - minY;
     centerX = (minX + maxX) / 2;
@@ -135,4 +141,24 @@ const std::pair<float, float> GraphManager::BoundingSize() {
 
 const std::pair<float, float> GraphManager::Center() {
     return std::make_pair(centerX, centerY);
+}
+
+void GraphManager::OnDrag(float dx, float dy) {
+    dragging = true;
+    for (unsigned int i = 0; i < graph.size(); i++) {
+        if (vertexStates[i] & 0b01u) {
+            vertexPositions2D[readBufferId][2 * i] += dx;
+            vertexPositions2D[readBufferId][2 * i + 1] += dy;
+        }
+    }
+}
+
+void GraphManager::OnDrop() {
+    dragging = false;
+}
+
+void GraphManager::Stop() {
+    for (unsigned int i = 0; i < graph.size(); i++) {
+        vertexVelocities2D[readBufferId][2 * i] = vertexVelocities2D[readBufferId][2 * i + 1] = 0.0f;
+    }
 }

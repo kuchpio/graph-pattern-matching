@@ -19,14 +19,18 @@ class GraphPanel : public wxPanel {
     GraphManager manager;
     using animationClock = std::chrono::high_resolution_clock;
     std::chrono::time_point<animationClock> lastFrameTime;
+
     static const unsigned int FPS_ANALYSIS_COUNT = 50;
     float fpsArray[FPS_ANALYSIS_COUNT] = {0.0};
     unsigned int fpsIndex = 0;
+
+    std::optional<wxPoint> prevMousePoint{};
 
     void OnIdle(wxIdleEvent& event);
     void OpenFromFile(wxCommandEvent& event);
     void SaveToFile(wxCommandEvent& event);
     void OnCanvasClick(wxMouseEvent& event);
+    void OnCanvasMotion(wxMouseEvent& event);
 
   public:
     GraphPanel(wxWindow* parent, const wxString& title, std::function<void()> fileOpenCallback);

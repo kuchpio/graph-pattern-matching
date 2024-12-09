@@ -22,6 +22,8 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
         canvas->SetInitialSize(wxSize(0, 360));
         sizer->Add(canvas, 1, wxEXPAND);
         canvas->Bind(wxEVT_LEFT_DOWN, &GraphPanel::OnCanvasClick, this);
+        canvas->Bind(wxEVT_MOTION, &GraphPanel::OnCanvasMotion, this);
+        canvas->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent& event) { manager.OnDrop(); });
     }
 
     auto nameLabel = new wxStaticText(this, wxID_ANY, title);
@@ -98,6 +100,7 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
 		canvas->SetVertexStates(vertexStates.data(), vertexStates.size());
 		canvas->Refresh();
     });
+    autoVertexPositioningCheckbox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& event) { manager.Stop(); });
 
     auto testPanel = new wxPanel(notebook);
     auto testSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -246,8 +249,8 @@ void GraphPanel::OnIdle(wxIdleEvent& event) {
     auto [centerX, centerY] = manager.Center();
 
     canvas->SetVertexPositions(vertexPositions2D.data(), vertexPositions2D.size() / 2);
-    canvas->SetBoundingSize(boundingWidth, boundingHeight);
-    canvas->SetCenterPosition(centerX, centerY);
+	canvas->SetBoundingSize(boundingWidth, boundingHeight);
+	canvas->SetCenterPosition(centerX, centerY);
 
     canvas->Refresh();
     event.RequestMore();
@@ -270,5 +273,25 @@ void GraphPanel::OnCanvasClick(wxMouseEvent& event) {
 
 	auto& vertexStates = manager.States();
 	canvas->SetVertexStates(vertexStates.data(), vertexStates.size());
-    canvas->Refresh();
+}
+
+void GraphPanel::OnCanvasMotion(wxMouseEvent& event) {
+    if (!event.Dragging() || !event.LeftIsDown()) {
+        prevMousePoint = std::nullopt;
+        return;
+    }
+
+    auto mousePoint = event.GetPosition();
+	if (prevMousePoint.has_value()) {
+		auto [boundingWidth, boundingHeight] = manager.BoundingSize();
+		auto [canvasWidth, canvasHeight] = canvas->CanvasSize();
+
+		float ratio = std::max(
+			boundingWidth / (canvasWidth - 3 * canvas->NODE_RADIUS),
+			boundingHeight / (canvasHeight - 3 * canvas->NODE_RADIUS)
+		);
+        manager.OnDrag((mousePoint.x - prevMousePoint.value().x) * ratio,
+                      -(mousePoint.y - prevMousePoint.value().y) * ratio);
+	}
+    prevMousePoint = mousePoint;
 }
