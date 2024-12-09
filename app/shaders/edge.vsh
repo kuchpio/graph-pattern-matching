@@ -13,8 +13,7 @@ layout (std140) uniform settings
 
 void main()
 {
-	vec2 radiusScaled = vec2(nodeRadius, nodeRadius) / canvasSize;
-	vec2 vertexOffset = 2 * (nodePos - centerPos) / (boundingSize * (1 + 2 * radiusScaled));
-
-	gl_Position = vec4(vertexOffset.x, vertexOffset.y, 0.0, 1.0);
+	vec2 ratio = (canvasSize - 3 * nodeRadius) / boundingSize;
+	vec2 nodeCanvasPosition = 2 * (nodePos - centerPos) * min(ratio.x, ratio.y) / canvasSize;
+	gl_Position = vec4(nodeCanvasPosition.x, nodeCanvasPosition.y, 0.0, 1.0);
 }

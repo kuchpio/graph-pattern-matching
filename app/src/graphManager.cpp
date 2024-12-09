@@ -1,6 +1,8 @@
+#include "wx/wx.h"
+
 #include "graphManager.h"
 
-GraphManager::GraphManager() : graph(0) {
+GraphManager::GraphManager() : graph(0), boundingWidth(0), boundingHeight(0), centerX(0), centerY(0) {
 }
 
 void GraphManager::Initialize(core::Graph&& newGraph) {
@@ -20,6 +22,8 @@ void GraphManager::Initialize(core::Graph&& newGraph) {
 }
 
 void GraphManager::UpdatePositions(float deltaTimeSeconds) {
+    float minX = FLT_MAX, minY = FLT_MAX, maxX = FLT_MIN, maxY = FLT_MIN;
+
     for (unsigned int i = 0; i < graph.size(); i++) {
         float x = vertexPositions2D[readBufferId][2 * i];
         float y = vertexPositions2D[readBufferId][2 * i + 1];
@@ -51,18 +55,34 @@ void GraphManager::UpdatePositions(float deltaTimeSeconds) {
         a_x += tractionCoefficient * v_x;
         a_y += tractionCoefficient * v_y;
 
+        float newX = x + v_x * deltaTimeSeconds;
+        float newY = y + v_y * deltaTimeSeconds;
+
         vertexVelocities2D[1 - readBufferId][2 * i] = v_x + a_x * deltaTimeSeconds;
         vertexVelocities2D[1 - readBufferId][2 * i + 1] = v_y + a_y * deltaTimeSeconds;
-        vertexPositions2D[1 - readBufferId][2 * i] = x + v_x * deltaTimeSeconds;
-        vertexPositions2D[1 - readBufferId][2 * i + 1] = y + v_y * deltaTimeSeconds;
+        vertexPositions2D[1 - readBufferId][2 * i] = newX;
+        vertexPositions2D[1 - readBufferId][2 * i + 1] = newY;
+        
+        if (newX < minX) minX = newX;
+        if (newX > maxX) maxX = newX;
+        if (newY < minY) minY = newY;
+        if (newY > maxY) maxY = newY;
     }
 
     readBufferId = 1 - readBufferId;
+    boundingWidth = maxX - minX;
+    boundingHeight = maxY - minY;
+    centerX = (minX + maxX) / 2;
+    centerY = (minY + maxY) / 2;
 }
 
-void GraphManager::HandleClick() {
-	std::size_t i = rand() % graph.size();
-	vertexStates[i] = 1 - vertexStates[i];
+void GraphManager::HandleClick(float x, float y, float nodeRadius) {
+    for (unsigned int i = 0; i < graph.size(); i++) {
+		float dx = x - vertexPositions2D[readBufferId][2 * i];
+		float dy = y - vertexPositions2D[readBufferId][2 * i + 1];
+        if (dx * dx + dy * dy <= nodeRadius * nodeRadius)
+            vertexStates[i] = 1 - vertexStates[i];
+    }
 }
 
 const std::vector<float>& GraphManager::Positions2D() const {
@@ -88,4 +108,12 @@ const std::vector<unsigned int> GraphManager::GetEdges() const {
         }
     }
     return edges;
+}
+
+const std::pair<float, float> GraphManager::BoundingSize() {
+    return std::make_pair(boundingWidth, boundingHeight);
+}
+
+const std::pair<float, float> GraphManager::Center() {
+    return std::make_pair(centerX, centerY);
 }

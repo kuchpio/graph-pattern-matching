@@ -22,6 +22,7 @@ class GraphPanel : public wxPanel {
     void OnIdle(wxIdleEvent& event);
     void OpenFromFile(wxCommandEvent& event);
     void SaveToFile(wxCommandEvent& event);
+    void OnCanvasClick(wxMouseEvent& event);
 
   public:
     GraphPanel(wxWindow* parent, const wxString& title, std::function<void()> fileOpenCallback);

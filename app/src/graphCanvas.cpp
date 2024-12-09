@@ -49,12 +49,8 @@ void GraphCanvas::OnPaint(wxPaintEvent& WXUNUSED(event)) {
 void GraphCanvas::OnSize(wxSizeEvent& event) {
     if (!isOpenGLInitializationAttempted) isOpenGLInitialized = InitializeOpenGL();
 
-    if (!isOpenGLInitialized) return;
-    SetCurrent(*openGLContext);
-
-    auto viewPortSize = event.GetSize() * GetContentScaleFactor();
-    glViewport(0, 0, viewPortSize.x, viewPortSize.y);
-    SetCanvasSize(viewPortSize.GetWidth(), viewPortSize.GetHeight());
+    viewPortSize = event.GetSize() * GetContentScaleFactor();
+    UpdateCanvasSize();
 }
 
 bool GraphCanvas::InitializeOpenGL() {
@@ -119,8 +115,8 @@ bool GraphCanvas::InitializeOpenGL() {
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
     glBindBufferRange(GL_UNIFORM_BUFFER, 0, settingsUniformBufferObject, 0, sizeof(float) * (2 + 2 + 2 + 1 + 1));
 
-    SetNodeSize(20.0, 3.0);
-    glLineWidth(2.0);
+    SetNodeSize(NODE_RADIUS, NODE_BORDER);
+    glLineWidth(EDGE_WIDTH);
 
     glBindVertexArray(0);
 
@@ -222,19 +218,6 @@ void GraphCanvas::SetVertexPositions(const float* positions2D, unsigned int vert
     if (!isOpenGLInitialized) return;
     SetCurrent(*openGLContext);
 
-    float minX = FLT_MAX, minY = FLT_MAX, maxX = FLT_MIN, maxY = FLT_MIN;
-    for (unsigned int i = 0; i < vertexCount; i++) {
-        float x = positions2D[2 * i];
-        float y = positions2D[2 * i + 1];
-        if (x < minX) minX = x;
-        if (x > maxX) maxX = x;
-        if (y < minY) minY = y;
-        if (y > maxY) maxY = y;
-    }
-
-    float boundingSize = std::max(maxX - minX, maxY - minY);
-    SetBoundingSize(boundingSize, boundingSize);
-    SetCenterPosition((minX + maxX) / 2, (minY + maxY) / 2);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexCount * 2, positions2D, GL_DYNAMIC_DRAW);
 
@@ -259,14 +242,27 @@ void GraphCanvas::SetEdges(const unsigned int* edges, unsigned int edgesCount) {
     this->edgesCount = edgesCount;
 }
 
-void GraphCanvas::SetCanvasSize(int width, int height) const {
+void GraphCanvas::UpdateCanvasSize() const {
+    if (!isOpenGLInitialized) return;
+    SetCurrent(*openGLContext);
+
+    auto width = viewPortSize.GetWidth();
+    auto height = viewPortSize.GetHeight();
+    glViewport(0, 0, width, height);
     float canvasSize[] = { (float)width, (float)height };
     glBindBuffer(GL_UNIFORM_BUFFER, settingsUniformBufferObject);
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(float) * 2, canvasSize);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
+const std::pair<int, int> GraphCanvas::CanvasSize() const {
+    return std::make_pair(viewPortSize.GetWidth(), viewPortSize.GetHeight());
+}
+
 void GraphCanvas::SetBoundingSize(float width, float height) const {
+    if (!isOpenGLInitialized) return;
+    SetCurrent(*openGLContext);
+
     float boundingSize[] = { width, height };
     glBindBuffer(GL_UNIFORM_BUFFER, settingsUniformBufferObject);
     glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float) * 2, sizeof(float) * 2, boundingSize);
@@ -274,6 +270,9 @@ void GraphCanvas::SetBoundingSize(float width, float height) const {
 }
 
 void GraphCanvas::SetCenterPosition(float x, float y) const {
+    if (!isOpenGLInitialized) return;
+    SetCurrent(*openGLContext);
+
     float centerPosition[] = { x, y };
     glBindBuffer(GL_UNIFORM_BUFFER, settingsUniformBufferObject);
     glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float) * 4, sizeof(float) * 2, centerPosition);

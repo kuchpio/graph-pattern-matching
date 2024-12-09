@@ -8,6 +8,7 @@ class GraphManager {
 
     unsigned int readBufferId = 0;
     std::vector<float> vertexPositions2D[2], vertexVelocities2D[2];
+    float boundingWidth, boundingHeight, centerX, centerY;
     std::vector<unsigned int> vertexStates;
 
     const float C[5] = {-2.0f, 0.1f, 0.2f, -0.01f, -10.0f};
@@ -16,9 +17,11 @@ class GraphManager {
     GraphManager();
     void Initialize(core::Graph&& graph);
     void UpdatePositions(float deltaTimeSeconds);
-    void HandleClick();
+    void HandleClick(float x, float y, float nodeRadius);
     const std::vector<float>& Positions2D() const;
     const std::vector<unsigned int>& States() const;
     const core::Graph& Graph() const;
     const std::vector<unsigned int> GetEdges() const;
+    const std::pair<float, float> BoundingSize();
+    const std::pair<float, float> Center();
 };

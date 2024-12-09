@@ -27,9 +27,8 @@ void main()
 
 	quadCoord = quadCoordArray[gl_VertexID % 6];
 	nodeColorIndex = nodeState;
-	vec2 radiusScaled = vec2(nodeRadius, nodeRadius) / canvasSize;
-	vec2 quadOffset = quadCoord * radiusScaled;
-	vec2 vertexOffset = 2 * (nodePos - centerPos) / (boundingSize * (1 + 2 * radiusScaled));
 
-	gl_Position = vec4(vertexOffset.x + quadOffset.x, vertexOffset.y + quadOffset.y, 0.0, 1.0);
+	vec2 ratio = (canvasSize - 3 * nodeRadius) / boundingSize;
+	vec2 quadCanvasPosition = (2 * (nodePos - centerPos) * min(ratio.x, ratio.y) + quadCoord * nodeRadius) / canvasSize;
+	gl_Position = vec4(quadCanvasPosition.x, quadCanvasPosition.y, 0.0, 1.0);
 }

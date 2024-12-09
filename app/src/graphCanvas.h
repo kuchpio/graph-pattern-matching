@@ -10,6 +10,7 @@ class GraphCanvas : public wxGLCanvas {
 
     wxGLContext* openGLContext;
     bool isOpenGLInitialized = false, isOpenGLInitializationAttempted = false;
+    wxSize viewPortSize;
 
     unsigned int vertexArrayObject = 0;
     unsigned int vertexBuffer = 0;
@@ -26,19 +27,24 @@ class GraphCanvas : public wxGLCanvas {
     bool InitializeOpenGL();
     std::optional<unsigned int> GraphCanvas::InitializeShader(const char* vertexShaderPath,
                                                               const char* fragmentShaderPath);
-    void SetCanvasSize(int width, int height) const;
-    void SetBoundingSize(float width, float height) const;
-    void SetCenterPosition(float x, float y) const;
     void SetNodeSize(float radius, float border) const;
 
     void OnPaint(wxPaintEvent& event);
     void OnSize(wxSizeEvent& event);
+    void UpdateCanvasSize() const;
 
   public:
+    const float NODE_RADIUS = 20.0;
+    const float NODE_BORDER = 3.0;
+    const float EDGE_WIDTH = 2.0;
+
     GraphCanvas(wxWindow* parent, const wxGLAttributes& canvasAttrs);
     ~GraphCanvas();
 
     void SetVertexPositions(const float* positions2D, unsigned int vertexCount);
     void GraphCanvas::SetVertexStates(const unsigned int* states, unsigned int vertexCount);
     void SetEdges(const unsigned int* edges, unsigned int edgesCount);
+    const std::pair<int, int> CanvasSize() const;
+    void SetBoundingSize(float width, float height) const;
+    void SetCenterPosition(float x, float y) const;
 };
