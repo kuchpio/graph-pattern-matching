@@ -1,6 +1,8 @@
 #include "glad/glad.h"
 #include "wx/msgdlg.h"
+#include "wx/stdpaths.h"
 #include <optional>
+#include <filesystem>
 #include <fstream>
 #include <sstream>
 
@@ -47,7 +49,7 @@ void GraphCanvas::OnPaint(wxPaintEvent& WXUNUSED(event)) {
 }
 
 void GraphCanvas::OnSize(wxSizeEvent& event) {
-    if (!isOpenGLInitializationAttempted) isOpenGLInitialized = InitializeOpenGL();
+    if (!isOpenGLInitializationAttempted && IsShownOnScreen()) isOpenGLInitialized = InitializeOpenGL();
 
     viewPortSize = event.GetSize() * GetContentScaleFactor();
     UpdateCanvasSize();
@@ -138,14 +140,16 @@ bool GraphCanvas::InitializeOpenGLFunctions() {
 
 std::optional<unsigned int> GraphCanvas::InitializeShader(const char* vertexShaderPath,
                                                           const char* fragmentShaderPath) {
-
+    std::filesystem::path execPath((const char*)wxStandardPaths::Get().GetExecutablePath().mb_str());
+    execPath.replace_filename("shaders");
+    
     std::string shaderCode;
     std::ifstream shaderFile;
     shaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 
     // Read and compile vertex shader
     try {
-        shaderFile.open(vertexShaderPath);
+        shaderFile.open(execPath.append(vertexShaderPath));
         std::stringstream shaderStream;
         shaderStream << shaderFile.rdbuf();
         shaderFile.close();
@@ -170,9 +174,11 @@ std::optional<unsigned int> GraphCanvas::InitializeShader(const char* vertexShad
         return {};
     }
 
+    execPath.remove_filename();
+
     // Read and compile fragment shader
     try {
-        shaderFile.open(fragmentShaderPath);
+        shaderFile.open(execPath.append(fragmentShaderPath));
         std::stringstream shaderStream;
         shaderStream << shaderFile.rdbuf();
         shaderFile.close();

@@ -1,5 +1,8 @@
 #include "graphManager.h"
 
+#include <math.h>
+#include <cfloat>
+
 GraphManager::GraphManager() : graph(0), boundingWidth(0), boundingHeight(0), centerX(0), centerY(0), dragging(false) {
 }
 

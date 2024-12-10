@@ -15,7 +15,7 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
     auto sizer = new wxBoxSizer(wxVERTICAL);
 
     wxGLAttributes vAttrs;
-    vAttrs.PlatformDefaults().Defaults().Samplers(16).EndList();
+    vAttrs.PlatformDefaults().Defaults().EndList();
 
     if (wxGLCanvas::IsDisplaySupported(vAttrs)) {
         canvas = new GraphCanvas(this, vAttrs);

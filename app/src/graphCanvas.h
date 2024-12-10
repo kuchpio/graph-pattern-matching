@@ -3,10 +3,10 @@
 #include "wx/glcanvas.h"
 
 class GraphCanvas : public wxGLCanvas {
-    const char* nodeVertexShaderPath = "./shaders/node.vsh";
-    const char* nodeFragmentShaderPath = "./shaders/node.fsh";
-    const char* edgeVertexShaderPath = "./shaders/edge.vsh";
-    const char* edgeFragmentShaderPath = "./shaders/edge.fsh";
+    const char* nodeVertexShaderPath = "node.vsh";
+    const char* nodeFragmentShaderPath = "node.fsh";
+    const char* edgeVertexShaderPath = "edge.vsh";
+    const char* edgeFragmentShaderPath = "edge.fsh";
 
     wxGLContext* openGLContext;
     bool isOpenGLInitialized = false, isOpenGLInitializationAttempted = false;
@@ -25,7 +25,7 @@ class GraphCanvas : public wxGLCanvas {
 
     bool InitializeOpenGLFunctions();
     bool InitializeOpenGL();
-    std::optional<unsigned int> GraphCanvas::InitializeShader(const char* vertexShaderPath,
+    std::optional<unsigned int> InitializeShader(const char* vertexShaderPath,
                                                               const char* fragmentShaderPath);
     void SetNodeSize(float radius, float border) const;
 
@@ -42,7 +42,7 @@ class GraphCanvas : public wxGLCanvas {
     ~GraphCanvas();
 
     void SetVertexPositions(const float* positions2D, unsigned int vertexCount);
-    void GraphCanvas::SetVertexStates(const unsigned int* states, unsigned int vertexCount);
+    void SetVertexStates(const unsigned int* states, unsigned int vertexCount);
     void SetEdges(const unsigned int* edges, unsigned int edgesCount);
     const std::pair<int, int> CanvasSize() const;
     void SetBoundingSize(float width, float height) const;
