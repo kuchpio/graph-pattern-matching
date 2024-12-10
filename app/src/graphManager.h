@@ -12,7 +12,10 @@ class GraphManager {
     std::vector<unsigned int> vertexStates;
     bool dragging;
 
-    const float C[5] = {-2.0f, 0.1f, 0.2f, -0.01f, -10.0f};
+    const float SPRING_STRENGTH = 5.0f;
+    const float SPRING_LENGTH = 1.0f;
+    const float REPULSION_STRENGTH = 10.0f;
+    const float DRAG = 4.0f;
 
     void AddVertex(float x, float y);
 

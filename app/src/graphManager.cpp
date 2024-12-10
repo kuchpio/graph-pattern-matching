@@ -38,39 +38,39 @@ void GraphManager::UpdatePositions(float deltaTimeSeconds) {
         float x = vertexPositions2D[readBufferId][2 * i];
         float y = vertexPositions2D[readBufferId][2 * i + 1];
 
-        float distOrigin = sqrtf(x * x + y * y);
-        float gravityCoefficient = distOrigin < 0.1f ? 0.0f : C[3] / (distOrigin * distOrigin * distOrigin);
-
-        float a_x = gravityCoefficient * x;
-        float a_y = gravityCoefficient * y;
+        float acc_x = 0.0f;
+        float acc_y = 0.0f;
 
         for (unsigned int j = 0; j < graph.size(); j++) {
             if (i == j) continue;
+
             float dx = x - vertexPositions2D[readBufferId][2 * j];
             float dy = y - vertexPositions2D[readBufferId][2 * j + 1];
             float dist = sqrtf(dx * dx + dy * dy);
 
-            float springCoefficient =
-                !graph.has_edge(i, j) || !graph.has_edge(j, i) || dist < 0.01f ? 0.0f : C[0] * logf(dist / C[1]) / dist;
-            float repelCoefficient = dist < 0.0001f ? 0.0f : C[2] / (dist * dist * dist);
+            if (graph.has_edge(i, j) || graph.has_edge(j, i)) {
+                float springCoefficient = -SPRING_STRENGTH * logf(dist / SPRING_LENGTH) / dist;
+                acc_x += springCoefficient * dx;
+                acc_y += springCoefficient * dy;
+            }
 
-            a_x += (repelCoefficient + springCoefficient) * x;
-            a_y += (repelCoefficient + springCoefficient) * y;
+            float repulsionCoefficient = REPULSION_STRENGTH / (dist * dist * dist);
+            acc_x += repulsionCoefficient * dx;
+            acc_y += repulsionCoefficient * dy;
         }
 
-        float v_x = vertexVelocities2D[readBufferId][2 * i];
-        float v_y = vertexVelocities2D[readBufferId][2 * i + 1];
+        float vel_x = vertexVelocities2D[readBufferId][2 * i];
+        float vel_y = vertexVelocities2D[readBufferId][2 * i + 1];
 
-        if (vertexStates[i] & 0b10u || dragging && vertexStates[i] & 0b01u) v_x = v_y = 0.0f;
+        if (vertexStates[i] & 0b10u || dragging && vertexStates[i] & 0b01u) vel_x = vel_y = 0.0f;
 
-        float tractionCoefficient = C[4];
-        a_x += tractionCoefficient * v_x;
-        a_y += tractionCoefficient * v_y;
+        acc_x -= DRAG * vel_x;
+        acc_y -= DRAG * vel_y;
 
-        vertexVelocities2D[1 - readBufferId][2 * i] = v_x + a_x * deltaTimeSeconds;
-        vertexVelocities2D[1 - readBufferId][2 * i + 1] = v_y + a_y * deltaTimeSeconds;
-        float newX = vertexPositions2D[1 - readBufferId][2 * i] = x + v_x * deltaTimeSeconds;
-        float newY = vertexPositions2D[1 - readBufferId][2 * i + 1] = y + v_y * deltaTimeSeconds;
+        vertexVelocities2D[1 - readBufferId][2 * i] = vel_x + acc_x * deltaTimeSeconds;
+        vertexVelocities2D[1 - readBufferId][2 * i + 1] = vel_y + acc_y * deltaTimeSeconds;
+        float newX = vertexPositions2D[1 - readBufferId][2 * i] = x + vel_x * deltaTimeSeconds;
+        float newY = vertexPositions2D[1 - readBufferId][2 * i + 1] = y + vel_y * deltaTimeSeconds;
 
         if (newX < minX) minX = newX;
         if (newX > maxX) maxX = newX;
@@ -160,7 +160,7 @@ const std::vector<unsigned int> GraphManager::GetEdges() const {
     std::vector<unsigned int> edges;
     for (unsigned int i = 0; i < graph.size(); i++) {
         for (unsigned int j = 0; j < i; j++) {
-            if (graph.has_edge(i, j)) {
+            if (graph.has_edge(i, j) || graph.has_edge(j, i)) {
                 edges.push_back(i);
                 edges.push_back(j);
             }
