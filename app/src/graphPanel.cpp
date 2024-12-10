@@ -71,6 +71,12 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
     modifyPanel->SetSizerAndFit(modifySizer);
     notebook->AddPage(modifyPanel, "Edit");
 
+    deleteButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
+        manager.DeleteSelection();
+
+        auto edges = manager.GetEdges();
+        canvas->SetEdges(edges.data(), edges.size() / 2);
+    });
     connectButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
         manager.ConnectSelection();
 
@@ -79,6 +85,18 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
     });
     disconnectButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
         manager.DisconnectSelection();
+
+        auto edges = manager.GetEdges();
+        canvas->SetEdges(edges.data(), edges.size() / 2);
+    });
+    contractButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
+        manager.ConnectSelection();
+
+        auto edges = manager.GetEdges();
+        canvas->SetEdges(edges.data(), edges.size() / 2);
+    });
+    subdivideButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
+        manager.SubdivideSelection();
 
         auto edges = manager.GetEdges();
         canvas->SetEdges(edges.data(), edges.size() / 2);

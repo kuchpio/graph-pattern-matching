@@ -30,8 +30,11 @@ class GraphManager {
     void OnDrop();
     void Stop();
 
+    void DeleteSelection();
     void ConnectSelection();
     void DisconnectSelection();
+    void ContractSelection();
+    void SubdivideSelection();
     void AnchorSelection();
     void FreeSelection();
 

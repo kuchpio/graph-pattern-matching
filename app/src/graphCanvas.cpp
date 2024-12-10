@@ -49,7 +49,12 @@ void GraphCanvas::OnPaint(wxPaintEvent& WXUNUSED(event)) {
 }
 
 void GraphCanvas::OnSize(wxSizeEvent& event) {
-    if (!isOpenGLInitializationAttempted && IsShownOnScreen()) isOpenGLInitialized = InitializeOpenGL();
+    if (!isOpenGLInitializationAttempted
+#ifdef __WXGTK__
+        && IsShownOnScreen()
+#endif
+    )
+        isOpenGLInitialized = InitializeOpenGL();
 
     viewPortSize = event.GetSize() * GetContentScaleFactor();
     UpdateCanvasSize();
@@ -142,7 +147,7 @@ std::optional<unsigned int> GraphCanvas::InitializeShader(const char* vertexShad
                                                           const char* fragmentShaderPath) {
     std::filesystem::path execPath((const char*)wxStandardPaths::Get().GetExecutablePath().mb_str());
     execPath.replace_filename("shaders");
-    
+
     std::string shaderCode;
     std::ifstream shaderFile;
     shaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);

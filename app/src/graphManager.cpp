@@ -119,10 +119,17 @@ void GraphManager::AddVertex(float x, float y) {
     vertexStates.push_back(0b01u);
 }
 
+void GraphManager::DeleteSelection() {
+    // TODO
+}
+
 void GraphManager::ConnectSelection() {
     for (unsigned int i = 0; i < graph.size(); i++) {
         for (unsigned int j = 0; j < i; j++) {
-            if (vertexStates[i] & vertexStates[j] & 0b01u) graph.add_edge(i, j);
+            if (vertexStates[i] & vertexStates[j] & 0b01u) {
+                graph.add_edge(i, j);
+                graph.add_edge(j, i);
+            }
         }
     }
 }
@@ -130,7 +137,44 @@ void GraphManager::ConnectSelection() {
 void GraphManager::DisconnectSelection() {
     for (unsigned int i = 0; i < graph.size(); i++) {
         for (unsigned int j = 0; j < i; j++) {
-            if (vertexStates[i] & vertexStates[j] & 0b01u) graph.remove_edge(i, j);
+            if (vertexStates[i] & vertexStates[j] & 0b01u) {
+                graph.remove_edge(i, j);
+                graph.remove_edge(j, i);
+            }
+        }
+    }
+}
+
+void GraphManager::ContractSelection() {
+    // TODO
+}
+
+void GraphManager::SubdivideSelection() {
+    vertex originalSize = graph.size();
+    for (unsigned int i = 0; i < originalSize; i++) {
+        for (unsigned int j = 0; j < i; j++) {
+            if ((vertexStates[i] & vertexStates[j] & 0b01u) && graph.has_edge(i, j) && graph.has_edge(j, i)) {
+
+                graph.remove_edge(i, j);
+                graph.remove_edge(j, i);
+                vertex k = graph.add_vertex();
+                graph.add_edge(i, k);
+                graph.add_edge(k, i);
+                graph.add_edge(j, k);
+                graph.add_edge(k, j);
+
+                float x = 0.5 * (vertexPositions2D[readBufferId][2 * i] + vertexPositions2D[readBufferId][2 * j]);
+                float y = 0.5 * (vertexPositions2D[readBufferId][2 * i + 1] + vertexPositions2D[readBufferId][2 * j + 1]);
+				vertexPositions2D[readBufferId].push_back(x);
+				vertexPositions2D[readBufferId].push_back(y);
+				vertexPositions2D[1 - readBufferId].push_back(0.0f);
+				vertexPositions2D[1 - readBufferId].push_back(0.0f);
+				vertexVelocities2D[readBufferId].push_back(0.0f);
+				vertexVelocities2D[readBufferId].push_back(0.0f);
+				vertexVelocities2D[1 - readBufferId].push_back(0.0f);
+				vertexVelocities2D[1 - readBufferId].push_back(0.0f);
+				vertexStates.push_back(0);
+            }
         }
     }
 }
