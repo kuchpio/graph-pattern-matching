@@ -11,7 +11,7 @@
 #include "graphCanvas.h"
 
 GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<void()> clearMatchingCallback)
-    : wxPanel(parent), clearMatchingCallback(clearMatchingCallback) {
+    : wxPanel(parent), clearMatchingCallback(clearMatchingCallback), matching(false) {
     auto sizer = new wxBoxSizer(wxVERTICAL);
 
     wxGLAttributes vAttrs;
@@ -173,6 +173,7 @@ const core::Graph& GraphPanel::GetGraph() const {
 }
 
 void GraphPanel::OnMatchingStart() {
+    matching = true;
     openButton->Disable();
     deleteButton->Disable();
     connectButton->Disable();
@@ -184,6 +185,7 @@ void GraphPanel::OnMatchingStart() {
 }
 
 void GraphPanel::OnMatchingEnd(const std::vector<unsigned int>& labelling) {
+    matching = false;
     openButton->Enable();
     deleteButton->Enable();
     connectButton->Enable();
@@ -296,7 +298,8 @@ void GraphPanel::OnCanvasClick(wxMouseEvent& event) {
                            boundingHeight / (canvasHeight - 3 * canvas->NODE_RADIUS));
     float worldX = (point.x - canvasWidth / 2) * ratio + centerX;
     float worldY = (canvasHeight / 2 - point.y) * ratio + centerY;
-    manager.HandleClick(worldX, worldY, canvas->NODE_RADIUS * 0.5f * ratio, event.ControlDown(), event.ButtonDClick());
+    manager.HandleClick(worldX, worldY, canvas->NODE_RADIUS * 0.5f * ratio, event.ControlDown(),
+                        event.ButtonDClick() && !matching);
 
     auto& vertexStates = manager.States();
     canvas->SetVertexStates(vertexStates.data(), vertexStates.size());

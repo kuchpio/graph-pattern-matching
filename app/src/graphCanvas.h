@@ -26,8 +26,7 @@ class GraphCanvas : public wxGLCanvas {
 
     bool InitializeOpenGLFunctions();
     bool InitializeOpenGL();
-    std::optional<unsigned int> InitializeShader(const char* vertexShaderPath,
-                                                              const char* fragmentShaderPath);
+    std::optional<unsigned int> InitializeShader(const char* vertexShaderPath, const char* fragmentShaderPath);
     void SetNodeSize(float radius, float border) const;
 
     void OnPaint(wxPaintEvent& event);

@@ -14,6 +14,7 @@ class GraphPanel : public wxPanel {
     wxButton *undoButton, *redoButton;
     wxStaticText *fileInfoLabel, *FPSInfoLabel;
     wxCheckBox* autoVertexPositioningCheckbox;
+    bool matching;
     const std::function<void()> clearMatchingCallback;
 
     GraphManager manager;
