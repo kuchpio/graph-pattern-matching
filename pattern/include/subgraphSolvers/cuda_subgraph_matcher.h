@@ -39,12 +39,18 @@ class CudaGraph {
     }
     __device__ uint32_t dev_neighboursOut(uint32_t v) const;
     __host__ uint32_t neighboursOut(uint32_t v) const;
+    __host__ bool hasEdge(uint32_t u, uint32_t v) const {
+        for (auto i = neighboursOffset[u]; i < neighboursOffset[u + 1]; i++) {
+            if (neighbours[i] == v) return true;
+        }
+        return false;
+    }
 
     uint32_t* dev_neighboursOffset;
     uint32_t* dev_neighbours;
     uint32_t* dev_size;
     uint32_t* dev_edgeCount;
-        std::vector<uint32_t> neighboursOffset;
+    std::vector<uint32_t> neighboursOffset;
     std::vector<uint32_t> neighbours;
     ~CudaGraph() {
         freeGPU();
@@ -66,12 +72,13 @@ class CudaSubgraphMatcher : public SubgraphMatcher {
 
     __host__ std::vector<uint32_t> createCandidateLists(const CudaGraph& bigGraph, const CudaGraph& smallGraph,
                                                         std::vector<uint32_t*>& candidates);
-    uint32_t getNextVertex(const CudaGraph& graph, const std::vector<uint32_t>& candidatesSizes_);
+    uint32_t getNextVertex(const CudaGraph& graph, const std::vector<uint32_t>& candidatesSizes,
+                           const std::vector<uint32_t>& mapping);
+    uint32_t getFirstVertex(const CudaGraph& graph, const std::vector<uint32_t>& candidatesSizes);
+    void addVertexToResultTable(uint32_t v, uint32_t* dev_candidates, uint32_t vCandidatesCount,
+                                const CudaGraph& bigGraph, const CudaGraph& smallGraph, ResultTable& resultTable);
 
-    void addVertexToResultTable(int v, uint32_t* dev_candidates, const CudaGraph& bigGraph,
-                                const CudaGraph& smallGraph);
-
-    std::vector<uint32_t> getMappedNeighboursIn(int v, const CudaGraph& graph);
+    std::vector<uint32_t> getMappedNeighboursIn(int v, const CudaGraph& graph, const std::vector<uint32_t>& mapping);
     std::vector<uint32_t> allocateMemoryForJoining(int v, uint32_t*& GBA, const ResultTable& resultTable,
                                                    const CudaGraph& bigGraph);
     void linkGBAWithResult(uint32_t* dev_GBA, const std::vector<uint32_t>& GBAOffsets, uint32_t* dev_GBAOffsets,
@@ -79,11 +86,9 @@ class CudaSubgraphMatcher : public SubgraphMatcher {
 
     std::optional<std::vector<vertex>> obtainResult(const ResultTable& resultTable);
 
-    std::vector<uint32_t*> candidates_;
-    ResultTable resultTable_ = ResultTable();
-    std::vector<uint32_t> candidatesSizes_ = std::vector<uint32_t>();
+    // ResultTable resultTable_ = ResultTable();
     uint32_t block_size_ = kDefaultBlockSize;
-    uint32_t joiningBlockSize_ = 128;
+    uint32_t joiningBlockSize_ = 32;
 };
 } // namespace pattern
 
