@@ -34,7 +34,7 @@ std::pair<core::Graph, std::vector<std::pair<float, float>>> grapherize(const st
     if (vertexCount <= 0) {
         throw std::runtime_error("Vertex count must be greater than 0.");
     }
-    
+
     std::string scriptPath = std::string(EDGE_DETECTION_DIR) + "/graph.py";
 
     if (!std::filesystem::exists(scriptPath)) {

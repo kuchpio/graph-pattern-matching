@@ -59,7 +59,6 @@ TEST_F(ImageToGraphTest, ZeroVertexCountTest) {
 
     int vertexCount = 0;
     EXPECT_THROW(grapherize(testImagePath, vertexCount), std::runtime_error);
-
 }
 
 } // namespace image
