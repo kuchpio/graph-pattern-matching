@@ -10,7 +10,7 @@
 
 namespace pattern
 {
-__device__ uint32_t binarySearch(const uint32_t* arr, uint32_t size, uint32_t target);
+__device__ uint32_t binarySearch(const uint32_t* arr, int32_t size, int32_t target);
 
 __global__ void getVmappingsKernel(uint32_t v_index, uint32_t* resultTableData, uint32_t resultTableSize,
                                    uint32_t resultTableRowCount, uint32_t* result) {
@@ -21,13 +21,16 @@ __global__ void getVmappingsKernel(uint32_t v_index, uint32_t* resultTableData, 
 
 __global__ void linkingKernel(uint32_t* dst, uint32_t* resultTableData, uint32_t resultTableSize,
                               uint32_t resultTableRowCount, uint32_t* GBAPreffixSum, uint32_t* GBA,
-                              uint32_t* GBAOffsets, uint32_t* neighbours) {
+                              uint32_t* GBAOffsets, uint32_t* neighbours, uint32_t* neighboursOffset,
+                              uint32_t firstVertex) {
     uint32_t row = blockIdx.x;
     uint32_t index = threadIdx.x;
-    if (row > resultTableRowCount) return;
+    if (row >= resultTableRowCount) return;
 
     uint32_t bufSize = GBAOffsets[row + 1] - GBAOffsets[row];
     uint32_t* buf = GBA + GBAOffsets[row];
+    auto vertexOffset = row * resultTableSize;
+    auto baseNeighbours = neighbours + neighboursOffset[resultTableData[vertexOffset + firstVertex]];
 
     // uint32_t startDstIndex = GBAPreffixSum[GBAOffsets[row]] - 1;
     while (index < bufSize) {
@@ -38,7 +41,7 @@ __global__ void linkingKernel(uint32_t* dst, uint32_t* resultTableData, uint32_t
                     resultTableData[row * resultTableSize + i];
             }
             dst[(GBAPreffixSum[index + GBAOffsets[row]] - 1) * (resultTableSize + 1) + resultTableSize] =
-                neighbours[index];
+                baseNeighbours[index];
         }
         index += blockDim.x;
     };
@@ -55,13 +58,13 @@ __global__ void createCandidateSetKernel(uint32_t u, uint32_t* candidateSet, uin
     uint32_t uNeighboursDegrees = 0;
     uint32_t vNeighboursDegrees = 0;
     auto vNeighboursOut = bigGraphOffsets[v + 1] - bigGraphOffsets[v];
-
+    if (vNeighboursOut < uNeighboursOut) return;
     for (int i = 0; i < vNeighboursOut; i++) {
         auto neighbour = bigGraphNeighbours[i + bigGraphOffsets[v]];
         vNeighboursDegrees += bigGraphOffsets[neighbour + 1] - bigGraphOffsets[neighbour];
     }
     for (int i = 0; i < uNeighboursOut; i++) {
-        auto neighbour = smallGraphNeighbours[i + smallGraphOffsets[v]];
+        auto neighbour = smallGraphNeighbours[i + smallGraphOffsets[u]];
         uNeighboursDegrees += smallGraphOffsets[neighbour + 1] - smallGraphOffsets[neighbour];
     }
 
@@ -153,11 +156,11 @@ __global__ void joinResultTableRowSecond(uint32_t firstVertex, uint32_t currentV
     }
 }
 
-__device__ uint32_t binarySearch(const uint32_t* arr, uint32_t size, uint32_t target) {
-    uint32_t left = 0, right = size - 1;
+__device__ uint32_t binarySearch(const uint32_t* arr, int32_t size, int32_t target) {
+    int32_t left = 0, right = size - 1;
 
     while (left <= right) {
-        uint32_t mid = left + (right - left) / 2;
+        int32_t mid = left + (right - left) / 2;
 
         if (arr[mid] == target) {
             return mid;
@@ -217,14 +220,19 @@ __host__ uint32_t CudaGraph::neighboursOut(uint32_t v) const {
 
 std::optional<std::vector<vertex>> CudaSubgraphMatcher::match(const core::Graph& bigGraph,
                                                               const core::Graph& smallGraph) {
+    if (smallGraph.size() == 0 || bigGraph.size() == 0) return std::nullopt;
     if (smallGraph.size() > bigGraph.size()) return std::nullopt;
 
     auto bigCudaGraph = CudaGraph(bigGraph);
     auto smallCudaGraph = CudaGraph(smallGraph);
 
     std::cout << "CREATED GRAPHJS\n";
-    auto candidates = std::vector<uint32_t*>(smallGraph.size());
-    auto candidatesSizes = createCandidateLists(bigGraph, smallGraph, candidates);
+    auto candidates = std::vector<uint32_t*>();
+    auto candidatesSizesStatus = createCandidateLists(bigGraph, smallGraph, candidates);
+    if (candidatesSizesStatus.has_value() == false) {
+        return std::nullopt;
+    }
+    auto candidatesSizes = candidatesSizesStatus.value();
     auto resultTable = ResultTable(smallGraph.size());
     std::cout << "CREATED CANDIDAETS\n";
 
@@ -232,17 +240,20 @@ std::optional<std::vector<vertex>> CudaSubgraphMatcher::match(const core::Graph&
     uint32_t firstVertex = this->getFirstVertex(smallGraph, candidatesSizes);
     resultTable.dev_data = candidates[firstVertex];
     resultTable.map(firstVertex);
-    resultTable.rowCount = 1;
-    printf("proccessed first vertex [%d]\n", firstVertex);
-
-    // free everything remainingin;
+    resultTable.rowCount = candidatesSizes[firstVertex];
+    printf("proccessed first vertex [%d] current RowCount = [%d]\n", firstVertex, resultTable.rowCount);
 
     for (int v = 1; v < smallGraph.size(); v++) {
-        auto nextVertex = this->getNextVertex(smallGraph, candidatesSizes, resultTable.mapping);
-
-        addVertexToResultTable(nextVertex, candidates[nextVertex], candidatesSizes[nextVertex], bigGraph, smallGraph,
-                               resultTable);
-
+        auto nextVertex = this->getNextVertex(smallGraph, candidatesSizes, resultTable.mapping).value();
+        if (!addVertexToResultTable(nextVertex, candidates[nextVertex], candidatesSizes[nextVertex], bigGraph,
+                                    smallGraph, resultTable)) {
+            for (uint32_t mapIndex = 0; mapIndex < resultTable.mapping.size(); ++mapIndex) {
+                if (mapIndex != nextVertex && resultTable.mapping[mapIndex] == UINT32_MAX) {
+                    cuda::free(candidates[mapIndex]);
+                }
+            }
+            return std::nullopt;
+        }
         resultTable.map(nextVertex);
     }
 
@@ -254,10 +265,11 @@ std::optional<std::vector<vertex>> CudaSubgraphMatcher::match(const core::Graph&
     return result;
 }
 
-std::vector<uint32_t> CudaSubgraphMatcher::createCandidateLists(const CudaGraph& bigGraph, const CudaGraph& smallGraph,
-                                                                std::vector<uint32_t*>& candidatesList) {
+std::optional<std::vector<uint32_t>> CudaSubgraphMatcher::createCandidateLists(const CudaGraph& bigGraph,
+                                                                               const CudaGraph& smallGraph,
+                                                                               std::vector<uint32_t*>& candidatesList) {
+    auto success = true;
     auto candidateListsSizes = std::vector<uint32_t>(smallGraph.size());
-
     uint32_t num_blocks = (bigGraph.size() + block_size_ - 1) / block_size_;
 
     uint32_t* dev_candidateSet = cuda::malloc<uint32_t>(bigGraph.size());
@@ -275,8 +287,15 @@ std::vector<uint32_t> CudaSubgraphMatcher::createCandidateLists(const CudaGraph&
         cuda::InclusiveSum<uint32_t>(dev_prefixScan, dev_candidateSet, bigGraph.size());
         cuda::memcpy_dev_host<uint32_t>(&candidateListsSizes[u], &dev_prefixScan[bigGraph.size() - 1], 1);
 
+        if (candidateListsSizes[u] == 0) {
+            printf("vertex [%d] has no candidates\n", u);
+            for (auto candidate : candidatesList)
+                cuda::free(candidate);
+            success = false;
+        }
+
         filterCandidates<<<num_blocks, block_size_>>>(dev_tempCandidates, dev_prefixScan, dev_candidateSet,
-                                                      candidateListsSizes[u]);
+                                                      bigGraph.size());
         std::cout << "Filtered candidates\n";
         std::cout << "going to sort " << candidateListsSizes[u] << " elements \n";
 
@@ -284,36 +303,38 @@ std::vector<uint32_t> CudaSubgraphMatcher::createCandidateLists(const CudaGraph&
         cuda::radixSort<uint32_t>(dev_candidates, dev_tempCandidates,
                                   candidateListsSizes[u]); // for speed up of set operations
         printf("created candidates for vertex %d\n", u);
-        candidatesList[u] = dev_candidates;
+        candidatesList.push_back(dev_candidates);
     }
 
     cuda::free(dev_candidateSet);
     cuda::free(dev_prefixScan);
     cuda::free(dev_candidateCount);
     cuda::free(dev_tempCandidates);
+    if (success == false) return std::nullopt;
 
     return candidateListsSizes;
 }
 
 uint32_t CudaSubgraphMatcher::getFirstVertex(const CudaGraph& graph, const std::vector<uint32_t>& candidateListsSizes) {
     uint32_t highestScoreVertex = 0;
-    uint32_t currentMax = 0;
+    double currentMin = DBL_MAX;
     for (uint32_t v = 0; v < graph.size(); v++) {
-        if ((candidateListsSizes[v] / graph.neighboursOut(v)) > currentMax) {
-            currentMax = candidateListsSizes[v] / graph.neighboursOut(v);
+        if ((static_cast<double>(candidateListsSizes[v]) / static_cast<double>(graph.neighboursOut(v))) < currentMin) {
+            currentMin = static_cast<double>(candidateListsSizes[v]) / static_cast<double>(graph.neighboursOut(v));
             highestScoreVertex = v;
         }
     }
     return highestScoreVertex;
 }
 
-uint32_t CudaSubgraphMatcher::getNextVertex(const CudaGraph& graph, const std::vector<uint32_t>& candidateListsSizes,
-                                            const std::vector<uint32_t>& mapping) {
-    uint32_t highestScoreVertex = 0;
-    uint32_t currentMax = 0;
+std::optional<uint32_t> CudaSubgraphMatcher::getNextVertex(const CudaGraph& graph,
+                                                           const std::vector<uint32_t>& candidateListsSizes,
+                                                           const std::vector<uint32_t>& mapping) {
+    uint32_t highestScoreVertex = UINT32_MAX;
+    double currentMax = DBL_MAX;
     for (uint32_t v = 0; v < graph.size(); v++) {
         if (mapping[v] != UINT32_MAX) continue;
-        if ((candidateListsSizes[v] / graph.neighboursOut(v)) > currentMax) {
+        if ((static_cast<double>(candidateListsSizes[v]) / static_cast<double>(graph.neighboursOut(v))) < currentMax) {
             bool connected = false;
             for (int i = 0; i < mapping.size(); i++) {
                 if (mapping[i] != UINT32_MAX) {
@@ -321,10 +342,11 @@ uint32_t CudaSubgraphMatcher::getNextVertex(const CudaGraph& graph, const std::v
                 }
             }
             if (connected == false) continue;
-            currentMax = candidateListsSizes[v] / graph.neighboursOut(v);
+            currentMax = static_cast<double>(candidateListsSizes[v]) / static_cast<double>(graph.neighboursOut(v));
             highestScoreVertex = v;
         }
     }
+    if (highestScoreVertex == UINT32_MAX) return std::nullopt;
     return highestScoreVertex;
 }
 
@@ -341,12 +363,14 @@ std::vector<uint32_t> CudaSubgraphMatcher::getMappedNeighboursIn(int v, const Cu
     return neighboursIn;
 }
 
-void CudaSubgraphMatcher::addVertexToResultTable(uint32_t v, uint32_t* dev_candidates, uint32_t vCandidatesCount,
-                                                 const CudaGraph& bigGraph, const CudaGraph& smallGraph,
-                                                 ResultTable& resultTable) {
+std::optional<ResultTable> CudaSubgraphMatcher::addVertexToResultTable(uint32_t v, uint32_t* dev_candidates,
+                                                                       uint32_t vCandidatesCount,
+                                                                       const CudaGraph& bigGraph,
+                                                                       const CudaGraph& smallGraph,
+                                                                       ResultTable& resultTable) {
     std::cout << "ADDING " << v << "TO result table\n";
     auto neighboursIn = getMappedNeighboursIn(v, smallGraph, resultTable.mapping);
-    printf("vertex [%d] got [%d] mapped neighbours\n", v, neighboursIn.size());
+    printf("vertex [%d] got [%lu] mapped neighbours\n", v, neighboursIn.size());
     auto minNeighourIn =
         std::min_element(neighboursIn.begin(), neighboursIn.end(), [&smallGraph](uint32_t left, uint32_t right) {
             return smallGraph.neighboursOut(left) < smallGraph.neighboursOut(right);
@@ -360,7 +384,6 @@ void CudaSubgraphMatcher::addVertexToResultTable(uint32_t v, uint32_t* dev_candi
     cuda::memcpy_host_dev<uint32_t>(dev_GBAOffsets, GBAOffsets.data(), GBAOffsets.size());
 
     uint32_t firstNeighbour = neighboursIn.front();
-    uint32_t num_blocks = (GBAOffsets.size() - 1 + block_size_ - 1) / block_size_;
 
     uint32_t* dev_baseNeighbours =
         bigGraph.dev_neighbours + bigGraph.neighboursOffset[resultTable.mapping[firstNeighbour]];
@@ -369,43 +392,59 @@ void CudaSubgraphMatcher::addVertexToResultTable(uint32_t v, uint32_t* dev_candi
         uint32_t bigUVertex = resultTable.mapping[u];
         std::cout << "U == " << u << "\n";
         if (u == firstNeighbour) {
-            joinResultTableRowFirst<<<GBAOffsets.size() - 1, joiningBlockSize_>>>(
-                bigUVertex, GBAOffsets.size() - 1, resultTable.dev_data, resultTable.size, dev_GBA, dev_GBAOffsets,
+            joinResultTableRowFirst<<<resultTable.rowCount, joiningBlockSize_>>>(
+                bigUVertex, resultTable.rowCount, resultTable.dev_data, resultTable.size, dev_GBA, dev_GBAOffsets,
                 bigGraph.dev_neighbours, bigGraph.dev_neighboursOffset, dev_candidates, vCandidatesCount);
             std::cout << "ZAKONCZONO PIERWSZY JOIN\n";
         } else {
             std::cout << "ZACZYNAMY DRUGI JOIN\n";
 
-            joinResultTableRowSecond<<<GBAOffsets.size() - 1, joiningBlockSize_>>>(
-                resultTable.mapping[firstNeighbour], bigUVertex, GBAOffsets.size() - 1, resultTable.dev_data,
+            joinResultTableRowSecond<<<resultTable.rowCount, joiningBlockSize_>>>(
+                resultTable.mapping[firstNeighbour], bigUVertex, resultTable.rowCount, resultTable.dev_data,
                 resultTable.size, dev_GBA, dev_GBAOffsets, bigGraph.dev_neighbours, bigGraph.dev_neighboursOffset);
         }
     }
-    std::cout << "SKONCZONO JOINOWANIE\n";
+    printf("SKONCZONO JOINOWANIE bylo %d kandydatow \n", vCandidatesCount);
     cuda::free(dev_candidates);
-    linkGBAWithResult(dev_GBA, GBAOffsets, dev_GBAOffsets, resultTable, dev_baseNeighbours);
+    printf("ZWOLNIONO KANDYDATOW DLA WIERZCHOŁKA [%d]\n", v);
+    return linkGBAWithResult(dev_GBA, GBAOffsets, dev_GBAOffsets, resultTable, bigGraph,
+                             resultTable.mapping[firstNeighbour]);
 }
 
-void CudaSubgraphMatcher::linkGBAWithResult(uint32_t* dev_GBA, const std::vector<uint32_t>& GBAOffsets,
-                                            uint32_t* dev_GBAOffsets, ResultTable& resultTable, uint32_t* neighbours) {
+std::optional<ResultTable> CudaSubgraphMatcher::linkGBAWithResult(uint32_t* dev_GBA,
+                                                                  const std::vector<uint32_t>& GBAOffsets,
+                                                                  uint32_t* dev_GBAOffsets, ResultTable& resultTable,
+                                                                  const CudaGraph& graph, uint32_t baseIndex) {
 
     uint32_t* dev_GBAPrefixScan = cuda::malloc<uint32_t>(GBAOffsets.back());
     cuda::InclusiveSum<uint32_t>(dev_GBAPrefixScan, dev_GBA, GBAOffsets.back());
     uint32_t rowCount = 0;
     cuda::memcpy_dev_host<uint32_t>(&rowCount, &dev_GBAPrefixScan[GBAOffsets.back() - 1], 1);
+
+    if (rowCount == 0) {
+        printf("no results found STOPPING\n");
+        cuda::free(resultTable.dev_data);
+        cuda::free(dev_GBA);
+        cuda::free(dev_GBAOffsets);
+        cuda::free(dev_GBAPrefixScan);
+        return std::nullopt;
+    }
     printf("GOING TO MALLOC NEW RESULT TABLE DATA OF SIZE %d * %d\n", rowCount, resultTable.size + 1);
-    uint32_t* dev_newResultTableData = cuda::malloc<uint32_t>((rowCount + 1) * (resultTable.size + 1));
+    uint32_t* dev_newResultTableData = cuda::malloc<uint32_t>(rowCount * (resultTable.size + 1));
 
     uint32_t num_blocks = (GBAOffsets.size() - 1 + joiningBlockSize_ - 1) / joiningBlockSize_;
-    linkingKernel<<<GBAOffsets.size() - 1, joiningBlockSize_>>>(dev_newResultTableData, resultTable.dev_data,
-                                                                resultTable.size, resultTable.rowCount,
-                                                                dev_GBAPrefixScan, dev_GBA, dev_GBAOffsets, neighbours);
+    linkingKernel<<<GBAOffsets.size() - 1, joiningBlockSize_>>>(
+        dev_newResultTableData, resultTable.dev_data, resultTable.size, resultTable.rowCount, dev_GBAPrefixScan,
+        dev_GBA, dev_GBAOffsets, graph.dev_neighbours, graph.dev_neighboursOffset, baseIndex);
 
     cuda::free(resultTable.dev_data);
     cuda::free(dev_GBA);
     cuda::free(dev_GBAOffsets);
+    cuda::free(dev_GBAPrefixScan);
+
     resultTable.rowCount = rowCount;
     resultTable.dev_data = dev_newResultTableData;
+    return resultTable;
     printf("current result has %d rows\n", resultTable.rowCount);
 }
 
@@ -423,6 +462,13 @@ std::vector<uint32_t> CudaSubgraphMatcher::allocateMemoryForJoining(int v, uint3
                                                     resultTable.rowCount, dev_mappings);
 
     cuda::memcpy_dev_host<uint32_t>(vMappings.data(), dev_mappings, vMappings.size());
+    if (v == 4) {
+        printf("3 value mappings == ");
+        for (int i = 0; i < vMappings.size(); i++) {
+            printf("[%d]", vMappings[i]);
+        }
+        printf("\n");
+    }
     cuda::free(dev_mappings);
 
     GBAOffsets[0] = 0;
@@ -450,5 +496,18 @@ std::optional<std::vector<vertex>> CudaSubgraphMatcher::obtainResult(const Resul
         vertexResult[v] = result[v];
     }
     return vertexResult;
+}
+
+void ResultTable::print() {
+    std::vector<uint32_t> data = std::vector<uint32_t>(rowCount * size);
+    cuda::memcpy_dev_host<uint32_t>(data.data(), dev_data, data.size());
+    printf("\nResultTable: ");
+    for (int i = 0; i < rowCount; i++) {
+        printf("\n row %u == [", i);
+        for (int j = 0; j < size; j++) {
+            printf("%u ", data[i * size + j]);
+        }
+        printf("]\n");
+    }
 }
 } // namespace pattern

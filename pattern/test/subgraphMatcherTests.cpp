@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "vf2_induced_subgraph_solver.hpp"
 #include "vf2_subgraph_solver.hpp"
+#include "cuda_subgraph_matcher.h"
 #include "gtest/gtest.h"
 
 namespace pattern
@@ -145,7 +146,7 @@ TEST(CudaSubgraphMatcher, small_subgraph) {
     Q.add_edge(2, 3);
     Q.add_edge(3, 0);
     // Check for subgraph isomorphism
-    auto matcher = Vf2SubgraphSolver();
+    auto matcher = CudaSubgraphMatcher();
     auto matching = matcher.match(G, Q);
     EXPECT_TRUE(matching.has_value());
 

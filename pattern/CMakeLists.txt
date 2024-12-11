@@ -19,5 +19,5 @@ target_include_directories(pattern PUBLIC "include" "include/minorSolvers" "incl
 set_target_properties(pattern PROPERTIES CUDA_ARCHITECTURES "61" CXX_STANDARD 20)
 
 target_link_libraries(pattern core utils minorminer vf2lib)
-target_compile_options(pattern PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CUDA>,$<CONFIG:DEBUG>>:-G>)
+target_compile_options(pattern PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CUDA>,$<CONFIG:DEBUG>>:-G -lineInfo>)
 

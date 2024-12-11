@@ -24,6 +24,7 @@ class ResultTable {
     void map(uint32_t v) {
         mapping[v] = size++;
     }
+    void print();
 };
 
 class CudaGraph {
@@ -70,19 +71,22 @@ class CudaSubgraphMatcher : public SubgraphMatcher {
     std::vector<uint32_t> calculateScores(const core::Graph& smallGraph,
                                           const std::vector<std::vector<uint32_t>>& candidateLists);
 
-    __host__ std::vector<uint32_t> createCandidateLists(const CudaGraph& bigGraph, const CudaGraph& smallGraph,
-                                                        std::vector<uint32_t*>& candidates);
-    uint32_t getNextVertex(const CudaGraph& graph, const std::vector<uint32_t>& candidatesSizes,
-                           const std::vector<uint32_t>& mapping);
+    __host__ std::optional<std::vector<uint32_t>> createCandidateLists(const CudaGraph& bigGraph,
+                                                                       const CudaGraph& smallGraph,
+                                                                       std::vector<uint32_t*>& candidates);
+    std::optional<uint32_t> getNextVertex(const CudaGraph& graph, const std::vector<uint32_t>& candidatesSizes,
+                                          const std::vector<uint32_t>& mapping);
     uint32_t getFirstVertex(const CudaGraph& graph, const std::vector<uint32_t>& candidatesSizes);
-    void addVertexToResultTable(uint32_t v, uint32_t* dev_candidates, uint32_t vCandidatesCount,
-                                const CudaGraph& bigGraph, const CudaGraph& smallGraph, ResultTable& resultTable);
+    std::optional<ResultTable> addVertexToResultTable(uint32_t v, uint32_t* dev_candidates, uint32_t vCandidatesCount,
+                                                      const CudaGraph& bigGraph, const CudaGraph& smallGraph,
+                                                      ResultTable& resultTable);
 
     std::vector<uint32_t> getMappedNeighboursIn(int v, const CudaGraph& graph, const std::vector<uint32_t>& mapping);
     std::vector<uint32_t> allocateMemoryForJoining(int v, uint32_t*& GBA, const ResultTable& resultTable,
                                                    const CudaGraph& bigGraph);
-    void linkGBAWithResult(uint32_t* dev_GBA, const std::vector<uint32_t>& GBAOffsets, uint32_t* dev_GBAOffsets,
-                           ResultTable& resultTable, uint32_t* neighbours);
+    std::optional<ResultTable> linkGBAWithResult(uint32_t* dev_GBA, const std::vector<uint32_t>& GBAOffsets,
+                                                 uint32_t* dev_GBAOffsets, ResultTable& resultTable,
+                                                 const CudaGraph& graph, uint32_t baseIndex);
 
     std::optional<std::vector<vertex>> obtainResult(const ResultTable& resultTable);
 
