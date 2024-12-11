@@ -106,19 +106,19 @@ void Frame::OnMatchingComplete(const std::optional<std::vector<vertex>>& pattern
     currentlyWorkingMatcher = nullptr;
     startStopMatchingButton->SetLabel("Match");
     startStopMatchingButton->Enable();
-    if (patternMatching.has_value()) {
-        matchingStatus->SetLabel("Match found");
-    } else {
-        matchingStatus->SetLabel("Match not found");
-    }
+
     std::vector<unsigned int> patternLabelling(patternPanel->GetGraph().size(), 0);
     std::vector<unsigned int> searchSpaceLabelling(searchSpacePanel->GetGraph().size(), 0);
 
     if (patternMatching.has_value()) {
+        matchingStatus->SetLabel("Match found");
+
         std::iota(patternLabelling.begin(), patternLabelling.end(), 1);
         for (unsigned int v = 0; v < patternMatching.value().size(); v++) {
             searchSpaceLabelling[patternMatching.value()[v]] = patternLabelling[v];
         }
+    } else {
+        matchingStatus->SetLabel("Match not found");
     }
 
     patternPanel->OnMatchingEnd(patternLabelling);
@@ -140,10 +140,10 @@ void Frame::OnCloseRequest(wxCloseEvent& event) {
 void Frame::ClearMatching() {
     matchingStatus->SetLabel(wxEmptyString);
 
-    std::vector<unsigned int> patternLabelling(patternPanel->GetGraph().size(), 0);
-    std::vector<unsigned int> searchSpaceLabelling(searchSpacePanel->GetGraph().size(), 0);
-    patternPanel->OnMatchingEnd(patternLabelling);
-    searchSpacePanel->OnMatchingEnd(searchSpaceLabelling);
+	std::vector<unsigned int> patternLabelling(patternPanel->GetGraph().size(), 0);
+	std::vector<unsigned int> searchSpaceLabelling(searchSpacePanel->GetGraph().size(), 0);
+	patternPanel->OnMatchingEnd(patternLabelling);
+	searchSpacePanel->OnMatchingEnd(searchSpaceLabelling);
 }
 
 pattern::PatternMatcher* Frame::GetSelectedMatcher() const {

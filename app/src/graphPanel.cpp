@@ -76,30 +76,40 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
 
         auto edges = manager.GetEdges();
         canvas->SetEdges(edges.data(), edges.size() / 2);
+
+        this->clearMatchingCallback();
     });
     connectButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
         manager.ConnectSelection();
 
         auto edges = manager.GetEdges();
         canvas->SetEdges(edges.data(), edges.size() / 2);
+
+        this->clearMatchingCallback();
     });
     disconnectButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
         manager.DisconnectSelection();
 
         auto edges = manager.GetEdges();
         canvas->SetEdges(edges.data(), edges.size() / 2);
+
+        this->clearMatchingCallback();
     });
     contractButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
         manager.ConnectSelection();
 
         auto edges = manager.GetEdges();
         canvas->SetEdges(edges.data(), edges.size() / 2);
+
+        this->clearMatchingCallback();
     });
     subdivideButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
         manager.SubdivideSelection();
 
         auto edges = manager.GetEdges();
         canvas->SetEdges(edges.data(), edges.size() / 2);
+
+        this->clearMatchingCallback();
     });
 
     auto drawPanel = new wxPanel(notebook);
@@ -298,8 +308,12 @@ void GraphPanel::OnCanvasClick(wxMouseEvent& event) {
                            boundingHeight / (canvasHeight - 3 * canvas->NODE_RADIUS));
     float worldX = (point.x - canvasWidth / 2) * ratio + centerX;
     float worldY = (canvasHeight / 2 - point.y) * ratio + centerY;
-    manager.HandleClick(worldX, worldY, canvas->NODE_RADIUS * 0.5f * ratio, event.ControlDown(),
-                        event.ButtonDClick() && !matching);
+
+    auto newVertexRequested = event.ButtonDClick() && !matching;
+    if (manager.HandleClick(worldX, worldY, canvas->NODE_RADIUS * 0.5f * ratio, event.ControlDown(),
+                            newVertexRequested)) {
+        clearMatchingCallback();
+    }
 
     auto& vertexStates = manager.States();
     canvas->SetVertexStates(vertexStates.data(), vertexStates.size());

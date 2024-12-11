@@ -25,7 +25,7 @@ class GraphManager {
     void Initialize(core::Graph&& graph);
     void UpdatePositions(float deltaTimeSeconds);
 
-    void HandleClick(float x, float y, float nodeRadius, bool isCtrl, bool newVertexRequested);
+    bool HandleClick(float x, float y, float nodeRadius, bool isCtrl, bool newVertexRequested);
     void OnDrag(float dx, float dy);
     void OnDrop();
     void Stop();

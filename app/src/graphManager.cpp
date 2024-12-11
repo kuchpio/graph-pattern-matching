@@ -90,7 +90,7 @@ void GraphManager::UpdatePositions(float deltaTimeSeconds) {
     centerY = (minY + maxY) / 2;
 }
 
-void GraphManager::HandleClick(float x, float y, float nodeRadius, bool isCtrl, bool newVertexRequested) {
+bool GraphManager::HandleClick(float x, float y, float nodeRadius, bool isCtrl, bool newVertexRequested) {
     unsigned int selectedCtr = 0;
     for (unsigned int i = 0; i < graph.size(); i++) {
         float dx = x - vertexPositions2D[readBufferId][2 * i];
@@ -103,7 +103,9 @@ void GraphManager::HandleClick(float x, float y, float nodeRadius, bool isCtrl, 
     }
     if (selectedCtr == 0 && newVertexRequested) {
         AddVertex(x, y);
+        return true;
     }
+    return false;
 }
 
 void GraphManager::AddVertex(float x, float y) {

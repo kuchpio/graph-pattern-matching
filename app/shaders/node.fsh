@@ -23,10 +23,12 @@ void main()
 		vec4(0.3, 0.0, 0.3, 1.0)
 	);
 
-	float borderThreshold = (1.0 - nodeBorder / nodeRadius) * (1.0 - nodeBorder / nodeRadius);
+	float borderToRadius = nodeBorder / nodeRadius;
+	float borderInnerThreshold = (1.0 - 2 * borderToRadius) * (1.0 - 2 * borderToRadius);
+	float borderOuterThreshold = nodeBorderIndex > 0u ? 1.0 : (1.0 - borderToRadius) * (1.0 - borderToRadius);
 	float d = dot(quadCoord, quadCoord);
-	if (d <= 1.0) {
-		FragColor = d < borderThreshold ? nodeColor : nodeBorderArray[nodeBorderIndex];
+	if (d <= borderOuterThreshold) {
+		FragColor = d < borderInnerThreshold ? nodeColor : nodeBorderArray[nodeBorderIndex];
 	} else {
 		discard;
 	}

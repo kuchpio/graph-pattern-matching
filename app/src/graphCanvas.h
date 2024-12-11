@@ -34,8 +34,8 @@ class GraphCanvas : public wxGLCanvas {
     void UpdateCanvasSize() const;
 
   public:
-    const float NODE_RADIUS = 20.0;
-    const float NODE_BORDER = 3.0;
+    const float NODE_RADIUS = 25.0;
+    const float NODE_BORDER = 4.0;
     const float EDGE_WIDTH = 2.0;
 
     GraphCanvas(wxWindow* parent, const wxGLAttributes& canvasAttrs);

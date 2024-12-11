@@ -29,6 +29,13 @@ GraphCanvas::~GraphCanvas() {
 }
 
 void GraphCanvas::OnPaint(wxPaintEvent& WXUNUSED(event)) {
+    if (!isOpenGLInitializationAttempted
+#ifdef __WXGTK__
+        && IsShownOnScreen()
+#endif
+    )
+        isOpenGLInitialized = InitializeOpenGL();
+
     if (!isOpenGLInitialized) return;
     SetCurrent(*openGLContext);
 
