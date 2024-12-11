@@ -10,6 +10,7 @@ import torchvision.transforms as transforms
 from safetensors.torch import load_file
 from model import UNet
 import argparse 
+import os
 
 def filter_long_edges(vertices, edges, max_length=50):
     filtered_edges = []
@@ -23,6 +24,14 @@ def filter_long_edges(vertices, edges, max_length=50):
 
 def build_graph_with_triangulation(edge_points, n_clusters=100, max_length=50):
     kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+
+    if n_clusters < 1:
+        raise ValueError(f"Number of clusters (n_clusters) must be at least 1, got {n_clusters}.")
+    
+    if len(edge_points) < n_clusters:
+        raise ValueError(f"Number of edge points ({len(edge_points)}) must be greater than or equal to the number of clusters ({n_clusters}).")
+    
+        
     kmeans.fit(edge_points)
     vertices = kmeans.cluster_centers_.astype(float)
 
@@ -50,6 +59,8 @@ def build_graph_with_triangulation(edge_points, n_clusters=100, max_length=50):
     return G, vertices
 
 def main(image_path, n_clusters=50, max_length=50):
+    if not os.path.isfile(image_path):
+        raise FileNotFoundError(f"Image file '{image_path}' does not exist.")
     transform = transforms.Compose([
         transforms.Resize((256, 256)),
         transforms.ToTensor()
@@ -84,5 +95,9 @@ if __name__ == "__main__":
     parser.add_argument('image_path', type=str, help='Path to the image file')
     parser.add_argument('n_clusters', type=int, help='Number of clusters (vertices)')
     args = parser.parse_args()
-
-    main(args.image_path, args.n_clusters)
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    try:
+        main(args.image_path, args.n_clusters)
+    except FileNotFoundError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)

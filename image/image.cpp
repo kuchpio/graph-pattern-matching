@@ -1,7 +1,15 @@
 ﻿#include "image.h"
-
 #include "nlohmann/json.hpp"
 #include "core.h"
+#include <filesystem>
+#include <stdexcept>
+#include <iostream>
+#include <string>
+#include <array>
+
+#ifndef EDGE_DETECTION_DIR
+#define EDGE_DETECTION_DIR "./"
+#endif
 
 namespace image
 {
@@ -23,8 +31,22 @@ static std::string exec(const char* cmd) {
 }
 
 std::pair<core::Graph, std::vector<std::pair<float, float>>> grapherize(const std::string& imagePath, int vertexCount) {
+    if (vertexCount <= 0) {
+        throw std::runtime_error("Vertex count must be greater than 0.");
+    }
+    
+    std::string scriptPath = std::string(EDGE_DETECTION_DIR) + "/graph.py";
 
-    std::string command = "python edge_detection/graph.py " + imagePath + " " + std::to_string(vertexCount);
+    if (!std::filesystem::exists(scriptPath)) {
+        throw std::runtime_error("Python script not found: " + scriptPath);
+    }
+
+    if (!std::filesystem::exists(imagePath)) {
+        throw std::runtime_error("Image file not found: " + imagePath);
+    }
+
+    std::string command = "python " + scriptPath + " " + imagePath + " " + std::to_string(vertexCount);
+
     std::string output = exec(command.c_str());
 
     nlohmann::json graphData = nlohmann::json::parse(output);
