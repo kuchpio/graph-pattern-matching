@@ -14,7 +14,7 @@ class GraphPanel : public wxPanel {
     wxButton *undoButton, *redoButton;
     wxStaticText *fileInfoLabel, *FPSInfoLabel;
     wxCheckBox* autoVertexPositioningCheckbox;
-    const std::function<void()> fileOpenCallback;
+    const std::function<void()> clearMatchingCallback;
 
     GraphManager manager;
     using animationClock = std::chrono::high_resolution_clock;
@@ -33,9 +33,9 @@ class GraphPanel : public wxPanel {
     void OnCanvasMotion(wxMouseEvent& event);
 
   public:
-    GraphPanel(wxWindow* parent, const wxString& title, std::function<void()> fileOpenCallback);
+    GraphPanel(wxWindow* parent, const wxString& title, std::function<void()> clearMatchingCallback);
 
     const core::Graph& GetGraph() const;
     void OnMatchingStart();
-    void OnMatchingEnd();
+    void OnMatchingEnd(const std::vector<unsigned int>& labelling);
 };

@@ -15,6 +15,7 @@ class GraphCanvas : public wxGLCanvas {
     unsigned int vertexArrayObject = 0;
     unsigned int vertexBuffer = 0;
     unsigned int vertexStateBuffer = 0;
+    unsigned int vertexLabelsBuffer = 0;
     unsigned int edgesBuffer = 0;
     unsigned int nodeShaderProgram = 0;
     unsigned int edgeShaderProgram = 0;
@@ -43,6 +44,7 @@ class GraphCanvas : public wxGLCanvas {
 
     void SetVertexPositions(const float* positions2D, unsigned int vertexCount);
     void SetVertexStates(const unsigned int* states, unsigned int vertexCount);
+    void SetVertexLabels(const unsigned int* labels, unsigned int vertexCount);
     void SetEdges(const unsigned int* edges, unsigned int edgesCount);
     const std::pair<int, int> CanvasSize() const;
     void SetBoundingSize(float width, float height) const;

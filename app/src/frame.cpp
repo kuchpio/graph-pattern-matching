@@ -4,6 +4,7 @@
 #include "vf2_subgraph_solver.hpp"
 #include "wx/splitter.h"
 #include "wx/app.h"
+#include <numeric>
 
 #include "subgraph_matcher.h"
 #include "induced_subgraph_matcher.h"
@@ -28,8 +29,6 @@ Frame::Frame(const wxString& title)
     minorRadioButton = new wxRadioButton(mainPanel, wxID_ANY, "Minor");
     topologicalMinorRadioButton = new wxRadioButton(mainPanel, wxID_ANY, "Topological minor");
     startStopMatchingButton = new wxButton(mainPanel, wxID_ANY, "Match");
-    showMatchingButton = new wxButton(mainPanel, wxID_ANY, "Show Matching");
-    showMatchingButton->Disable();
     matchingStatus = new wxStaticText(mainPanel, wxID_ANY, "");
     auto optionsButton = new wxButton(mainPanel, wxID_ANY, "Settings");
 
@@ -41,7 +40,6 @@ Frame::Frame(const wxString& title)
     mainPanelSizer->Add(topologicalMinorRadioButton, 0, wxALIGN_CENTER | wxLEFT, 10);
     mainPanelSizer->AddStretchSpacer(1);
     mainPanelSizer->Add(startStopMatchingButton, 0, wxALIGN_CENTER);
-    mainPanelSizer->Add(showMatchingButton, 0, wxALIGN_CENTER | wxLEFT, 5);
     mainPanelSizer->Add(matchingStatus, 0, wxALIGN_CENTER | wxLEFT, 10);
     mainPanelSizer->AddStretchSpacer(2);
     mainPanelSizer->Add(optionsButton, 0, wxALIGN_CENTER);
@@ -87,10 +85,10 @@ void Frame::OnMatchingStart() {
         [this](const core::Graph& patternGraph, const core::Graph& searchSpaceGraph) {
             auto result = currentlyWorkingMatcher->match(searchSpaceGraph, patternGraph);
 
-            wxTheApp->CallAfter([this, result]() {
+            wxTheApp->CallAfter([this, result = move(result)]() {
                 matcherThread.join();
 
-                OnMatchingComplete(result.has_value());
+                OnMatchingComplete(result);
             });
         },
         patternGraph, searchSpaceGraph);
@@ -103,20 +101,28 @@ void Frame::OnMatchingStop() {
     // TODO: currentlyWorkingMatcher->cancel();
 }
 
-void Frame::OnMatchingComplete(bool matchFound) {
+void Frame::OnMatchingComplete(const std::optional<std::vector<vertex>>& patternMatching) {
     delete currentlyWorkingMatcher;
     currentlyWorkingMatcher = nullptr;
     startStopMatchingButton->SetLabel("Match");
     startStopMatchingButton->Enable();
-    if (matchFound) {
+    if (patternMatching.has_value()) {
         matchingStatus->SetLabel("Match found");
-        showMatchingButton->Enable();
     } else {
         matchingStatus->SetLabel("Match not found");
-        showMatchingButton->Disable();
     }
-    patternPanel->OnMatchingEnd();
-    searchSpacePanel->OnMatchingEnd();
+    std::vector<unsigned int> patternLabelling(patternPanel->GetGraph().size(), 0);
+    std::vector<unsigned int> searchSpaceLabelling(searchSpacePanel->GetGraph().size(), 0);
+
+    if (patternMatching.has_value()) {
+        std::iota(patternLabelling.begin(), patternLabelling.end(), 1);
+        for (unsigned int v = 0; v < patternMatching.value().size(); v++) {
+            searchSpaceLabelling[patternMatching.value()[v]] = patternLabelling[v];
+        }
+    }
+
+    patternPanel->OnMatchingEnd(patternLabelling);
+    searchSpacePanel->OnMatchingEnd(searchSpaceLabelling);
 
     if (isCloseRequested) Close();
 }
@@ -132,8 +138,12 @@ void Frame::OnCloseRequest(wxCloseEvent& event) {
 }
 
 void Frame::ClearMatching() {
-    showMatchingButton->Disable();
     matchingStatus->SetLabel(wxEmptyString);
+
+    std::vector<unsigned int> patternLabelling(patternPanel->GetGraph().size(), 0);
+    std::vector<unsigned int> searchSpaceLabelling(searchSpacePanel->GetGraph().size(), 0);
+    patternPanel->OnMatchingEnd(patternLabelling);
+    searchSpacePanel->OnMatchingEnd(searchSpaceLabelling);
 }
 
 pattern::PatternMatcher* Frame::GetSelectedMatcher() const {

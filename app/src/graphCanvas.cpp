@@ -94,6 +94,7 @@ bool GraphCanvas::InitializeOpenGL() {
     glGenVertexArrays(1, &vertexArrayObject);
     glGenBuffers(1, &vertexBuffer);
     glGenBuffers(1, &vertexStateBuffer);
+    glGenBuffers(1, &vertexLabelsBuffer);
     glGenBuffers(1, &edgesBuffer);
     glGenBuffers(1, &settingsUniformBufferObject);
 
@@ -110,6 +111,11 @@ bool GraphCanvas::InitializeOpenGL() {
     glVertexAttribIPointer(2, 1, GL_UNSIGNED_INT, 0, (void*)0);
     glEnableVertexAttribArray(2);
     glVertexAttribDivisor(2, 1);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vertexLabelsBuffer);
+    glVertexAttribIPointer(3, 1, GL_UNSIGNED_INT, 0, (void*)0);
+    glEnableVertexAttribArray(3);
+    glVertexAttribDivisor(3, 1);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, edgesBuffer);
 
@@ -242,6 +248,14 @@ void GraphCanvas::SetVertexStates(const unsigned int* states, unsigned int verte
 
     glBindBuffer(GL_ARRAY_BUFFER, vertexStateBuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * vertexCount, states, GL_STATIC_DRAW);
+}
+
+void GraphCanvas::SetVertexLabels(const unsigned int* labels, unsigned int vertexCount) {
+    if (!isOpenGLInitialized) return;
+    SetCurrent(*openGLContext);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vertexLabelsBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * vertexCount, labels, GL_STATIC_DRAW);
 }
 
 void GraphCanvas::SetEdges(const unsigned int* edges, unsigned int edgesCount) {

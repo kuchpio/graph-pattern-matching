@@ -12,7 +12,7 @@ class Frame : public wxFrame {
 
     wxCheckBox* inducedCheckbox;
     wxRadioButton *subgraphRadioButton, *minorRadioButton, *topologicalMinorRadioButton;
-    wxButton *startStopMatchingButton, *showMatchingButton;
+    wxButton *startStopMatchingButton;
     wxStaticText* matchingStatus;
 
     std::thread matcherThread;
@@ -21,7 +21,7 @@ class Frame : public wxFrame {
 
     void OnMatchingStart();
     void OnMatchingStop();
-    void OnMatchingComplete(bool matchFound);
+    void OnMatchingComplete(const std::optional<std::vector<vertex>>& patternMatching);
     void OnCloseRequest(wxCloseEvent& event);
     void ClearMatching();
     pattern::PatternMatcher* GetSelectedMatcher() const;

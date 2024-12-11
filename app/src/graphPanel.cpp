@@ -10,8 +10,8 @@
 #include "graphPanel.h"
 #include "graphCanvas.h"
 
-GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<void()> fileOpenCallback)
-    : wxPanel(parent), fileOpenCallback(fileOpenCallback) {
+GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<void()> clearMatchingCallback)
+    : wxPanel(parent), clearMatchingCallback(clearMatchingCallback) {
     auto sizer = new wxBoxSizer(wxVERTICAL);
 
     wxGLAttributes vAttrs;
@@ -183,7 +183,7 @@ void GraphPanel::OnMatchingStart() {
     redoButton->Disable();
 }
 
-void GraphPanel::OnMatchingEnd() {
+void GraphPanel::OnMatchingEnd(const std::vector<unsigned int>& labelling) {
     openButton->Enable();
     deleteButton->Enable();
     connectButton->Enable();
@@ -192,6 +192,8 @@ void GraphPanel::OnMatchingEnd() {
     subdivideButton->Enable();
     undoButton->Enable();
     redoButton->Enable();
+
+    canvas->SetVertexLabels(labelling.data(), labelling.size());
 }
 
 void GraphPanel::OpenFromFile(wxCommandEvent& event) {
@@ -223,7 +225,7 @@ void GraphPanel::OpenFromFile(wxCommandEvent& event) {
                 canvas->SetVertexStates(vertexStates.data(), vertexStates.size());
                 canvas->SetEdges(edges.data(), edges.size() / 2);
 
-                fileOpenCallback();
+                clearMatchingCallback();
             } catch (const core::graph6FormatError& err) {
                 wxMessageBox("Could not open file " + fileDialog->GetFilename() + "\nError: " + err.what());
             }
