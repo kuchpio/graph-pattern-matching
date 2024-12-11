@@ -7,3 +7,6 @@ add_subdirectory(wxWidgets)
 add_subdirectory(minorminer)
 
 add_subdirectory(vf2lib)
+
+set(JSON_BuildTests OFF CACHE INTERNAL "")
+add_subdirectory(json)
