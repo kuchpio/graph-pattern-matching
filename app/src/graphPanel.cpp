@@ -6,6 +6,8 @@
 #include "wx/numformatter.h"
 #include "utils.h"
 #include <numeric>
+#include <filesystem>
+#include "image.h"
 
 #include "graphPanel.h"
 #include "graphCanvas.h"
@@ -36,11 +38,11 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
     auto saveButton = new wxButton(filePanel, wxID_ANY, "Save");
     openButton = new wxButton(filePanel, wxID_ANY, "Open");
     fileInfoLabel = new wxStaticText(filePanel, wxID_ANY, "Open a file to load the graph.");
-    auto vertexCountInput = new wxTextCtrl(filePanel, wxID_ANY);
+    vertexCountInput = new wxTextCtrl(filePanel, wxID_ANY);
     vertexCountInput->SetHint("Vertex count");
     vertexCountInput->SetMinSize(wxSize(120, wxDefaultCoord));
     vertexCountInput->Disable();
-    auto loadButton = new wxButton(filePanel, wxID_ANY, "Load");
+    loadButton = new wxButton(filePanel, wxID_ANY, "Load");
     loadButton->Disable();
     fileSizer->Add(saveButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
     fileSizer->Add(openButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
@@ -50,6 +52,38 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
     fileSizer->Add(loadButton, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT | wxTOP | wxBOTTOM, 5);
     filePanel->SetSizerAndFit(fileSizer);
     notebook->AddPage(filePanel, "File");
+
+    loadButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
+        auto vertexCount = 0;
+        auto vertexCountString = vertexCountInput->GetValue();
+        if (!vertexCountString.ToInt(&vertexCount)) {
+            wxMessageBox("Could not read requested vertex count.\nError: '" + vertexCountString + "' is not a number.");
+            return;
+        }
+
+		try {
+			auto [graph, vertexPositions] = image::grapherize(pathToImage, vertexCount);
+			manager.Initialize(std::move(graph), std::move(vertexPositions));
+		} catch (const std::runtime_error& err) {
+		    wxMessageBox("Could not load graph from given image.");
+            wxLogDebug("ERROR: %s", err.what());
+            return;
+		}
+
+		auto& vertexPositions2D = manager.Positions2D();
+		auto [boundingWidth, boundingHeight] = manager.BoundingSize();
+		auto [centerX, centerY] = manager.Center();
+		auto& vertexStates = manager.States();
+		auto edges = manager.GetEdges();
+
+		canvas->SetVertexPositions(vertexPositions2D.data(), vertexPositions2D.size() / 2);
+		canvas->SetBoundingSize(boundingWidth, boundingHeight);
+		canvas->SetCenterPosition(centerX, centerY);
+		canvas->SetVertexStates(vertexStates.data(), vertexStates.size());
+		canvas->SetEdges(edges.data(), edges.size() / 2);
+
+		this->clearMatchingCallback();
+    });
 
     auto modifyPanel = new wxPanel(notebook);
     auto modifySizer = new wxBoxSizer(wxHORIZONTAL);
@@ -210,38 +244,57 @@ void GraphPanel::OnMatchingEnd(const std::vector<unsigned int>& labelling) {
 
 void GraphPanel::OpenFromFile(wxCommandEvent& event) {
     auto fileDialog = new wxFileDialog(this, "Choose a file to open", wxEmptyString, wxEmptyString,
-                                       "Graph6 files (*.g6)|*.g6", wxFD_OPEN);
+                                       "Graph6 files (*.g6)|*.g6|Image files (*.png; *.jpeg)|*.png;*.jpeg", wxFD_OPEN);
 
-    if (fileDialog->ShowModal() == wxID_OK) {
+    if (fileDialog->ShowModal() != wxID_OK) {
+        fileDialog->Destroy();
+        return;
+    }
+
+    if (std::filesystem::path((const char*)fileDialog->GetPath()).extension() == ".g6") {
         wxFileInputStream inputStream(fileDialog->GetPath());
 
         if (!inputStream.IsOk()) {
             wxMessageBox("Could not open file: " + fileDialog->GetFilename());
-        } else {
-            wxTextInputStream graph6Stream(inputStream, wxT("\x09"), wxConvUTF8);
-            try {
-                auto graph = core::Graph6Serializer::Deserialize(graph6Stream.ReadLine().ToStdString());
-                fileInfoLabel->SetLabel(fileDialog->GetFilename() + " (Graph6)");
-
-                manager.Initialize(std::move(graph));
-
-                auto& vertexPositions2D = manager.Positions2D();
-                auto [boundingWidth, boundingHeight] = manager.BoundingSize();
-                auto [centerX, centerY] = manager.Center();
-                auto& vertexStates = manager.States();
-                auto edges = manager.GetEdges();
-
-                canvas->SetVertexPositions(vertexPositions2D.data(), vertexPositions2D.size() / 2);
-                canvas->SetBoundingSize(boundingWidth, boundingHeight);
-                canvas->SetCenterPosition(centerX, centerY);
-                canvas->SetVertexStates(vertexStates.data(), vertexStates.size());
-                canvas->SetEdges(edges.data(), edges.size() / 2);
-
-                clearMatchingCallback();
-            } catch (const core::graph6FormatError& err) {
-                wxMessageBox("Could not open file " + fileDialog->GetFilename() + "\nError: " + err.what());
-            }
+            fileDialog->Destroy();
+            return;
         }
+
+        wxTextInputStream graph6Stream(inputStream, wxT("\x09"), wxConvUTF8);
+
+        try {
+            auto graph = core::Graph6Serializer::Deserialize(graph6Stream.ReadLine().ToStdString());
+            fileInfoLabel->SetLabel(fileDialog->GetFilename() + " (Graph6)");
+            manager.Initialize(std::move(graph));
+        } catch (const core::graph6FormatError& err) {
+            wxMessageBox("Could not open file " + fileDialog->GetFilename() + "\nError: " + err.what());
+            fileDialog->Destroy();
+            return;
+        }
+
+        auto& vertexPositions2D = manager.Positions2D();
+        auto [boundingWidth, boundingHeight] = manager.BoundingSize();
+        auto [centerX, centerY] = manager.Center();
+        auto& vertexStates = manager.States();
+        auto edges = manager.GetEdges();
+
+        canvas->SetVertexPositions(vertexPositions2D.data(), vertexPositions2D.size() / 2);
+        canvas->SetBoundingSize(boundingWidth, boundingHeight);
+        canvas->SetCenterPosition(centerX, centerY);
+        canvas->SetVertexStates(vertexStates.data(), vertexStates.size());
+        canvas->SetEdges(edges.data(), edges.size() / 2);
+
+        clearMatchingCallback();
+
+        pathToImage = "";
+        vertexCountInput->Disable();
+        loadButton->Disable();
+    } else {
+        fileInfoLabel->SetLabel(fileDialog->GetFilename() + " (Image)");
+
+        pathToImage = fileDialog->GetPath();
+        vertexCountInput->Enable();
+        loadButton->Enable();
     }
 
     fileDialog->Destroy();

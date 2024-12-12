@@ -34,6 +34,35 @@ void GraphManager::Initialize(core::Graph&& newGraph) {
     dragging = false;
 }
 
+void GraphManager::Initialize(core::Graph&& newGraph, std::vector<std::pair<float, float>>&& vertexPositions) {
+    graph = newGraph;
+    vertexPositions2D[0] = std::vector<float>(2 * graph.size());
+    vertexPositions2D[1] = std::vector<float>(2 * graph.size());
+    vertexVelocities2D[0] = std::vector<float>(2 * graph.size());
+    vertexVelocities2D[1] = std::vector<float>(2 * graph.size());
+    vertexStates = std::vector<unsigned int>(graph.size());
+
+    float minX = FLT_MAX, minY = FLT_MAX, maxX = FLT_MIN, maxY = FLT_MIN;
+    for (unsigned int i = 0; i < graph.size(); i++) {
+        auto [newX, newY] = vertexPositions[i];
+        vertexPositions2D[readBufferId][2 * i] = newX;
+        vertexPositions2D[readBufferId][2 * i + 1] = newY;
+        vertexVelocities2D[readBufferId][2 * i] = vertexVelocities2D[readBufferId][2 * i + 1] = 0.0f;
+        vertexStates[i] = 0;
+
+        if (newX < minX) minX = newX;
+        if (newX > maxX) maxX = newX;
+        if (newY < minY) minY = newY;
+        if (newY > maxY) maxY = newY;
+    }
+
+    boundingWidth = maxX - minX;
+    boundingHeight = maxY - minY;
+    centerX = (minX + maxX) / 2;
+    centerY = (minY + maxY) / 2;
+    dragging = false;
+}
+
 void GraphManager::UpdatePositions(float deltaTimeSeconds) {
     float minX = FLT_MAX, minY = FLT_MAX, maxX = FLT_MIN, maxY = FLT_MIN;
 

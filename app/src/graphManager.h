@@ -23,6 +23,7 @@ class GraphManager {
     GraphManager();
 
     void Initialize(core::Graph&& graph);
+    void Initialize(core::Graph&& graph, std::vector<std::pair<float, float>>&& vertexPositions);
     void UpdatePositions(float deltaTimeSeconds);
 
     bool HandleClick(float x, float y, float nodeRadius, bool isCtrl, bool newVertexRequested);

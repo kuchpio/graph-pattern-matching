@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include <thread>
 #include "wx/wx.h"
 #include "core.h"
 #include "graphManager.h"
@@ -14,8 +15,11 @@ class GraphPanel : public wxPanel {
     wxButton *undoButton, *redoButton;
     wxStaticText *fileInfoLabel, *FPSInfoLabel;
     wxCheckBox* autoVertexPositioningCheckbox;
+    wxButton* loadButton;
+    wxTextCtrl* vertexCountInput;
     bool matching;
     const std::function<void()> clearMatchingCallback;
+    std::string pathToImage;
 
     GraphManager manager;
     using animationClock = std::chrono::high_resolution_clock;
