@@ -66,6 +66,7 @@ class CudaSubgraphMatcher : public SubgraphMatcher {
   public:
     std::optional<std::vector<vertex>> match(const core::Graph& bigGraph, const core::Graph& smallGraph);
     static constexpr uint32_t kDefaultBlockSize = 512;
+    static constexpr uint32_t notMapped = UINT32_MAX;
 
   private:
     std::vector<uint32_t> calculateScores(const core::Graph& smallGraph,
@@ -89,6 +90,7 @@ class CudaSubgraphMatcher : public SubgraphMatcher {
                                                  const CudaGraph& graph, uint32_t baseIndex);
 
     std::optional<std::vector<vertex>> obtainResult(const ResultTable& resultTable);
+    void freeNotMappedCandidates(const std::vector<uint32_t>& mapping, const std::vector<uint32_t*>& candidates);
 
     // ResultTable resultTable_ = ResultTable();
     uint32_t block_size_ = kDefaultBlockSize;

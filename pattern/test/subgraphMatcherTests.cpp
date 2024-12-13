@@ -106,7 +106,7 @@ TEST(Vf2SubgraphIsomorphism, small_subgraph) {
     EXPECT_TRUE(utils::MatchingChecker::checkSubgraphMatching(G, Q, matching.value()));
 }
 
-TEST(CudaSubgraphMatcher, small_subgraph) {
+TEST(CudaSubgraphIsomorphism, small_subgraph) {
     // Create the larger graph G
     std::size_t graphSize = 5;
     std::size_t subgraphSize = 4;
@@ -313,5 +313,17 @@ TEST(NativeInducedSubgraphIsomorphism, small_induced_subgraph) {
     EXPECT_TRUE(matching.has_value());
 
     EXPECT_TRUE(utils::MatchingChecker::checkInducedSubgraphMatching(G, Q, matching.value()));
+}
+
+TEST(CudaSubgraphIsomorphism, randomBigSearchGraph) {
+    std::size_t bigGraphSize = 600;
+    std::size_t smallGraphSize = 20;
+
+    auto G = utils::GraphFactory::random_connected_graph(bigGraphSize, 0.04f);
+    auto Q = utils::GraphFactory::random_connected_graph(smallGraphSize, 0.8f);
+
+    auto matcher = CudaSubgraphMatcher();
+    auto matching = matcher.match(G, Q);
+    EXPECT_FALSE(matching.has_value());
 }
 } // namespace pattern
