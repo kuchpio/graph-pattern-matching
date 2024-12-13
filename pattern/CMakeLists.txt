@@ -11,6 +11,7 @@ add_library(pattern STATIC
             "src/subgraphSolvers/vf2_subisomorphism_solver.cpp"
             "src/subgraphSolvers/vf2_induced_subgraph_solver.cpp"
             "src/isomorphismSolvers/vf2_isomorphism_solver.cpp"
+            "src/minorSolvers/topological_minor_heuristic.cpp"
             )
 target_include_directories(pattern PUBLIC "include" "include/minorSolvers" "include/subgraphSolvers" 
                             "include/isomorphismSolvers" "include/subgraphSolvers" ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
