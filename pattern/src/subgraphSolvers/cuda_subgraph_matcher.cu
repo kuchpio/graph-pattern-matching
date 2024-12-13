@@ -109,7 +109,6 @@ __global__ void joinResultTableRowFirst(uint32_t v, uint32_t rowCount, uint32_t*
         }
         index += blockDim.x;
     }
-    //__syncthreads(); // commentable see if speeds up!
 
     index = threadIdx.x;
     // buf(i) & C(v)
@@ -138,7 +137,6 @@ __global__ void joinResultTableRowSecond(uint32_t firstVertex, uint32_t currentV
     uint32_t* buf = GBA + GBAOffsets[row];
 
     auto vertexOffset = row * resultTableSize;
-
     auto rowNeighbours = neighbours + neighboursOffset[resultTableData[vertexOffset + currentVertex]];
     auto baseNeighbours = neighbours + neighboursOffset[resultTableData[vertexOffset + firstVertex]];
     auto currentNeighboursSize = neighboursOffset[resultTableData[vertexOffset + currentVertex] + 1] -
@@ -173,43 +171,6 @@ __device__ uint32_t binarySearch(const uint32_t* arr, int32_t size, int32_t targ
         }
     }
     return UINT32_MAX;
-}
-
-CudaGraph::CudaGraph(const core::Graph& G) {
-    neighbours = std::vector<uint32_t>(G.edge_count());
-    neighboursOffset = std::vector<uint32_t>(G.size() + 1);
-
-    uint32_t offset = 0;
-    for (uint32_t v = 0; v < G.size(); v++) {
-        neighboursOffset[v] = offset;
-        for (uint32_t u : G.get_neighbours(v)) {
-            neighbours[offset++] = u;
-        }
-        std::sort(neighbours.begin() + neighboursOffset[v], neighbours.begin() + offset);
-    }
-    neighboursOffset.back() = offset;
-    this->allocGPU();
-}
-
-void CudaGraph::allocGPU() {
-    dev_neighboursOffset = cuda::malloc<uint32_t>(this->neighboursOffset.size());
-    dev_neighbours = cuda::malloc<uint32_t>(this->neighbours.size());
-    dev_size = cuda::malloc<uint32_t>(1);
-    dev_edgeCount = cuda::malloc<uint32_t>(1);
-    auto size = this->size();
-    uint32_t edgeCount = this->neighbours.size();
-
-    cuda::memcpy_host_dev<uint32_t>(dev_neighboursOffset, neighboursOffset.data(), neighboursOffset.size());
-    cuda::memcpy_host_dev<uint32_t>(dev_neighbours, neighbours.data(), neighbours.size());
-    cuda::memcpy_host_dev<uint32_t>(dev_size, &size, 1);
-    cuda::memcpy_host_dev<uint32_t>(dev_edgeCount, &edgeCount, 1);
-}
-
-void CudaGraph::freeGPU() {
-    cuda::free(dev_neighbours);
-    cuda::free(dev_neighboursOffset);
-    cuda::free(dev_size);
-    cuda::free(dev_edgeCount);
 }
 
 __device__ uint32_t CudaGraph::dev_neighboursOut(uint32_t v) const {
@@ -492,5 +453,42 @@ void CudaSubgraphMatcher::freeNotMappedCandidates(const std::vector<uint32_t>& m
             cuda::free(candidates[mapIndex]);
         }
     }
+}
+
+CudaGraph::CudaGraph(const core::Graph& G) {
+    neighbours = std::vector<uint32_t>(G.edge_count());
+    neighboursOffset = std::vector<uint32_t>(G.size() + 1);
+
+    uint32_t offset = 0;
+    for (uint32_t v = 0; v < G.size(); v++) {
+        neighboursOffset[v] = offset;
+        for (uint32_t u : G.get_neighbours(v)) {
+            neighbours[offset++] = u;
+        }
+        std::sort(neighbours.begin() + neighboursOffset[v], neighbours.begin() + offset);
+    }
+    neighboursOffset.back() = offset;
+    this->allocGPU();
+}
+
+void CudaGraph::allocGPU() {
+    dev_neighboursOffset = cuda::malloc<uint32_t>(this->neighboursOffset.size());
+    dev_neighbours = cuda::malloc<uint32_t>(this->neighbours.size());
+    dev_size = cuda::malloc<uint32_t>(1);
+    dev_edgeCount = cuda::malloc<uint32_t>(1);
+    auto size = this->size();
+    uint32_t edgeCount = this->neighbours.size();
+
+    cuda::memcpy_host_dev<uint32_t>(dev_neighboursOffset, neighboursOffset.data(), neighboursOffset.size());
+    cuda::memcpy_host_dev<uint32_t>(dev_neighbours, neighbours.data(), neighbours.size());
+    cuda::memcpy_host_dev<uint32_t>(dev_size, &size, 1);
+    cuda::memcpy_host_dev<uint32_t>(dev_edgeCount, &edgeCount, 1);
+}
+
+void CudaGraph::freeGPU() {
+    cuda::free(dev_neighbours);
+    cuda::free(dev_neighboursOffset);
+    cuda::free(dev_size);
+    cuda::free(dev_edgeCount);
 }
 } // namespace pattern
