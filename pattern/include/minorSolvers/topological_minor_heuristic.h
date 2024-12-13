@@ -9,7 +9,8 @@ class TopologicalMinorHeuristic : public MinorMatcher {
     std::optional<std::vector<vertex>> match(const core::Graph& G, const core::Graph& Q) override;
 
   private:
-    void topologicalMinorRecursion();
+    std::optional<std::vector<vertex>> tpRecursion(const core::Graph& G, const core::Graph H, int depth);
+    static core::Graph subdivideEdge(const core::Graph& G, vertex u, vertex v);
     Vf2SubgraphSolver subgraphSolver = Vf2SubgraphSolver();
 };
 } // namespace pattern

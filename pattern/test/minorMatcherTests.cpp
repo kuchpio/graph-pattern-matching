@@ -2,6 +2,8 @@
 #include "miner_minor_matcher.hpp"
 #include "native_minor_matcher.h"
 #include "topological_minor_matcher.h"
+#include "topological_minor_heuristic.h"
+
 #include "gtest/gtest.h"
 namespace pattern
 {
@@ -167,9 +169,40 @@ TEST(TopologicalMinorIsomorphism, HasMinorNotTopological) {
     Q.add_edge(2, 4);
     Q.add_edge(3, 4);
 
-    auto matcher = TopologicalMinorMatcher();
+    auto matcher = TopologicalMinorHeuristic();
 
     // Check for minor relationship - expecting true because Q can be derived from G
     EXPECT_FALSE(matcher.match(G, Q).has_value());
 }
+TEST(TopologicalMinorIsomorphism, HasTopologicalMinor) {
+    std::size_t graph_size = 6;
+    std::size_t subgraph_size = 4;
+
+    // Create the larger graph G
+    core::Graph G = core::Graph(graph_size);
+    core::Graph Q = core::Graph(subgraph_size);
+
+    // Define edges for the larger graph G
+    // G forms a "hexagon" with an additional edge
+    G.add_edge(0, 1);
+    G.add_edge(1, 2);
+    G.add_edge(2, 3);
+    G.add_edge(3, 4);
+    G.add_edge(4, 5);
+    G.add_edge(5, 0);
+    G.add_edge(1, 4); // Extra edge to make Q a topological minor
+
+    // Define edges for the smaller graph Q (square with a diagonal)
+    Q.add_edge(0, 1);
+    Q.add_edge(1, 2);
+    Q.add_edge(2, 3);
+    Q.add_edge(3, 0);
+    Q.add_edge(1, 3); // Diagonal edge
+
+    auto matcher = TopologicalMinorHeuristic();
+
+    // Check for minor relationship - expecting true because Q is a topological minor of G
+    EXPECT_TRUE(matcher.match(G, Q).has_value());
+}
+
 } // namespace pattern
