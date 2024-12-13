@@ -8,19 +8,21 @@ std::optional<std::vector<vertex>> TopologicalMinorHeuristic::match(const core::
     if (H.size() > G.size()) return std::nullopt;
     auto subgraphMatching = subgraphSolver.match(G, H);
     if (subgraphMatching) return subgraphMatching;
-    return std::nullopt;
+
+    return tpRecursion(G, H, 0);
 }
 
 std::optional<std::vector<vertex>> TopologicalMinorHeuristic::tpRecursion(const core::Graph& G, const core::Graph H,
                                                                           int depth) {
     if (depth > MAX_RECURSION_DEPTH) return std::nullopt;
     if (H.size() > G.size()) return std::nullopt;
-    auto subgraphMatching = subgraphSolver.match(G, H);
-    if (subgraphMatching) return subgraphMatching;
 
     // iterate throug all edges
     for (auto [u, v] : H.edges()) {
         auto newMinor = subdivideEdge(H, u, v);
+        auto subgraphMatching = subgraphSolver.match(G, H);
+        if (subgraphMatching) return subgraphMatching;
+
         auto matching = tpRecursion(G, newMinor, depth + 1);
         if (matching) return matching;
     }
