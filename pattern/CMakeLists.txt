@@ -1,4 +1,8 @@
-﻿
+﻿if(WITH_CUDA)
+    set(CUDA_ENABLED 1)
+endif()
+configure_file("${PROJECT_SOURCE_DIR}/app/src/config.h.in" "${PROJECT_BINARY_DIR}/config/config.h")
+
 add_library(pattern STATIC 
             "src/isomorphismSolvers/native_isomorphism_matcher.cpp"
             "src/subgraphSolvers/native_subgraph_matcher.cpp"  
@@ -14,7 +18,7 @@ add_library(pattern STATIC
             "src/subgraphSolvers/cuda_subgraph_matcher.cu"
             )
 target_include_directories(pattern PUBLIC "include" "include/minorSolvers" "include/subgraphSolvers" 
-                            "include/isomorphismSolvers"  ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+                            "include/isomorphismSolvers" "${PROJECT_BINARY_DIR}/config" ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
 set_target_properties(pattern PROPERTIES CUDA_ARCHITECTURES "61" CXX_STANDARD 20)
 
