@@ -194,6 +194,7 @@ const core::Graph& GraphPanel::GetGraph() const {
 void GraphPanel::OnMatchingStart() {
     matching = true;
     openButton->Disable();
+    loadButton->Disable();
     deleteButton->Disable();
     connectButton->Disable();
     disconnectButton->Disable();
@@ -206,6 +207,7 @@ void GraphPanel::OnMatchingStart() {
 void GraphPanel::OnMatchingEnd(const std::vector<unsigned int>& labelling) {
     matching = false;
     openButton->Enable();
+    if (pathToImage != "") loadButton->Enable();
     deleteButton->Enable();
     connectButton->Enable();
     disconnectButton->Enable();
@@ -269,7 +271,7 @@ void GraphPanel::OpenFromFile(wxCommandEvent& event) {
 
         pathToImage = fileDialog->GetPath();
         vertexCountInput->Enable();
-        loadButton->Enable();
+        if (!matching) loadButton->Enable();
     }
 
     fileDialog->Destroy();

@@ -54,6 +54,7 @@ std::pair<core::Graph, std::vector<std::pair<float, float>>> grapherize(const st
     std::vector<std::tuple<vertex, vertex>> edges;
     for (const auto& edge : graphData["edges"]) {
         edges.emplace_back(edge["source"], edge["target"]);
+        edges.emplace_back(edge["target"], edge["source"]);
     }
     core::Graph graph(edges);
 
