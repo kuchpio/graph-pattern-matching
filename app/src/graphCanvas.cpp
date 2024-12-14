@@ -1,6 +1,7 @@
 #include "glad/glad.h"
 #include "wx/msgdlg.h"
 #include "wx/stdpaths.h"
+#include "wx/settings.h"
 #include <optional>
 #include <filesystem>
 #include <fstream>
