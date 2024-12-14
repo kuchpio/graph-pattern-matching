@@ -33,15 +33,14 @@ Frame::Frame(const wxString& title)
     auto optionsButton = new wxButton(mainPanel, wxID_ANY, "Settings");
 
     auto mainPanelSizer = new wxBoxSizer(wxHORIZONTAL);
-    mainPanelSizer->Add(modeLabel, 0, wxALIGN_CENTER);
+    mainPanelSizer->Add(modeLabel, 0, wxALIGN_CENTER | wxLEFT, 5);
     mainPanelSizer->Add(inducedCheckbox, 0, wxALIGN_CENTER | wxLEFT, 10);
     mainPanelSizer->Add(subgraphRadioButton, 0, wxALIGN_CENTER | wxLEFT, 10);
     mainPanelSizer->Add(minorRadioButton, 0, wxALIGN_CENTER | wxLEFT, 10);
     mainPanelSizer->Add(topologicalMinorRadioButton, 0, wxALIGN_CENTER | wxLEFT, 10);
-    mainPanelSizer->AddStretchSpacer(1);
-    mainPanelSizer->Add(startStopMatchingButton, 0, wxALIGN_CENTER);
+    mainPanelSizer->Add(startStopMatchingButton, 0, wxALIGN_CENTER | wxLEFT, 10);
     mainPanelSizer->Add(matchingStatus, 0, wxALIGN_CENTER | wxLEFT, 10);
-    mainPanelSizer->AddStretchSpacer(2);
+    mainPanelSizer->AddStretchSpacer(1);
     mainPanelSizer->Add(optionsButton, 0, wxALIGN_CENTER);
     auto mainPanelPaddedSizer = new wxBoxSizer(wxVERTICAL);
     mainPanelPaddedSizer->Add(mainPanelSizer, 0, wxALL | wxEXPAND, 5);
@@ -55,8 +54,8 @@ Frame::Frame(const wxString& title)
     splitter->SetSashGravity(0.5);
     splitter->SplitVertically(searchSpacePanel, patternPanel);
 
-    sizer->Add(mainPanel, 0, wxEXPAND);
     sizer->Add(splitter, 1, wxEXPAND);
+    sizer->Add(mainPanel, 0, wxEXPAND);
 
     this->SetSizerAndFit(sizer);
 

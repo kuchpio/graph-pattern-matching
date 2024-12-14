@@ -20,6 +20,10 @@ GraphCanvas::GraphCanvas(wxWindow* parent, const wxGLAttributes& canvasAttrs) : 
         openGLContext = nullptr;
     }
 
+    wxSystemSettings systemSettings;
+    auto isDark = systemSettings.GetAppearance().IsDark();
+    backgroundColor = isDark ? darkModeBackground : lightModeBackground;
+
     Bind(wxEVT_PAINT, &GraphCanvas::OnPaint, this);
     Bind(wxEVT_SIZE, &GraphCanvas::OnSize, this);
 }
@@ -39,7 +43,7 @@ void GraphCanvas::OnPaint(wxPaintEvent& WXUNUSED(event)) {
     if (!isOpenGLInitialized) return;
     SetCurrent(*openGLContext);
 
-    glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
+    glClearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]);
     glClear(GL_COLOR_BUFFER_BIT);
 
     glUseProgram(edgeShaderProgram);
@@ -104,6 +108,7 @@ bool GraphCanvas::InitializeOpenGL() {
     glGenBuffers(1, &vertexLabelsBuffer);
     glGenBuffers(1, &edgesBuffer);
     glGenBuffers(1, &settingsUniformBufferObject);
+    glGenBuffers(1, &colorsUniformBufferObject);
 
     glBindVertexArray(vertexArrayObject);
 
@@ -126,14 +131,25 @@ bool GraphCanvas::InitializeOpenGL() {
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, edgesBuffer);
 
-    unsigned int uniformBlockIndexNode = glGetUniformBlockIndex(nodeShaderProgram, "settings");
-    unsigned int uniformBlockIndexEdge = glGetUniformBlockIndex(edgeShaderProgram, "settings");
-    glUniformBlockBinding(nodeShaderProgram, uniformBlockIndexNode, 0);
-    glUniformBlockBinding(edgeShaderProgram, uniformBlockIndexEdge, 0);
+    unsigned int settingsUniformIndexNode = glGetUniformBlockIndex(nodeShaderProgram, "settings");
+    unsigned int settingsUniformIndexEdge = glGetUniformBlockIndex(edgeShaderProgram, "settings");
+    glUniformBlockBinding(nodeShaderProgram, settingsUniformIndexNode, 0);
+    glUniformBlockBinding(edgeShaderProgram, settingsUniformIndexEdge, 0);
     glBindBuffer(GL_UNIFORM_BUFFER, settingsUniformBufferObject);
     glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * (2 + 2 + 2 + 1 + 1), NULL, GL_STATIC_DRAW);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
     glBindBufferRange(GL_UNIFORM_BUFFER, 0, settingsUniformBufferObject, 0, sizeof(float) * (2 + 2 + 2 + 1 + 1));
+
+    wxSystemSettings systemSettings;
+    auto isDark = systemSettings.GetAppearance().IsDark();
+    unsigned int colorsUniformIndexNode = glGetUniformBlockIndex(nodeShaderProgram, "colors");
+    unsigned int colorsUniformIndexEdge = glGetUniformBlockIndex(edgeShaderProgram, "colors");
+    glUniformBlockBinding(nodeShaderProgram, colorsUniformIndexNode, 1);
+    glUniformBlockBinding(edgeShaderProgram, colorsUniformIndexEdge, 1);
+    glBindBuffer(GL_UNIFORM_BUFFER, colorsUniformBufferObject);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 4 * (4 + 9), isDark ? darkModeColors : lightModeColors, GL_STATIC_DRAW);
+    glBindBufferRange(GL_UNIFORM_BUFFER, 1, colorsUniformBufferObject, 0, sizeof(float) * 4 * (4 + 9));
+
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     SetNodeSize(NODE_RADIUS, NODE_BORDER);
     glLineWidth(EDGE_WIDTH);

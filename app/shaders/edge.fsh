@@ -2,7 +2,13 @@
 
 out vec4 FragColor;
 
+layout (std140) uniform colors
+{
+	vec4 nodeBorderArray[4];
+	vec4 nodeColorArray[9];
+};
+
 void main()
 {
-	FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+	FragColor = nodeBorderArray[0];
 }

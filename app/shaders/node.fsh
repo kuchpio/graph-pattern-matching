@@ -14,15 +14,14 @@ layout (std140) uniform settings
 	float nodeBorder;
 };
 
+layout (std140) uniform colors
+{
+	vec4 nodeBorderArray[4];
+	vec4 nodeColorArray[9];
+};
+
 void main()
 {
-	const vec4 nodeBorderArray[4] = vec4[4] (
-		vec4(0.0, 0.0, 0.0, 1.0),
-		vec4(0.0, 0.0, 0.6, 1.0),
-		vec4(0.6, 0.0, 0.0, 1.0),
-		vec4(0.3, 0.0, 0.3, 1.0)
-	);
-
 	float borderToRadius = nodeBorder / nodeRadius;
 	float borderInnerThreshold = (1.0 - 2 * borderToRadius) * (1.0 - 2 * borderToRadius);
 	float borderOuterThreshold = nodeBorderIndex > 0u ? 1.0 : (1.0 - borderToRadius) * (1.0 - borderToRadius);

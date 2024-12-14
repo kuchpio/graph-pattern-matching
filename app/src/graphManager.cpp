@@ -44,7 +44,8 @@ void GraphManager::Initialize(core::Graph&& newGraph, std::vector<std::pair<floa
 
     float minX = FLT_MAX, minY = FLT_MAX, maxX = FLT_MIN, maxY = FLT_MIN;
     for (unsigned int i = 0; i < graph.size(); i++) {
-        auto [newX, newY] = vertexPositions[i];
+        auto [newY, newX] = vertexPositions[i];
+        newY = -newY;
         vertexPositions2D[readBufferId][2 * i] = newX;
         vertexPositions2D[readBufferId][2 * i + 1] = newY;
         vertexVelocities2D[readBufferId][2 * i] = vertexVelocities2D[readBufferId][2 * i + 1] = 0.0f;

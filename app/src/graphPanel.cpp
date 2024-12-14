@@ -4,7 +4,6 @@
 #include "wx/txtstrm.h"
 #include "wx/notebook.h"
 #include "wx/numformatter.h"
-#include "utils.h"
 #include <numeric>
 #include <filesystem>
 #include "image.h"
@@ -15,19 +14,6 @@
 GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<void()> clearMatchingCallback)
     : wxPanel(parent), clearMatchingCallback(clearMatchingCallback), matching(false) {
     auto sizer = new wxBoxSizer(wxVERTICAL);
-
-    wxGLAttributes vAttrs;
-    vAttrs.PlatformDefaults().Defaults().EndList();
-
-    if (wxGLCanvas::IsDisplaySupported(vAttrs)) {
-        canvas = new GraphCanvas(this, vAttrs);
-        canvas->SetInitialSize(wxSize(0, 360));
-        sizer->Add(canvas, 1, wxEXPAND);
-        canvas->Bind(wxEVT_LEFT_DOWN, &GraphPanel::OnCanvasClick, this);
-        canvas->Bind(wxEVT_LEFT_DCLICK, &GraphPanel::OnCanvasClick, this);
-        canvas->Bind(wxEVT_MOTION, &GraphPanel::OnCanvasMotion, this);
-        canvas->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent& event) { manager.OnDrop(); });
-    }
 
     auto nameLabel = new wxStaticText(this, wxID_ANY, title);
 
@@ -156,7 +142,7 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
     drawSizer->Add(freeButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
     drawSizer->Add(autoVertexPositioningCheckbox, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
     drawSizer->AddStretchSpacer(1);
-    drawSizer->Add(FPSInfoLabel, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
+    drawSizer->Add(FPSInfoLabel, 0, wxALIGN_CENTER | wxALL, 5);
     drawPanel->SetSizerAndFit(drawSizer);
     notebook->AddPage(drawPanel, "View");
 
@@ -176,37 +162,26 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
     });
     autoVertexPositioningCheckbox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& event) { manager.Stop(); });
 
-    auto testPanel = new wxPanel(notebook);
-    auto testSizer = new wxBoxSizer(wxHORIZONTAL);
-    auto initButton = new wxButton(testPanel, wxID_ANY, "Create");
-    testSizer->Add(initButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
-    testSizer->AddStretchSpacer(1);
-    testPanel->SetSizerAndFit(testSizer);
-    notebook->AddPage(testPanel, "Test");
-
     sizer->Add(nameLabel, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, 5);
     sizer->Add(notebook, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+
+    wxGLAttributes vAttrs;
+    vAttrs.PlatformDefaults().Defaults().EndList();
+
+    if (wxGLCanvas::IsDisplaySupported(vAttrs)) {
+        canvas = new GraphCanvas(this, vAttrs);
+        canvas->SetInitialSize(wxSize(0, 360));
+        sizer->Add(canvas, 1, wxEXPAND);
+        canvas->Bind(wxEVT_LEFT_DOWN, &GraphPanel::OnCanvasClick, this);
+        canvas->Bind(wxEVT_LEFT_DCLICK, &GraphPanel::OnCanvasClick, this);
+        canvas->Bind(wxEVT_MOTION, &GraphPanel::OnCanvasMotion, this);
+        canvas->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent& event) { manager.OnDrop(); });
+    }
+
     this->SetSizerAndFit(sizer);
 
     openButton->Bind(wxEVT_BUTTON, &GraphPanel::OpenFromFile, this);
     saveButton->Bind(wxEVT_BUTTON, &GraphPanel::SaveToFile, this);
-    initButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
-        auto graph = utils::GraphFactory::random_graph(5, 0.5f);
-
-        manager.Initialize(std::move(graph));
-
-        auto& vertexPositions2D = manager.Positions2D();
-        auto [boundingWidth, boundingHeight] = manager.BoundingSize();
-        auto [centerX, centerY] = manager.Center();
-        auto& vertexStates = manager.States();
-        auto edges = manager.GetEdges();
-
-        canvas->SetVertexPositions(vertexPositions2D.data(), vertexPositions2D.size() / 2);
-        canvas->SetBoundingSize(boundingWidth, boundingHeight);
-        canvas->SetCenterPosition(centerX, centerY);
-        canvas->SetVertexStates(vertexStates.data(), vertexStates.size());
-        canvas->SetEdges(edges.data(), edges.size() / 2);
-    });
 
     lastFrameTime = animationClock::now();
     Bind(wxEVT_IDLE, &GraphPanel::OnIdle, this);
@@ -244,7 +219,7 @@ void GraphPanel::OnMatchingEnd(const std::vector<unsigned int>& labelling) {
 
 void GraphPanel::OpenFromFile(wxCommandEvent& event) {
     auto fileDialog = new wxFileDialog(this, "Choose a file to open", wxEmptyString, wxEmptyString,
-                                       "Graph6 files (*.g6)|*.g6|Image files (*.png; *.jpeg)|*.png;*.jpeg", wxFD_OPEN);
+                                       "Graph6 files (*.g6)|*.g6|Image files (*.png; *.jpg; *.jpeg)|*.png;*.jpg;*.jpeg", wxFD_OPEN);
 
     if (fileDialog->ShowModal() != wxID_OK) {
         fileDialog->Destroy();

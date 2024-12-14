@@ -16,6 +16,12 @@ layout (std140) uniform settings
 	float nodeBorder;
 };
 
+layout (std140) uniform colors
+{
+	vec4 nodeBorderArray[4];
+	vec4 nodeColorArray[9];
+};
+
 void main()
 {
 	const vec2 quadCoordArray[6] = vec2[6] (
@@ -25,17 +31,6 @@ void main()
 		vec2(-1.0, 1.0),
 		vec2(-1.0, -1.0),
 		vec2(1.0, -1.0)
-	);
-	const vec4 nodeColorArray[9] = vec4[9] (
-		vec4(0.75, 0.75, 0.75, 1.0),
-		vec4(0.76, 0.29, 0.30, 1.0),
-		vec4(0.44, 0.59, 0.28, 1.0),
-		vec4(0.22, 0.82, 0.80, 1.0),
-		vec4(0.76, 0.68, 0.28, 1.0),
-		vec4(0.63, 0.30, 0.61, 1.0),
-		vec4(0.41, 0.50, 0.85, 1.0),
-		vec4(0.75, 0.44, 0.20, 1.0),
-		vec4(0.28, 0.76, 0.57, 1.0)
 	);
 
 	quadCoord = quadCoordArray[gl_VertexID % 6];

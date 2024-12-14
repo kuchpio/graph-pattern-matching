@@ -11,6 +11,12 @@ layout (std140) uniform settings
 	float nodeBorder;
 };
 
+layout (std140) uniform colors
+{
+	vec4 nodeBorderArray[4];
+	vec4 nodeColorArray[9];
+};
+
 void main()
 {
 	vec2 ratio = (canvasSize - 3 * nodeRadius) / boundingSize;
