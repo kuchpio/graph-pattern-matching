@@ -9,7 +9,8 @@
 #include "induced_subgraph_matcher.h"
 #include "minor_matcher.h"
 #include "induced_minor_matcher.h"
-#include "topological_minor_matcher.h"
+#include "topological_minor_heuristic.h"
+#include "induced_topological_minor_heuristic.h"
 #include "topological_induced_minor_matcher.h"
 
 #include "frame.h"
@@ -155,8 +156,8 @@ pattern::PatternMatcher* Frame::GetSelectedMatcher() const {
     }
 
     if (inducedCheckbox->GetValue()) {
-        return new pattern::TopologicalInducedMinorMatcher();
+        return new pattern::InducedTopologicalMinorHeuristic();
     }
 
-    return new pattern::TopologicalMinorMatcher();
+    return new pattern::TopologicalMinorHeuristic();
 }

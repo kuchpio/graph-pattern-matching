@@ -12,26 +12,28 @@ std::optional<std::vector<vertex>> TopologicalMinorHeuristic::match(const core::
     return tpRecursion(G, H, 0);
 }
 
-std::optional<std::vector<vertex>> TopologicalMinorHeuristic::tpRecursion(const core::Graph& G, const core::Graph H,
+std::optional<std::vector<vertex>> TopologicalMinorHeuristic::tpRecursion(const core::Graph G, const core::Graph& H,
                                                                           int depth) {
     if (depth > MAX_RECURSION_DEPTH) return std::nullopt;
     if (H.size() > G.size()) return std::nullopt;
 
-    // iterate throug all edges
-    for (auto [u, v] : H.edges()) {
-        auto newMinor = subdivideEdge(H, u, v);
-        auto subgraphMatching = subgraphSolver.match(G, H);
-        if (subgraphMatching) return subgraphMatching;
+    auto subgraphMatching = subgraphSolver.match(G, H);
+    if (subgraphMatching) return subgraphMatching;
 
-        auto matching = tpRecursion(G, newMinor, depth + 1);
-        if (matching) return matching;
+    // iterate throug all edges
+    for (auto [u, v] : G.edges()) {
+        if(G.degree_in(v) + G.degree_out(v) == 2) {
+            auto newMinor = contractEdge(G, u, v);
+            auto matching = tpRecursion(G, newMinor, depth + 1);
+            if (matching) return matching;
+        }
     }
     return std::nullopt;
 }
 
-core::Graph TopologicalMinorHeuristic::subdivideEdge(const core::Graph& G, vertex u, vertex v) {
+core::Graph TopologicalMinorHeuristic::contractEdge(const core::Graph& G, vertex u, vertex v) {
     core::Graph Q = core::Graph(G);
-    Q.subdivide_edge(u, v);
+    Q.contract_edge(u, v);
     return Q;
 }
 
