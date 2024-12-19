@@ -92,7 +92,7 @@ bool Graph::remove_vertex(vertex v) {
 bool Graph::remove_vertices(const std::vector<vertex>& verticesSortedDesc) {
 
     // 1. Preprocessing
-    bool* toBeRemoved = new bool[_adjacencyList.size()]{false};
+    int* toBeRemoved = new int[_adjacencyList.size()]{false};
     for (auto v : verticesSortedDesc) toBeRemoved[v] = true;
     vertex* vertexIndexDelta = new vertex[_adjacencyList.size() + 1];
     vertexIndexDelta[0] = 0;
@@ -128,6 +128,11 @@ vertex Graph::degree_out(vertex v) const {
 }
 
 std::vector<vertex> Graph::get_neighbours(vertex v) const {
+    if (v >= this->size()) return std::vector<vertex>();
+    return Graph::_adjacencyList[v];
+}
+
+const std::vector<vertex>& Graph::neighbours(vertex v) const {
     if (v >= this->size()) return std::vector<vertex>();
     return Graph::_adjacencyList[v];
 }

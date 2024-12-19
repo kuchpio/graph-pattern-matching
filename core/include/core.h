@@ -34,6 +34,7 @@ class Graph {
     vertex edge_count() const;
     std::vector<std::tuple<vertex, vertex>> edges() const;
     std::vector<vertex> get_neighbours(vertex v) const;
+    const std::vector<vertex>& neighbours(vertex v) const;
 
     void topological_sort();
     void reorder(const std::vector<vertex>& order);

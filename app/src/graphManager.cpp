@@ -2,6 +2,7 @@
 
 #include <math.h>
 #include <cfloat>
+#include <algorithm>
 
 GraphManager::GraphManager() : graph(0), boundingWidth(0), boundingHeight(0), centerX(0), centerY(0), dragging(false) {
 }
@@ -190,7 +191,76 @@ void GraphManager::DisconnectSelection() {
 }
 
 void GraphManager::ContractSelection() {
-    // TODO
+
+    // 1. Preprocessing
+    auto size = graph.size();
+    std::vector<vertex> selectedVertices;
+    bool* visited = new bool[size];
+    for (unsigned int i = size; i > 0; i--) {
+        vertex v = i - 1;
+        if (vertexStates[v] & 0b01u) {
+            selectedVertices.emplace_back(v);
+        }    
+        visited[v] = !(vertexStates[v] & 0b01u);
+    }
+
+    // 2. Add vertex for each connected component and edges between them.
+    std::vector<vertex> toVisit;
+    std::vector<vertex> nonContractedEnds;
+    for (vertex v = 0; v < size; v++) {
+        if (visited[v]) continue;
+        toVisit.emplace_back(v);
+        float x = 0.0f, y = 0.0f, v_x = 0.0f, v_y = 0.0f;
+        unsigned int ccSize = 0;
+        while (!toVisit.empty()) {
+            vertex u = toVisit.back();
+            toVisit.pop_back();
+            visited[u] = true;
+            x += vertexPositions2D[readBufferId][2 * u];
+            y += vertexPositions2D[readBufferId][2 * u + 1];
+            v_x += vertexVelocities2D[readBufferId][2 * u];
+            v_y += vertexVelocities2D[readBufferId][2 * u + 1];
+            ccSize++;
+            for (auto w : graph.neighbours(u)) {
+                if (!(vertexStates[w] & 0b01u)) {
+                    nonContractedEnds.emplace_back(w);
+                }
+                if (!visited[w]) {
+                    toVisit.emplace_back(w);
+                }
+            }
+        }
+
+        auto uniqueEnd = std::unique(nonContractedEnds.begin(), nonContractedEnds.end());
+        nonContractedEnds.erase(uniqueEnd, nonContractedEnds.end());
+
+        vertex cc = graph.add_vertex();
+        vertexPositions2D[readBufferId].push_back(x / ccSize);
+        vertexPositions2D[readBufferId].push_back(y / ccSize);
+        vertexPositions2D[1 - readBufferId].push_back(0.0f);
+        vertexPositions2D[1 - readBufferId].push_back(0.0f);
+        vertexVelocities2D[readBufferId].push_back(v_x / ccSize);
+        vertexVelocities2D[readBufferId].push_back(v_y / ccSize);
+        vertexVelocities2D[1 - readBufferId].push_back(0.0f);
+        vertexVelocities2D[1 - readBufferId].push_back(0.0f);
+        vertexStates.push_back(0b01u);
+        while (!nonContractedEnds.empty()) {
+            vertex u = nonContractedEnds.back();    
+            nonContractedEnds.pop_back();
+            graph.add_edge(cc, u);
+            graph.add_edge(u, cc);
+        }
+    }
+
+    // 3. Remove vertices from each connected component
+    for (auto v : selectedVertices) {
+		vertexPositions2D[0].erase(vertexPositions2D[0].begin() + 2 * v, vertexPositions2D[0].begin() + 2 * v + 2);
+		vertexPositions2D[1].erase(vertexPositions2D[1].begin() + 2 * v, vertexPositions2D[1].begin() + 2 * v + 2);
+		vertexVelocities2D[0].erase(vertexVelocities2D[0].begin() + 2 * v, vertexVelocities2D[0].begin() + 2 * v + 2);
+		vertexVelocities2D[1].erase(vertexVelocities2D[1].begin() + 2 * v, vertexVelocities2D[1].begin() + 2 * v + 2);
+		vertexStates.erase(vertexStates.begin() + v);
+    }
+    graph.remove_vertices(selectedVertices);
 }
 
 void GraphManager::SubdivideSelection() {
