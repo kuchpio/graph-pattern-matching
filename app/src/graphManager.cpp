@@ -151,7 +151,20 @@ void GraphManager::AddVertex(float x, float y) {
 }
 
 void GraphManager::DeleteSelection() {
-    // TODO
+    std::vector<vertex> toBeRemoved;
+    for (unsigned int i = graph.size(); i > 0; i--) {
+        vertex v = i - 1;
+        if (vertexStates[v] & 0b01u) {
+            toBeRemoved.push_back(v);
+
+            vertexPositions2D[0].erase(vertexPositions2D[0].begin() + 2 * v, vertexPositions2D[0].begin() + 2 * v + 2);
+            vertexPositions2D[1].erase(vertexPositions2D[1].begin() + 2 * v, vertexPositions2D[1].begin() + 2 * v + 2);
+            vertexVelocities2D[0].erase(vertexVelocities2D[0].begin() + 2 * v, vertexVelocities2D[0].begin() + 2 * v + 2);
+            vertexVelocities2D[1].erase(vertexVelocities2D[1].begin() + 2 * v, vertexVelocities2D[1].begin() + 2 * v + 2);
+            vertexStates.erase(vertexStates.begin() + v);
+        }
+    }
+    graph.remove_vertices(toBeRemoved);
 }
 
 void GraphManager::ConnectSelection() {

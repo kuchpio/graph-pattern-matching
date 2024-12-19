@@ -19,7 +19,7 @@ class Graph {
     void add_edge(vertex u, vertex v);
     void add_edges(std::vector<std::tuple<vertex, vertex>> edges);
     bool remove_vertex(vertex v);
-    bool remove_vertices(std::vector<vertex> vertices);
+    bool remove_vertices(const std::vector<vertex>& verticesSortedDesc);
     bool remove_edge(vertex u, vertex v);
     bool has_edge(vertex u, vertex v) const;
     bool contract_edge(vertex u, vertex v);

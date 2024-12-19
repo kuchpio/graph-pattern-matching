@@ -94,7 +94,16 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
     deleteButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
         manager.DeleteSelection();
 
+        auto& vertexPositions2D = manager.Positions2D();
+        auto [boundingWidth, boundingHeight] = manager.BoundingSize();
+        auto [centerX, centerY] = manager.Center();
+        auto& vertexStates = manager.States();
         auto edges = manager.GetEdges();
+
+        canvas->SetVertexPositions(vertexPositions2D.data(), vertexPositions2D.size() / 2);
+        canvas->SetBoundingSize(boundingWidth, boundingHeight);
+        canvas->SetCenterPosition(centerX, centerY);
+        canvas->SetVertexStates(vertexStates.data(), vertexStates.size());
         canvas->SetEdges(edges.data(), edges.size() / 2);
 
         this->clearMatchingCallback();

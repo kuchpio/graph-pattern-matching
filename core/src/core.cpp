@@ -3,6 +3,7 @@
 #include <vector>
 #include <algorithm>
 #include <tuple>
+#include <numeric>
 
 namespace core
 {
@@ -88,15 +89,29 @@ bool Graph::remove_vertex(vertex v) {
     return true;
 }
 
-bool Graph::remove_vertices(std::vector<vertex> vertices) {
-    // naive to be speed up
-    for (auto v : vertices) {
-        if (v - 1 > this->size()) return false;
-    }
+bool Graph::remove_vertices(const std::vector<vertex>& verticesSortedDesc) {
 
-    for (auto v : vertices) {
-        this->remove_vertex(v);
-    }
+    // 1. Preprocessing
+    bool* toBeRemoved = new bool[_adjacencyList.size()]{false};
+    for (auto v : verticesSortedDesc) toBeRemoved[v] = true;
+    vertex* vertexIndexDelta = new vertex[_adjacencyList.size() + 1];
+    vertexIndexDelta[0] = 0;
+    std::partial_sum(toBeRemoved, toBeRemoved + _adjacencyList.size(), vertexIndexDelta + 1);
+
+    // 2. Remove incoming edges
+	for (auto& neighbours : _adjacencyList) {
+        std::erase_if(neighbours, [toBeRemoved](auto v) { return toBeRemoved[v]; });
+        std::transform(neighbours.begin(), neighbours.end(), neighbours.begin(),
+                       [vertexIndexDelta](auto v) { return v - vertexIndexDelta[v]; });
+	}
+    
+    // 3. Remove outgoing edges
+    for (auto v : verticesSortedDesc) _adjacencyList.erase(_adjacencyList.begin() + v);
+
+    // 4. Cleanup
+    delete[] toBeRemoved;
+    delete[] vertexIndexDelta;
+
     return true;
 }
 
