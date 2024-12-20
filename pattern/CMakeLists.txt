@@ -8,9 +8,6 @@ add_library(pattern STATIC
             "src/minorSolvers/topological_minor_matcher.cpp"
             "src/minorSolvers/topological_induced_minor_matcher.cpp"
             "src/minorSolvers/miner_minor_solver.cpp"
-            "src/subgraphSolvers/vf2_subisomorphism_solver.cpp"
-            "src/subgraphSolvers/vf2_induced_subgraph_solver.cpp"
-            "src/isomorphismSolvers/vf2_isomorphism_solver.cpp"
             "src/minorSolvers/topological_minor_heuristic.cpp"
             "src/minorSolvers/induced_minor_heuristic.cpp"
             )
