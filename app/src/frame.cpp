@@ -9,9 +9,10 @@
 #include "induced_subgraph_matcher.h"
 #include "minor_matcher.h"
 #include "induced_minor_matcher.h"
-#include "topological_minor_heuristic.h"
-#include "induced_topological_minor_heuristic.h"
+#include "topological_minor_heuristic_solver.h"
+#include "topological_induced_minor_heuristic_solver.h"
 #include "topological_induced_minor_matcher.h"
+#include "induced_minor_heuristic.h"
 
 #include "frame.h"
 #include "graphPanel.h"
@@ -149,15 +150,15 @@ pattern::PatternMatcher* Frame::GetSelectedMatcher() const {
 
     if (minorRadioButton->GetValue()) {
         if (inducedCheckbox->GetValue()) {
-            return new pattern::InducedMinorMatcher();
+            return new pattern::InducedMinorHeuristic();
         }
 
         return new pattern::MinerMinorMatcher();
     }
 
     if (inducedCheckbox->GetValue()) {
-        return new pattern::InducedTopologicalMinorHeuristic();
+        return new pattern::InducedTopologicalMinorHeuristicSolver();
     }
 
-    return new pattern::TopologicalMinorHeuristic();
+    return new pattern::TopologicalMinorHeuristicSolver();
 }

@@ -6,9 +6,6 @@ namespace pattern
 {
 std::optional<std::vector<vertex>> TopologicalMinorHeuristic::match(const core::Graph& G, const core::Graph& H) {
     if (H.size() > G.size()) return std::nullopt;
-    auto subgraphMatching = subgraphSolver.match(G, H);
-    if (subgraphMatching) return subgraphMatching;
-
     return tpRecursion(G, H, 0);
 }
 
@@ -17,7 +14,7 @@ std::optional<std::vector<vertex>> TopologicalMinorHeuristic::tpRecursion(const 
     if (depth > MAX_RECURSION_DEPTH) return std::nullopt;
     if (H.size() > G.size()) return std::nullopt;
 
-    auto subgraphMatching = subgraphSolver.match(G, H);
+    auto subgraphMatching = subgraphMatcher_->match(G, H);
     if (subgraphMatching) return subgraphMatching;
 
     // iterate throug all edges
@@ -36,5 +33,4 @@ core::Graph TopologicalMinorHeuristic::contractEdge(const core::Graph& G, vertex
     Q.contract_edge(u, v);
     return Q;
 }
-
 } // namespace pattern

@@ -4,7 +4,7 @@
 #include "vf2_induced_subgraph_solver.hpp"
 namespace pattern
 {
-class InducedTopologicalMinorHeuristic : public MinorMatcher {
+class InducedMinorHeuristic : public MinorMatcher {
   public:
     std::optional<std::vector<vertex>> match(const core::Graph& G, const core::Graph& Q) override;
 

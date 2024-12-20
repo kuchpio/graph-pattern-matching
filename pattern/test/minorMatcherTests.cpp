@@ -2,7 +2,7 @@
 #include "miner_minor_matcher.hpp"
 #include "native_minor_matcher.h"
 #include "topological_minor_matcher.h"
-#include "topological_minor_heuristic.h"
+#include "topological_minor_heuristic_solver.h"
 
 #include "gtest/gtest.h"
 namespace pattern
@@ -169,7 +169,7 @@ TEST(TopologicalMinorIsomorphism, HasMinorNotTopological) {
     Q.add_edge(2, 4);
     Q.add_edge(3, 4);
 
-    auto matcher = TopologicalMinorHeuristic();
+    auto matcher = TopologicalMinorHeuristicSolver();
 
     // Check for minor relationship - expecting true because Q can be derived from G
     EXPECT_FALSE(matcher.match(G, Q).has_value());
@@ -199,7 +199,7 @@ TEST(TopologicalMinorIsomorphism, HasTopologicalMinor) {
     Q.add_edge(3, 0);
     Q.add_edge(1, 3); // Diagonal edge
 
-    auto matcher = TopologicalMinorHeuristic();
+    auto matcher = TopologicalMinorHeuristicSolver();
 
     // Check for minor relationship - expecting true because Q is a topological minor of G
     EXPECT_TRUE(matcher.match(G, Q).has_value());
