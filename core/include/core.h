@@ -23,7 +23,7 @@ class Graph {
     bool remove_edge(vertex u, vertex v);
     bool has_edge(vertex u, vertex v) const;
     bool contract_edge(vertex u, vertex v);
-    bool is_subgraph(const core::Graph& G) const;
+    bool has_subgraph(const core::Graph& G) const;
     bool is_induced_subgraph(const core::Graph& G) const;
     vertex subdivide_edge(vertex u, vertex v);
 

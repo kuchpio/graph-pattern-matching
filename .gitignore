@@ -365,3 +365,4 @@ FodyWeavers.xsd
 # Linux
 build/
 .vscode/
+.venv/
