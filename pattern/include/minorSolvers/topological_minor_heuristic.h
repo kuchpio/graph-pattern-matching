@@ -11,8 +11,8 @@ class TopologicalMinorHeuristic : public MinorMatcher {
     std::optional<std::vector<vertex>> match(const core::Graph& G, const core::Graph& Q) override;
 
   protected:
-    std::optional<std::vector<vertex>> tpRecursion(const core::Graph G, const core::Graph& H,
-                                                   const std::vector<vertex> mapping, int depth);
+    virtual std::optional<std::vector<vertex>> tpRecursion(const core::Graph G, const core::Graph& H,
+                                                           const std::vector<vertex>& mapping, int depth);
     static core::Graph contractEdge(const core::Graph& G, vertex u, vertex v);
 
     static std::vector<vertex> updateMapping(const std::vector<vertex>& mapping, vertex u, vertex v);

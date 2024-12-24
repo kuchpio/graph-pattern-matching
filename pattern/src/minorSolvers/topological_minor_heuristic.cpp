@@ -14,7 +14,7 @@ std::optional<std::vector<vertex>> TopologicalMinorHeuristic::match(const core::
 }
 
 std::optional<std::vector<vertex>> TopologicalMinorHeuristic::tpRecursion(const core::Graph G, const core::Graph& H,
-                                                                          const std::vector<vertex> mapping,
+                                                                          const std::vector<vertex>& mapping,
                                                                           int depth) {
     if (depth > MAX_RECURSION_DEPTH) return std::nullopt;
     if (H.size() > G.size()) return std::nullopt;
@@ -26,8 +26,8 @@ std::optional<std::vector<vertex>> TopologicalMinorHeuristic::tpRecursion(const 
         if (G.degree_in(v) + G.degree_out(v) == 2) {
             auto newMinor = contractEdge(G, u, v);
             auto newMapping = updateMapping(mapping, u, v);
-            auto matching = tpRecursion(G, newMinor, newMapping, depth + 1);
-            if (matching) return matching;
+            auto matching = tpRecursion(newMinor, H, newMapping, depth + 1);
+            if (matching) return getResult(newMapping, matching.value());
         }
     }
     return std::nullopt;

@@ -1,16 +1,17 @@
 #pragma once
 
-#include "minor_matcher.h"
 #include "vf2_induced_subgraph_solver.hpp"
+#include "topological_minor_heuristic.h"
+
 namespace pattern
 {
-class InducedMinorHeuristic : public MinorMatcher {
+class InducedMinorHeuristic : public TopologicalMinorHeuristic {
   public:
-    std::optional<std::vector<vertex>> match(const core::Graph& G, const core::Graph& Q) override;
+    InducedMinorHeuristic() : TopologicalMinorHeuristic(nullptr) {};
 
-  private:
-    std::optional<std::vector<vertex>> tpRecursion(const core::Graph G, const core::Graph& H, int depth);
-    static core::Graph contractEdge(const core::Graph& G, vertex u, vertex v);
+  protected:
+    std::optional<std::vector<vertex>> tpRecursion(const core::Graph G, const core::Graph& H,
+                                                   const std::vector<vertex>& mapping, int depth) override;
     Vf2InducedSubgraphSolver subgraphSolver = Vf2InducedSubgraphSolver();
 };
 } // namespace pattern
