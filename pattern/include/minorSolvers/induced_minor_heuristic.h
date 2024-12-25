@@ -11,7 +11,8 @@ class InducedMinorHeuristic : public TopologicalMinorHeuristic {
 
   protected:
     std::optional<std::vector<vertex>> tpRecursion(const core::Graph G, const core::Graph& H,
-                                                   const std::vector<vertex>& mapping, int depth) override;
+                                                   const std::vector<vertex>& mapping, int depth,
+                                                   int lastSkippedEdge) override;
     Vf2InducedSubgraphSolver subgraphSolver = Vf2InducedSubgraphSolver();
 };
 } // namespace pattern

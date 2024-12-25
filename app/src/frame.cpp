@@ -101,8 +101,8 @@ void Frame::OnMatchingStart() {
 void Frame::OnMatchingStop() {
     startStopMatchingButton->Disable();
     matchingStatus->SetLabel("Stopping the matching process...");
-
     // TODO: currentlyWorkingMatcher->cancel();
+    currentlyWorkingMatcher->interrupt();
 }
 
 void Frame::OnMatchingComplete(bool matchFound) {
