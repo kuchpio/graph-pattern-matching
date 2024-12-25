@@ -18,6 +18,7 @@ std::optional<std::vector<vertex>> TopologicalMinorHeuristic::tpRecursion(const 
                                                                           int depth) {
     if (depth > MAX_RECURSION_DEPTH) return std::nullopt;
     if (H.size() > G.size()) return std::nullopt;
+    if (interrupted_) return std::nullopt;
 
     auto subgraphMatching = subgraphMatcher_->match(G, H);
     if (subgraphMatching) return subgraphMatching;

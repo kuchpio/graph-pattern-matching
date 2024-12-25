@@ -12,6 +12,7 @@ std::optional<std::vector<vertex>> InducedMinorHeuristic::tpRecursion(const core
 
     auto subgraphMatching = subgraphSolver.match(G, H);
     if (subgraphMatching) return subgraphMatching;
+    if (interrupted_) return std::nullopt;
 
     for (auto [u, v] : G.edges()) {
         if (G.degree_in(v) + G.degree_out(v) == 2) {

@@ -15,6 +15,7 @@ class Vf2SubgraphSolver : public SubgraphMatcher, public Vf2Solver {
         auto G = convertGraph(bigGraph);
         auto Q = convertGraph(smallGraph);
         VF2MonoState s0(&Q, &G);
+        s0.setInterrupted(&this->interrupted_);
 
         return processMatching(s0, bigGraph, smallGraph);
     }
