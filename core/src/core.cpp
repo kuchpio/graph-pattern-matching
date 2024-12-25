@@ -112,6 +112,14 @@ vertex Graph::degree_out(vertex v) const {
     return Graph::_adjacencyList[v].size();
 }
 
+std::vector<std::size_t> Graph::degrees_out() const {
+    auto degreesOut = std::vector<std::size_t>(this->size());
+    for (auto v = 0; v < this->size(); ++v) {
+        degreesOut[v] = degree_out(v);
+    }
+    return degreesOut;
+}
+
 std::vector<vertex> Graph::get_neighbours(vertex v) const {
     if (v >= this->size()) return std::vector<vertex>();
     return Graph::_adjacencyList[v];

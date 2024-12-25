@@ -41,6 +41,7 @@ class Graph {
     Graph applyMapping(const std::vector<vertex>& mapping) const;
     Graph reorder(const std::vector<vertex>& order) const;
     std::size_t degree_out(vertex v) const;
+    std::vector<std::size_t> degrees_out() const;
 };
 } // namespace core
 
