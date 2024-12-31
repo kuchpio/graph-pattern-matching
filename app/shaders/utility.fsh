@@ -11,5 +11,5 @@ layout (std140) uniform colors
 
 void main()
 {
-	FragColor = nodeBorderArray[0];
+	FragColor = nodeUtilityColor;
 }

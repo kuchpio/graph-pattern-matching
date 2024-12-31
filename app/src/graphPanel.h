@@ -30,6 +30,9 @@ class GraphPanel : public wxPanel {
     unsigned int fpsIndex = 0;
 
     std::optional<wxPoint> prevMousePoint{};
+    std::optional<wxPoint> areaSelectionStartPoint{};
+    std::optional<vertex> connectionStartVertex{};
+    bool vertexDragging = false;
 
     void OnIdle(wxIdleEvent& event);
     void OpenFromFile(wxCommandEvent& event);

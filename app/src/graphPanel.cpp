@@ -56,16 +56,11 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
             return;
 		}
 
-		auto& vertexPositions2D = manager.Positions2D();
-		auto [boundingWidth, boundingHeight] = manager.BoundingSize();
-		auto [centerX, centerY] = manager.Center();
 		auto& vertexStates = manager.States();
 		auto edges = manager.GetEdges();
 
-		canvas->SetVertexPositions(vertexPositions2D.data(), vertexPositions2D.size() / 2);
-		canvas->SetBoundingSize(boundingWidth, boundingHeight);
-		canvas->SetCenterPosition(centerX, centerY);
-		canvas->SetVertexStates(vertexStates.data(), vertexStates.size());
+        canvas->SetVertexCount(manager.Graph().size());
+		canvas->SetVertexStates(vertexStates.data());
 		canvas->SetEdges(edges.data(), edges.size() / 2);
 
 		this->clearMatchingCallback();
@@ -94,16 +89,11 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
     deleteButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
         manager.DeleteSelection();
 
-        auto& vertexPositions2D = manager.Positions2D();
-        auto [boundingWidth, boundingHeight] = manager.BoundingSize();
-        auto [centerX, centerY] = manager.Center();
         auto& vertexStates = manager.States();
         auto edges = manager.GetEdges();
 
-        canvas->SetVertexPositions(vertexPositions2D.data(), vertexPositions2D.size() / 2);
-        canvas->SetBoundingSize(boundingWidth, boundingHeight);
-        canvas->SetCenterPosition(centerX, centerY);
-        canvas->SetVertexStates(vertexStates.data(), vertexStates.size());
+        canvas->SetVertexCount(manager.Graph().size());
+        canvas->SetVertexStates(vertexStates.data());
         canvas->SetEdges(edges.data(), edges.size() / 2);
 
         this->clearMatchingCallback();
@@ -127,16 +117,11 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
     contractButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
         manager.ContractSelection();
 
-        auto& vertexPositions2D = manager.Positions2D();
-        auto [boundingWidth, boundingHeight] = manager.BoundingSize();
-        auto [centerX, centerY] = manager.Center();
         auto& vertexStates = manager.States();
         auto edges = manager.GetEdges();
 
-        canvas->SetVertexPositions(vertexPositions2D.data(), vertexPositions2D.size() / 2);
-        canvas->SetBoundingSize(boundingWidth, boundingHeight);
-        canvas->SetCenterPosition(centerX, centerY);
-        canvas->SetVertexStates(vertexStates.data(), vertexStates.size());
+        canvas->SetVertexCount(manager.Graph().size());
+        canvas->SetVertexStates(vertexStates.data());
         canvas->SetEdges(edges.data(), edges.size() / 2);
 
         this->clearMatchingCallback();
@@ -145,6 +130,7 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
         manager.SubdivideSelection();
 
         auto edges = manager.GetEdges();
+        canvas->SetVertexCount(manager.Graph().size());
         canvas->SetEdges(edges.data(), edges.size() / 2);
 
         this->clearMatchingCallback();
@@ -168,14 +154,14 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
         manager.AnchorSelection();
 
         auto& vertexStates = manager.States();
-        canvas->SetVertexStates(vertexStates.data(), vertexStates.size());
+        canvas->SetVertexStates(vertexStates.data());
         canvas->Refresh();
     });
     freeButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
         manager.FreeSelection();
 
         auto& vertexStates = manager.States();
-        canvas->SetVertexStates(vertexStates.data(), vertexStates.size());
+        canvas->SetVertexStates(vertexStates.data());
         canvas->Refresh();
     });
     autoVertexPositioningCheckbox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& event) { manager.Stop(); });
@@ -190,10 +176,14 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
         canvas = new GraphCanvas(this, vAttrs);
         canvas->SetInitialSize(wxSize(0, 360));
         sizer->Add(canvas, 1, wxEXPAND);
+
         canvas->Bind(wxEVT_LEFT_DOWN, &GraphPanel::OnCanvasClick, this);
+        canvas->Bind(wxEVT_LEFT_UP, &GraphPanel::OnCanvasClick, this);
         canvas->Bind(wxEVT_LEFT_DCLICK, &GraphPanel::OnCanvasClick, this);
+        canvas->Bind(wxEVT_RIGHT_DOWN, &GraphPanel::OnCanvasClick, this);
+        canvas->Bind(wxEVT_RIGHT_UP, &GraphPanel::OnCanvasClick, this);
+
         canvas->Bind(wxEVT_MOTION, &GraphPanel::OnCanvasMotion, this);
-        canvas->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent& event) { manager.OnDrop(); });
     }
 
     this->SetSizerAndFit(sizer);
@@ -234,7 +224,7 @@ void GraphPanel::OnMatchingEnd(const std::vector<unsigned int>& labelling) {
     undoButton->Enable();
     redoButton->Enable();
 
-    canvas->SetVertexLabels(labelling.data(), labelling.size());
+    canvas->SetVertexLabels(labelling.data());
 }
 
 void GraphPanel::OpenFromFile(wxCommandEvent& event) {
@@ -267,16 +257,11 @@ void GraphPanel::OpenFromFile(wxCommandEvent& event) {
             return;
         }
 
-        auto& vertexPositions2D = manager.Positions2D();
-        auto [boundingWidth, boundingHeight] = manager.BoundingSize();
-        auto [centerX, centerY] = manager.Center();
         auto& vertexStates = manager.States();
         auto edges = manager.GetEdges();
 
-        canvas->SetVertexPositions(vertexPositions2D.data(), vertexPositions2D.size() / 2);
-        canvas->SetBoundingSize(boundingWidth, boundingHeight);
-        canvas->SetCenterPosition(centerX, centerY);
-        canvas->SetVertexStates(vertexStates.data(), vertexStates.size());
+        canvas->SetVertexCount(manager.Graph().size());
+        canvas->SetVertexStates(vertexStates.data());
         canvas->SetEdges(edges.data(), edges.size() / 2);
 
         clearMatchingCallback();
@@ -326,7 +311,10 @@ void GraphPanel::OnIdle(wxIdleEvent& event) {
         return;
     }
 
-    if (autoVertexPositioningCheckbox->IsChecked()) manager.UpdatePositions(elapsedSeconds.count());
+    if (autoVertexPositioningCheckbox->IsChecked()) {
+        manager.UpdatePositions(elapsedSeconds.count(), vertexDragging);
+        if (!vertexDragging) manager.UpdateBounds();
+    }
 
     fpsArray[fpsIndex++] = (int)(1.0 / elapsedSeconds.count());
     if (fpsIndex >= FPS_ANALYSIS_COUNT) fpsIndex = 0;
@@ -337,7 +325,7 @@ void GraphPanel::OnIdle(wxIdleEvent& event) {
     auto [boundingWidth, boundingHeight] = manager.BoundingSize();
     auto [centerX, centerY] = manager.Center();
 
-    canvas->SetVertexPositions(vertexPositions2D.data(), vertexPositions2D.size() / 2);
+    canvas->SetVertexPositions(vertexPositions2D.data());
     canvas->SetBoundingSize(boundingWidth, boundingHeight);
     canvas->SetCenterPosition(centerX, centerY);
 
@@ -356,32 +344,116 @@ void GraphPanel::OnCanvasClick(wxMouseEvent& event) {
                            boundingHeight / (canvasHeight - 3 * canvas->NODE_RADIUS));
     float worldX = (point.x - canvasWidth / 2) * ratio + centerX;
     float worldY = (canvasHeight / 2 - point.y) * ratio + centerY;
+    float worldNodeRadius = canvas->NODE_RADIUS * 0.5f * ratio;
 
-    auto newVertexRequested = event.ButtonDClick() && !matching;
-    if (manager.HandleClick(worldX, worldY, canvas->NODE_RADIUS * 0.5f * ratio, event.ControlDown(),
-                            newVertexRequested)) {
+    if (event.LeftDown()) {
+
+        if (!event.ControlDown()) manager.ClearSelection();
+        auto collidingNodes = manager.GetCollidingNodes(worldX, worldY, worldNodeRadius);
+        if (!event.ControlDown()) manager.SelectNodes(collidingNodes);
+
+        if (!event.ControlDown()) {
+			auto& vertexStates = manager.States();
+			canvas->SetVertexStates(vertexStates.data());
+        }
+
+        areaSelectionStartPoint = collidingNodes.empty() ? std::make_optional(point) : std::nullopt;
+        vertexDragging = !collidingNodes.empty();
+
+    } else if (event.LeftUp()) {
+
+        if (areaSelectionStartPoint.has_value()) {
+			float worldStartX = (areaSelectionStartPoint.value().x - canvasWidth / 2) * ratio + centerX;
+			float worldStartY = (canvasHeight / 2 - areaSelectionStartPoint.value().y) * ratio + centerY;
+            auto collidingNodes = manager.GetCollidingNodes(worldStartX, worldStartY, worldX, worldY);
+            manager.SelectNodes(collidingNodes);
+        } else if (event.ControlDown()) {
+            auto collidingNodes = manager.GetCollidingNodes(worldX, worldY, worldNodeRadius);
+            manager.ToggleNodes(collidingNodes);
+        }
+
+		auto& vertexStates = manager.States();
+		canvas->SetVertexStates(vertexStates.data());
+        canvas->ClearUtilityLoop();
+
+        areaSelectionStartPoint = std::nullopt;
+        vertexDragging = false;
+
+    } else if (event.LeftDClick() && !matching) {
+
+        manager.AddVertex(worldX, worldY);
+
+        auto& vertexPositions = manager.Positions2D();
+		auto& vertexStates = manager.States();
+        canvas->SetVertexCount(manager.Graph().size());
+        canvas->SetVertexPositions(vertexPositions.data());
+		canvas->SetVertexStates(vertexStates.data());
         clearMatchingCallback();
-    }
 
-    auto& vertexStates = manager.States();
-    canvas->SetVertexStates(vertexStates.data(), vertexStates.size());
+    } else if (event.RightDown() && !matching) {
+
+        auto collidingNodes = manager.GetCollidingNodes(worldX, worldY, worldNodeRadius);
+        if (!collidingNodes.empty()) connectionStartVertex = collidingNodes.front();
+
+    } else if (event.RightUp() && connectionStartVertex.has_value()) {
+
+        auto collidingNodes = manager.GetCollidingNodes(worldX, worldY, worldNodeRadius);
+        if (!collidingNodes.empty()) {
+            manager.ConnectNodes(connectionStartVertex.value(), collidingNodes.front());
+        
+			auto edges = manager.GetEdges();
+			canvas->SetEdges(edges.data(), edges.size() / 2);
+			clearMatchingCallback();
+        }
+        canvas->ClearUtilityLoop();
+
+        connectionStartVertex = std::nullopt;
+    }
 }
 
 void GraphPanel::OnCanvasMotion(wxMouseEvent& event) {
-    if (!event.Dragging() || !event.LeftIsDown()) {
+    if (!event.Dragging()) {
         prevMousePoint = std::nullopt;
         return;
     }
 
     auto mousePoint = event.GetPosition();
-    if (prevMousePoint.has_value()) {
-        auto [boundingWidth, boundingHeight] = manager.BoundingSize();
-        auto [canvasWidth, canvasHeight] = canvas->CanvasSize();
 
-        float ratio = std::max(boundingWidth / (canvasWidth - 3 * canvas->NODE_RADIUS),
-                               boundingHeight / (canvasHeight - 3 * canvas->NODE_RADIUS));
-        manager.OnDrag((mousePoint.x - prevMousePoint.value().x) * ratio,
-                       -(mousePoint.y - prevMousePoint.value().y) * ratio);
+    if (prevMousePoint.has_value()) {
+		auto [boundingWidth, boundingHeight] = manager.BoundingSize();
+		auto [canvasWidth, canvasHeight] = canvas->CanvasSize();
+		float ratio = std::max(boundingWidth / (canvasWidth - 3 * canvas->NODE_RADIUS),
+							   boundingHeight / (canvasHeight - 3 * canvas->NODE_RADIUS));
+
+        if (event.LeftIsDown()) {
+            if (areaSelectionStartPoint.has_value()) {
+
+                float areaSelectionPositions2D[8] = {
+                    (float)areaSelectionStartPoint.value().x, (float)areaSelectionStartPoint.value().y, 
+                    (float)mousePoint.x, (float)areaSelectionStartPoint.value().y,
+                    (float)mousePoint.x, (float)mousePoint.y,
+                    (float)areaSelectionStartPoint.value().x, (float)mousePoint.y,
+                };
+                canvas->SetUtilityLoop(areaSelectionPositions2D, 4);
+                
+            } else {
+
+				float worldDX = (mousePoint.x - prevMousePoint.value().x) * ratio;
+				float worldDY = -(mousePoint.y - prevMousePoint.value().y) * ratio;
+
+                manager.OnVertexDrag(worldDX, worldDY);
+            }
+        } else if (event.RightIsDown() && connectionStartVertex.has_value()) {
+
+            auto [centerX, centerY] = manager.Center();
+            auto [worldStartX, worldStartY] = manager.Position2D(connectionStartVertex.value());
+            auto startX = (worldStartX - centerX) / ratio + canvasWidth / 2;
+            auto endX = (centerY - worldStartY) / ratio + canvasHeight / 2;
+            float edgeConnectionEndsPositions2D[4] = {
+                startX, endX, (float)mousePoint.x, (float)mousePoint.y
+            };
+            canvas->SetUtilityLoop(edgeConnectionEndsPositions2D, 2);
+        }
     }
     prevMousePoint = mousePoint;
 }

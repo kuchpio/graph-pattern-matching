@@ -49,11 +49,23 @@ void GraphCanvas::OnPaint(wxPaintEvent& WXUNUSED(event)) {
 
     glUseProgram(edgeShaderProgram);
     glBindVertexArray(vertexArrayObject);
-    glDrawElements(GL_LINES, edgesCount * 2, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_LINES, edgeCount * 2, GL_UNSIGNED_INT, 0);
+
+    if (utilityLoopPointCount == 2) { // Connecting edge
+		glUseProgram(utilityShaderProgram);
+		glBindVertexArray(utilityVertexArrayObject);
+		glDrawArrays(GL_LINE_LOOP, 0, utilityLoopPointCount);
+    }
 
     glUseProgram(nodeShaderProgram);
     glBindVertexArray(vertexArrayObject);
     glDrawArraysInstanced(GL_TRIANGLES, 0, 6, vertexCount);
+
+    if (utilityLoopPointCount == 4) { // Area selection
+		glUseProgram(utilityShaderProgram);
+		glBindVertexArray(utilityVertexArrayObject);
+		glDrawArrays(GL_LINE_LOOP, 0, utilityLoopPointCount);
+    }
 
     glBindVertexArray(0);
 
@@ -103,6 +115,14 @@ bool GraphCanvas::InitializeOpenGL() {
         return false;
     }
 
+    if (auto result = InitializeShader(utilityVertexShaderPath, utilityFragmentShaderPath)) {
+        utilityShaderProgram = result.value();
+    } else {
+        wxMessageBox("Error: Could not initialize OpenGL shaders.", "OpenGL initialization error",
+                     wxOK | wxICON_INFORMATION, this);
+        return false;
+    }
+
     glGenVertexArrays(1, &vertexArrayObject);
     glGenBuffers(1, &vertexBuffer);
     glGenBuffers(1, &vertexStateBuffer);
@@ -132,10 +152,20 @@ bool GraphCanvas::InitializeOpenGL() {
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, edgesBuffer);
 
+    glGenVertexArrays(1, &utilityVertexArrayObject);
+    glGenBuffers(1, &utilityVertexBuffer);
+
+    glBindVertexArray(utilityVertexArrayObject);
+    glBindBuffer(GL_ARRAY_BUFFER, utilityVertexBuffer);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    glEnableVertexAttribArray(0);
+
     unsigned int settingsUniformIndexNode = glGetUniformBlockIndex(nodeShaderProgram, "settings");
     unsigned int settingsUniformIndexEdge = glGetUniformBlockIndex(edgeShaderProgram, "settings");
+    unsigned int settingsUniformIndexUtility = glGetUniformBlockIndex(utilityShaderProgram, "settings");
     glUniformBlockBinding(nodeShaderProgram, settingsUniformIndexNode, 0);
     glUniformBlockBinding(edgeShaderProgram, settingsUniformIndexEdge, 0);
+    glUniformBlockBinding(utilityShaderProgram, settingsUniformIndexUtility, 0);
     glBindBuffer(GL_UNIFORM_BUFFER, settingsUniformBufferObject);
     glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * (2 + 2 + 2 + 1 + 1), NULL, GL_STATIC_DRAW);
     glBindBufferRange(GL_UNIFORM_BUFFER, 0, settingsUniformBufferObject, 0, sizeof(float) * (2 + 2 + 2 + 1 + 1));
@@ -143,12 +173,14 @@ bool GraphCanvas::InitializeOpenGL() {
     wxSystemSettings systemSettings;
     auto isDark = systemSettings.GetAppearance().IsDark();
     unsigned int colorsUniformIndexNode = glGetUniformBlockIndex(nodeShaderProgram, "colors");
-    unsigned int colorsUniformIndexEdge = glGetUniformBlockIndex(edgeShaderProgram, "colors");
+	unsigned int colorsUniformIndexEdge = glGetUniformBlockIndex(edgeShaderProgram, "colors");
+    unsigned int colorsUniformIndexUtility = glGetUniformBlockIndex(utilityShaderProgram, "colors");
     glUniformBlockBinding(nodeShaderProgram, colorsUniformIndexNode, 1);
     glUniformBlockBinding(edgeShaderProgram, colorsUniformIndexEdge, 1);
+    glUniformBlockBinding(utilityShaderProgram, colorsUniformIndexUtility, 1);
     glBindBuffer(GL_UNIFORM_BUFFER, colorsUniformBufferObject);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 4 * (4 + 9), isDark ? darkModeColors : lightModeColors, GL_STATIC_DRAW);
-    glBindBufferRange(GL_UNIFORM_BUFFER, 1, colorsUniformBufferObject, 0, sizeof(float) * 4 * (4 + 9));
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 4 * (4 + 9 + 1), isDark ? darkModeColors : lightModeColors, GL_STATIC_DRAW);
+    glBindBufferRange(GL_UNIFORM_BUFFER, 1, colorsUniformBufferObject, 0, sizeof(float) * 4 * (4 + 9 + 1));
 
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
@@ -256,17 +288,15 @@ std::optional<unsigned int> GraphCanvas::InitializeShader(const char* vertexShad
     return shaderProgram;
 }
 
-void GraphCanvas::SetVertexPositions(const float* positions2D, unsigned int vertexCount) {
+void GraphCanvas::SetVertexPositions(const float* positions2D) {
     if (!isOpenGLInitialized) return;
     SetCurrent(*openGLContext);
 
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexCount * 2, positions2D, GL_DYNAMIC_DRAW);
-
-    this->vertexCount = vertexCount;
 }
 
-void GraphCanvas::SetVertexStates(const unsigned int* states, unsigned int vertexCount) {
+void GraphCanvas::SetVertexStates(const unsigned int* states) {
     if (!isOpenGLInitialized) return;
     SetCurrent(*openGLContext);
 
@@ -274,7 +304,7 @@ void GraphCanvas::SetVertexStates(const unsigned int* states, unsigned int verte
     glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * vertexCount, states, GL_STATIC_DRAW);
 }
 
-void GraphCanvas::SetVertexLabels(const unsigned int* labels, unsigned int vertexCount) {
+void GraphCanvas::SetVertexLabels(const unsigned int* labels) {
     if (!isOpenGLInitialized) return;
     SetCurrent(*openGLContext);
 
@@ -282,14 +312,14 @@ void GraphCanvas::SetVertexLabels(const unsigned int* labels, unsigned int verte
     glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * vertexCount, labels, GL_STATIC_DRAW);
 }
 
-void GraphCanvas::SetEdges(const unsigned int* edges, unsigned int edgesCount) {
+void GraphCanvas::SetEdges(const unsigned int* edges, unsigned int edgeCount) {
     if (!isOpenGLInitialized) return;
     SetCurrent(*openGLContext);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, edgesBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * edgesCount * 2, edges, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * edgeCount * 2, edges, GL_STATIC_DRAW);
 
-    this->edgesCount = edgesCount;
+    this->edgeCount = edgeCount;
 }
 
 void GraphCanvas::UpdateCanvasSize() const {
@@ -334,4 +364,22 @@ void GraphCanvas::SetNodeSize(float radius, float border) const {
     glBindBuffer(GL_UNIFORM_BUFFER, settingsUniformBufferObject);
     glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float) * 6, sizeof(float) * 2, nodeSize);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
+void GraphCanvas::SetVertexCount(unsigned int vertexCount) {
+    this->vertexCount = vertexCount;
+}
+
+void GraphCanvas::SetUtilityLoop(const float* positions2D, unsigned int pointCount) {
+    if (!isOpenGLInitialized) return;
+    SetCurrent(*openGLContext);
+
+    glBindBuffer(GL_ARRAY_BUFFER, utilityVertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * pointCount * 2, positions2D, GL_DYNAMIC_DRAW);
+
+    this->utilityLoopPointCount = pointCount;
+}
+
+void GraphCanvas::ClearUtilityLoop() {
+    this->utilityLoopPointCount = 0;
 }

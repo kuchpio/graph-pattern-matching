@@ -7,10 +7,12 @@ class GraphCanvas : public wxGLCanvas {
     const char* nodeFragmentShaderPath = "node.fsh";
     const char* edgeVertexShaderPath = "edge.vsh";
     const char* edgeFragmentShaderPath = "edge.fsh";
+    const char* utilityVertexShaderPath = "utility.vsh";
+    const char* utilityFragmentShaderPath = "utility.fsh";
 
     const float *backgroundColor;
     const float lightModeBackground[4] = {0.9, 0.9, 0.9, 1.0};
-    const float lightModeColors[4 * (4 + 9)] = {
+    const float lightModeColors[4 * (4 + 9 + 1)] = {
 		0.1, 0.1, 0.1, 1.0,
 		0.1, 0.1, 0.48, 1.0,
 		0.48, 0.1, 0.1, 1.0,
@@ -24,13 +26,14 @@ class GraphCanvas : public wxGLCanvas {
 		0.79, 0.52, 0.26, 1.0,
 		0.29, 0.67, 0.55, 1.0,
 		0.78, 0.36, 0.54, 1.0,
+		0.00, 0.00, 0.38, 1.0,
     };
     const float darkModeBackground[4] = {0.1, 0.1, 0.1, 1.0};
-    const float darkModeColors[4 * (4 + 9)] = {
+    const float darkModeColors[4 * (4 + 9 + 1)] = {
 		0.85, 0.85, 0.85, 1.0,
-		0.75, 0.75, 1.0, 1.0,
+		0.50, 0.75, 1.0, 1.0,
 		1.0, 0.50, 0.50, 1.0,
-		0.87, 0.62, 0.75, 1.0,
+		0.75, 0.62, 0.75, 1.0,
 		0.25, 0.25, 0.25, 1.0,
 		0.80, 0.31, 0.26, 1.0,
 		0.39, 0.67, 0.28, 1.0,
@@ -40,6 +43,7 @@ class GraphCanvas : public wxGLCanvas {
 		0.79, 0.52, 0.26, 1.0,
 		0.29, 0.67, 0.55, 1.0,
 		0.78, 0.36, 0.54, 1.0,
+		0.60, 0.85, 1.0, 1.0,
     };
 
     wxGLContext* openGLContext;
@@ -47,17 +51,21 @@ class GraphCanvas : public wxGLCanvas {
     wxSize viewPortSize;
 
     unsigned int vertexArrayObject = 0;
+    unsigned int utilityVertexArrayObject = 0;
     unsigned int vertexBuffer = 0;
     unsigned int vertexStateBuffer = 0;
     unsigned int vertexLabelsBuffer = 0;
     unsigned int edgesBuffer = 0;
+    unsigned int utilityVertexBuffer = 0;
     unsigned int nodeShaderProgram = 0;
     unsigned int edgeShaderProgram = 0;
+    unsigned int utilityShaderProgram = 0;
     unsigned int settingsUniformBufferObject = 0;
     unsigned int colorsUniformBufferObject = 0;
 
     unsigned int vertexCount = 0;
-    unsigned int edgesCount = 0;
+    unsigned int edgeCount = 0;
+    unsigned int utilityLoopPointCount = 0;
 
     bool InitializeOpenGLFunctions();
     bool InitializeOpenGL();
@@ -76,10 +84,13 @@ class GraphCanvas : public wxGLCanvas {
     GraphCanvas(wxWindow* parent, const wxGLAttributes& canvasAttrs);
     ~GraphCanvas();
 
-    void SetVertexPositions(const float* positions2D, unsigned int vertexCount);
-    void SetVertexStates(const unsigned int* states, unsigned int vertexCount);
-    void SetVertexLabels(const unsigned int* labels, unsigned int vertexCount);
-    void SetEdges(const unsigned int* edges, unsigned int edgesCount);
+    void SetVertexCount(unsigned int vertexCount);
+    void SetUtilityLoop(const float* positions2D, unsigned int pointCount);
+    void ClearUtilityLoop();
+    void SetVertexPositions(const float* positions2D);
+    void SetVertexStates(const unsigned int* states);
+    void SetVertexLabels(const unsigned int* labels);
+    void SetEdges(const unsigned int* edges, unsigned int edgeCount);
     const std::pair<int, int> CanvasSize() const;
     void SetBoundingSize(float width, float height) const;
     void SetCenterPosition(float x, float y) const;

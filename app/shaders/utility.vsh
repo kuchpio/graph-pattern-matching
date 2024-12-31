@@ -20,7 +20,6 @@ layout (std140) uniform colors
 
 void main()
 {
-	vec2 ratio = (canvasSize - 3 * nodeRadius) / boundingSize;
-	vec2 nodeCanvasPosition = 2 * (nodePos - centerPos) * min(ratio.x, ratio.y) / canvasSize;
+	vec2 nodeCanvasPosition = vec2(1.0, -1.0) * 2 * (nodePos / canvasSize - 0.5);
 	gl_Position = vec4(nodeCanvasPosition.x, nodeCanvasPosition.y, 0.0, 1.0);
 }

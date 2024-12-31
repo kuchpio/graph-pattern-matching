@@ -1,38 +1,23 @@
 #include "graphManager.h"
 
+#define _USE_MATH_DEFINES
 #include <math.h>
 #include <cfloat>
 #include <algorithm>
 
-GraphManager::GraphManager() : graph(0), boundingWidth(0), boundingHeight(0), centerX(0), centerY(0), dragging(false) {
+GraphManager::GraphManager() : graph(0), boundingWidth(1.0), boundingHeight(1.0), centerX(0), centerY(0) {
 }
 
 void GraphManager::Initialize(core::Graph&& newGraph) {
-    graph = newGraph;
-    vertexPositions2D[0] = std::vector<float>(2 * graph.size());
-    vertexPositions2D[1] = std::vector<float>(2 * graph.size());
-    vertexVelocities2D[0] = std::vector<float>(2 * graph.size());
-    vertexVelocities2D[1] = std::vector<float>(2 * graph.size());
-    vertexStates = std::vector<unsigned int>(graph.size());
+    std::vector<std::pair<float, float>> vertexPositions;
+    vertexPositions.reserve(newGraph.size());
 
-    float minX = FLT_MAX, minY = FLT_MAX, maxX = FLT_MIN, maxY = FLT_MIN;
-    for (unsigned int i = 0; i < graph.size(); i++) {
-        float newX = vertexPositions2D[readBufferId][2 * i] = 2 * ((float)rand() / RAND_MAX) - 1;
-        float newY = vertexPositions2D[readBufferId][2 * i + 1] = 2 * ((float)rand() / RAND_MAX) - 1;
-        vertexVelocities2D[readBufferId][2 * i] = vertexVelocities2D[readBufferId][2 * i + 1] = 0.0f;
-        vertexStates[i] = 0;
-
-        if (newX < minX) minX = newX;
-        if (newX > maxX) maxX = newX;
-        if (newY < minY) minY = newY;
-        if (newY > maxY) maxY = newY;
+    const float ANGLE_DIFF = 2.0f * M_PI / newGraph.size();
+    for (vertex v = 0; v < newGraph.size(); v++) {
+        vertexPositions.emplace_back(std::make_pair(cosf(v * ANGLE_DIFF), sinf(v * ANGLE_DIFF)));
     }
 
-    boundingWidth = maxX - minX;
-    boundingHeight = maxY - minY;
-    centerX = (minX + maxX) / 2;
-    centerY = (minY + maxY) / 2;
-    dragging = false;
+    Initialize(std::move(newGraph), std::move(vertexPositions));
 }
 
 void GraphManager::Initialize(core::Graph&& newGraph, std::vector<std::pair<float, float>>&& vertexPositions) {
@@ -43,13 +28,22 @@ void GraphManager::Initialize(core::Graph&& newGraph, std::vector<std::pair<floa
     vertexVelocities2D[1] = std::vector<float>(2 * graph.size());
     vertexStates = std::vector<unsigned int>(graph.size());
 
+    for (vertex v = 0; v < graph.size(); v++) {
+        auto [newX, newY] = vertexPositions[v];
+        vertexPositions2D[readBufferId][2 * v] = newX;
+        vertexPositions2D[readBufferId][2 * v + 1] = newY;
+        vertexVelocities2D[readBufferId][2 * v] = vertexVelocities2D[readBufferId][2 * v + 1] = 0.0f;
+        vertexStates[v] = 0;
+    }
+
+    UpdateBounds();
+}
+
+void GraphManager::UpdateBounds() {
     float minX = FLT_MAX, minY = FLT_MAX, maxX = FLT_MIN, maxY = FLT_MIN;
-    for (unsigned int i = 0; i < graph.size(); i++) {
-        auto [newX, newY] = vertexPositions[i];
-        vertexPositions2D[readBufferId][2 * i] = newX;
-        vertexPositions2D[readBufferId][2 * i + 1] = newY;
-        vertexVelocities2D[readBufferId][2 * i] = vertexVelocities2D[readBufferId][2 * i + 1] = 0.0f;
-        vertexStates[i] = 0;
+    for (vertex v = 0; v < graph.size(); v++) {
+        float newX = vertexPositions2D[readBufferId][2 * v];
+        float newY = vertexPositions2D[readBufferId][2 * v + 1];
 
         if (newX < minX) minX = newX;
         if (newX > maxX) maxX = newX;
@@ -57,16 +51,13 @@ void GraphManager::Initialize(core::Graph&& newGraph, std::vector<std::pair<floa
         if (newY > maxY) maxY = newY;
     }
 
-    boundingWidth = maxX - minX;
-    boundingHeight = maxY - minY;
+    boundingWidth = graph.size() <= 1 ? 1.0 : maxX - minX;
+    boundingHeight = graph.size() <= 1 ? 1.0 : maxY - minY;
     centerX = (minX + maxX) / 2;
     centerY = (minY + maxY) / 2;
-    dragging = false;
 }
 
-void GraphManager::UpdatePositions(float deltaTimeSeconds) {
-    float minX = FLT_MAX, minY = FLT_MAX, maxX = FLT_MIN, maxY = FLT_MIN;
-
+void GraphManager::UpdatePositions(float deltaTimeSeconds, bool dragging) {
     for (unsigned int i = 0; i < graph.size(); i++) {
         float x = vertexPositions2D[readBufferId][2 * i];
         float y = vertexPositions2D[readBufferId][2 * i + 1];
@@ -102,43 +93,14 @@ void GraphManager::UpdatePositions(float deltaTimeSeconds) {
 
         vertexVelocities2D[1 - readBufferId][2 * i] = vel_x + acc_x * deltaTimeSeconds;
         vertexVelocities2D[1 - readBufferId][2 * i + 1] = vel_y + acc_y * deltaTimeSeconds;
-        float newX = vertexPositions2D[1 - readBufferId][2 * i] = x + vel_x * deltaTimeSeconds;
-        float newY = vertexPositions2D[1 - readBufferId][2 * i + 1] = y + vel_y * deltaTimeSeconds;
-
-        if (newX < minX) minX = newX;
-        if (newX > maxX) maxX = newX;
-        if (newY < minY) minY = newY;
-        if (newY > maxY) maxY = newY;
+        vertexPositions2D[1 - readBufferId][2 * i] = x + vel_x * deltaTimeSeconds;
+        vertexPositions2D[1 - readBufferId][2 * i + 1] = y + vel_y * deltaTimeSeconds;
     }
 
     readBufferId = 1 - readBufferId;
-
-    if (dragging) return;
-    boundingWidth = maxX - minX;
-    boundingHeight = maxY - minY;
-    centerX = (minX + maxX) / 2;
-    centerY = (minY + maxY) / 2;
 }
 
-bool GraphManager::HandleClick(float x, float y, float nodeRadius, bool isCtrl, bool newVertexRequested) {
-    unsigned int selectedCtr = 0;
-    for (unsigned int i = 0; i < graph.size(); i++) {
-        float dx = x - vertexPositions2D[readBufferId][2 * i];
-        float dy = y - vertexPositions2D[readBufferId][2 * i + 1];
-        if (!isCtrl) vertexStates[i] &= 0b10u;
-        if (dx * dx + dy * dy <= nodeRadius * nodeRadius) {
-            vertexStates[i] ^= 0b01u;
-            selectedCtr++;
-        }
-    }
-    if (selectedCtr == 0 && newVertexRequested) {
-        AddVertex(x, y);
-        return true;
-    }
-    return false;
-}
-
-void GraphManager::AddVertex(float x, float y) {
+bool GraphManager::AddVertex(float x, float y) {
     graph.add_vertex();
     vertexPositions2D[readBufferId].push_back(x);
     vertexPositions2D[readBufferId].push_back(y);
@@ -149,6 +111,46 @@ void GraphManager::AddVertex(float x, float y) {
     vertexVelocities2D[1 - readBufferId].push_back(0.0f);
     vertexVelocities2D[1 - readBufferId].push_back(0.0f);
     vertexStates.push_back(0b01u);
+    return true;
+}
+
+void GraphManager::ClearSelection() {
+    for (unsigned int i = 0; i < graph.size(); i++) {
+        vertexStates[i] &= 0b10u;
+    }
+}
+
+std::vector<vertex> GraphManager::GetCollidingNodes(float x, float y, float nodeRadius) const {
+    std::vector<vertex> collidingNodes;
+    for (vertex i = 0; i < graph.size(); i++) {
+        float dx = x - vertexPositions2D[readBufferId][2 * i];
+        float dy = y - vertexPositions2D[readBufferId][2 * i + 1];
+        if (dx * dx + dy * dy <= nodeRadius * nodeRadius) collidingNodes.push_back(i);
+    }
+    return collidingNodes;
+}
+
+std::vector<vertex> GraphManager::GetCollidingNodes(float startX, float startY, float endX, float endY) const {
+    if (startX > endX) std::swap(startX, endX);
+    if (startY > endY) std::swap(startY, endY);
+
+    std::vector<vertex> collidingNodes;
+    for (vertex v = 0; v < graph.size(); v++) {
+        float vertexX = vertexPositions2D[readBufferId][2 * v];
+        float vertexY = vertexPositions2D[readBufferId][2 * v + 1];
+
+        if (vertexX < startX || vertexX > endX || vertexY < startY || vertexY > endY) continue;
+        collidingNodes.push_back(v);
+    }
+    return collidingNodes;
+}
+
+void GraphManager::SelectNodes(const std::vector<vertex>& nodes) {
+    for (auto v : nodes) vertexStates[v] |= 0b01u;
+}
+
+void GraphManager::ToggleNodes(const std::vector<vertex>& nodes) {
+    for (auto v : nodes) vertexStates[v] ^= 0b01u;
 }
 
 void GraphManager::DeleteSelection() {
@@ -177,6 +179,11 @@ void GraphManager::ConnectSelection() {
             }
         }
     }
+}
+
+void GraphManager::ConnectNodes(vertex start, vertex end) {
+	graph.add_edge(start, end);
+	graph.add_edge(end, start);
 }
 
 void GraphManager::DisconnectSelection() {
@@ -261,6 +268,8 @@ void GraphManager::ContractSelection() {
 		vertexStates.erase(vertexStates.begin() + v);
     }
     graph.remove_vertices(selectedVertices);
+
+    delete[] visited;
 }
 
 void GraphManager::SubdivideSelection() {
@@ -310,6 +319,10 @@ const std::vector<float>& GraphManager::Positions2D() const {
     return vertexPositions2D[readBufferId];
 }
 
+const std::pair<float, float> GraphManager::Position2D(vertex v) const {
+    return std::make_pair(vertexPositions2D[readBufferId][2 * v], vertexPositions2D[readBufferId][2 * v + 1]);
+}
+
 const std::vector<unsigned int>& GraphManager::States() const {
     return vertexStates;
 }
@@ -339,18 +352,13 @@ const std::pair<float, float> GraphManager::Center() {
     return std::make_pair(centerX, centerY);
 }
 
-void GraphManager::OnDrag(float dx, float dy) {
-    dragging = true;
+void GraphManager::OnVertexDrag(float dx, float dy) {
     for (unsigned int i = 0; i < graph.size(); i++) {
         if (vertexStates[i] & 0b01u) {
             vertexPositions2D[readBufferId][2 * i] += dx;
             vertexPositions2D[readBufferId][2 * i + 1] += dy;
         }
     }
-}
-
-void GraphManager::OnDrop() {
-    dragging = false;
 }
 
 void GraphManager::Stop() {
