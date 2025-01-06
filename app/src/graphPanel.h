@@ -10,14 +10,12 @@
 
 class GraphPanel : public wxPanel {
     GraphCanvas* canvas{nullptr};
-    wxButton* openButton;
+    wxButton *openButton, *loadButton, *alignButton;
     wxButton *deleteButton, *connectButton, *disconnectButton, *contractButton, *subdivideButton;
-    wxButton *undoButton, *redoButton;
     wxStaticText *fileInfoLabel, *FPSInfoLabel;
     wxCheckBox* autoVertexPositioningCheckbox;
-    wxButton* loadButton;
     wxTextCtrl* vertexCountInput;
-    bool matching;
+    bool canModifyGraph;
     const std::function<void()> clearMatchingCallback;
     std::string pathToImage;
 
@@ -40,11 +38,15 @@ class GraphPanel : public wxPanel {
     void OnCanvasClick(wxMouseEvent& event);
     void OnCanvasMotion(wxMouseEvent& event);
     void OnGraphUpdate();
+    void EnableGraphModifications();
+    void DisableGraphModifications();
 
   public:
-    GraphPanel(wxWindow* parent, const wxString& title, std::function<void()> clearMatchingCallback);
+    GraphPanel(wxWindow* parent, const wxString& title, std::function<void()> clearMatchingCallback, 
+        std::function<std::vector<std::optional<std::pair<float, float>>>()> getMatchingAlignmentCallback);
 
-    const core::Graph& GetGraph() const;
     void OnMatchingStart();
+    void OnMatchingEnd();
     void OnMatchingEnd(const std::vector<unsigned int>& labelling);
+    const GraphManager& Manager() const;
 };

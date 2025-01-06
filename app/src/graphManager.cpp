@@ -44,6 +44,19 @@ void GraphManager::Initialize(core::Graph&& newGraph, std::vector<std::pair<floa
     UpdateBounds();
 }
 
+void GraphManager::AlignNodes(std::vector<std::optional<std::pair<float, float>>>& positions2D) {
+    for (vertex v = 0; v < graph.size(); v++) {
+        if (positions2D[v].has_value()) {
+            auto [x, y] = positions2D[v].value();
+            vertexPositions2D[readBufferId][2 * v] = x;
+            vertexPositions2D[readBufferId][2 * v + 1] = y;
+            vertexStates[v] |= 0b10;
+        }
+    }
+
+    if (ANIMATE_ALIGNMENT) animationTimeLeftSeconds = ALIGNMENT_ANIMATION_TOTAL_TIME_SECONDS;
+}
+
 void GraphManager::ResizeAnimationData() {
 	vertexRenderedPositions2D.resize(2 * graph.size());
 	tracking.resize(graph.size());
@@ -113,11 +126,11 @@ void GraphManager::UpdatePositions(float deltaTimeSeconds, bool dragging) {
 }
 
 bool GraphManager::UpdateRenderedPositions(float deltaTimeSeconds) {
-    auto updateRequired = false;
+    auto animationFinished = false;
     if (animationTimeLeftSeconds.has_value() && animationTimeLeftSeconds.value() < deltaTimeSeconds) {
         ResizeAnimationData();
         animationTimeLeftSeconds = std::nullopt;
-        updateRequired = true;
+        animationFinished = true;
     }
 
     if (IsAnimationRunning()) {
@@ -135,7 +148,7 @@ bool GraphManager::UpdateRenderedPositions(float deltaTimeSeconds) {
         }
     }
 
-    return updateRequired;
+    return animationFinished;
 }
 
 bool GraphManager::IsAnimationRunning() const {
@@ -339,7 +352,7 @@ void GraphManager::ContractSelection() {
     graph.remove_vertices(selectedVertices, toBeRemoved, vertexIndexDelta);
 
     if (ANIMATE_CONTRACTION) {
-        animationTimeLeftSeconds = CONTRACT_ANIMATION_TOTAL_TIME_SECONDS;
+        animationTimeLeftSeconds = CONTRACTION_ANIMATION_TOTAL_TIME_SECONDS;
     } else {
         ResizeAnimationData();
     }

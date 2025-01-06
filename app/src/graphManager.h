@@ -4,8 +4,10 @@
 #include <vector>
 
 class GraphManager {
-    const float CONTRACT_ANIMATION_TOTAL_TIME_SECONDS = 1.0;
+    const float CONTRACTION_ANIMATION_TOTAL_TIME_SECONDS = 1.0;
     const bool ANIMATE_CONTRACTION = true;
+    const float ALIGNMENT_ANIMATION_TOTAL_TIME_SECONDS = 2.0;
+    const bool ANIMATE_ALIGNMENT = true;
 
     core::Graph graph;
 
@@ -53,6 +55,7 @@ class GraphManager {
     void AnchorSelection();
     void FreeSelection();
     void UpdateBounds();
+    void AlignNodes(std::vector<std::optional<std::pair<float, float>>>& positions2D);
 
     const std::vector<float>& Positions2D() const;
     const std::pair<float, float> Position2D(vertex v) const;

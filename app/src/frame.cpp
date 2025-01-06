@@ -48,8 +48,10 @@ Frame::Frame(const wxString& title)
 
     auto splitter = new wxSplitterWindow(this);
 
-    patternPanel = new GraphPanel(splitter, "Pattern graph", [this]() { ClearMatching(); });
-    searchSpacePanel = new GraphPanel(splitter, "Search space graph", [this]() { ClearMatching(); });
+    patternPanel = new GraphPanel(splitter, "Pattern graph", 
+        [this]() { ClearMatching(); }, [this]() { return GetPatternMatchingAlignment(); });
+    searchSpacePanel = new GraphPanel(splitter, "Search space graph", 
+        [this]() { ClearMatching(); }, [this]() { return GetSearchSpaceMatchingAlignment(); });
 
     splitter->SetSashGravity(0.5);
     splitter->SplitVertically(searchSpacePanel, patternPanel);
@@ -73,8 +75,8 @@ void Frame::OnMatchingStart() {
     currentlyWorkingMatcher = GetSelectedMatcher();
     startStopMatchingButton->SetLabel("Stop");
 
-    const core::Graph& patternGraph = patternPanel->GetGraph();
-    const core::Graph& searchSpaceGraph = searchSpacePanel->GetGraph();
+    const core::Graph& patternGraph = patternPanel->Manager().Graph();
+    const core::Graph& searchSpaceGraph = searchSpacePanel->Manager().Graph();
 
     matchingStatus->SetLabel("Matching...");
     patternPanel->OnMatchingStart();
@@ -87,7 +89,8 @@ void Frame::OnMatchingStart() {
             wxTheApp->CallAfter([this, result = move(result)]() {
                 matcherThread.join();
 
-                OnMatchingComplete(result);
+                matchingResult = result;
+                OnMatchingComplete();
             });
         },
         patternGraph, searchSpaceGraph);
@@ -100,28 +103,29 @@ void Frame::OnMatchingStop() {
     // TODO: currentlyWorkingMatcher->cancel();
 }
 
-void Frame::OnMatchingComplete(const std::optional<std::vector<vertex>>& patternMatching) {
+void Frame::OnMatchingComplete() {
     delete currentlyWorkingMatcher;
     currentlyWorkingMatcher = nullptr;
     startStopMatchingButton->SetLabel("Match");
     startStopMatchingButton->Enable();
 
-    std::vector<unsigned int> patternLabelling(patternPanel->GetGraph().size(), 0);
-    std::vector<unsigned int> searchSpaceLabelling(searchSpacePanel->GetGraph().size(), 0);
+    if (matchingResult.has_value()) {
+		std::vector<unsigned int> patternLabelling(patternPanel->Manager().Graph().size(), 0);
+		std::vector<unsigned int> searchSpaceLabelling(searchSpacePanel->Manager().Graph().size(), 0);
 
-    if (patternMatching.has_value()) {
         matchingStatus->SetLabel("Match found");
 
         std::iota(patternLabelling.begin(), patternLabelling.end(), 1);
-        for (unsigned int v = 0; v < patternMatching.value().size(); v++) {
-            searchSpaceLabelling[patternMatching.value()[v]] = patternLabelling[v];
+        for (unsigned int v = 0; v < matchingResult.value().size(); v++) {
+            searchSpaceLabelling[matchingResult.value()[v]] = patternLabelling[v];
         }
+		patternPanel->OnMatchingEnd(patternLabelling);
+		searchSpacePanel->OnMatchingEnd(searchSpaceLabelling);
     } else {
         matchingStatus->SetLabel("Match not found");
+		patternPanel->OnMatchingEnd();
+		searchSpacePanel->OnMatchingEnd();
     }
-
-    patternPanel->OnMatchingEnd(patternLabelling);
-    searchSpacePanel->OnMatchingEnd(searchSpaceLabelling);
 
     if (isCloseRequested) Close();
 }
@@ -139,10 +143,8 @@ void Frame::OnCloseRequest(wxCloseEvent& event) {
 void Frame::ClearMatching() {
     matchingStatus->SetLabel(wxEmptyString);
 
-	std::vector<unsigned int> patternLabelling(patternPanel->GetGraph().size(), 0);
-	std::vector<unsigned int> searchSpaceLabelling(searchSpacePanel->GetGraph().size(), 0);
-	patternPanel->OnMatchingEnd(patternLabelling);
-	searchSpacePanel->OnMatchingEnd(searchSpaceLabelling);
+	patternPanel->OnMatchingEnd();
+	searchSpacePanel->OnMatchingEnd();
 }
 
 pattern::PatternMatcher* Frame::GetSelectedMatcher() const {
@@ -168,4 +170,34 @@ pattern::PatternMatcher* Frame::GetSelectedMatcher() const {
     }
 
     return new pattern::TopologicalMinorMatcher();
+}
+
+std::vector<std::optional<std::pair<float, float>>> Frame::GetPatternMatchingAlignment() {
+    auto size = patternPanel->Manager().Graph().size();
+    std::vector<std::optional<std::pair<float, float>>> alignment(size);
+    if (!matchingResult.has_value()) return alignment;
+
+    auto& searchSpacePositions = searchSpacePanel->Manager().Positions2D();
+
+    for (unsigned int v = 0; v < matchingResult.value().size(); v++) {
+        auto u = matchingResult.value()[v];
+        alignment[v] = std::make_pair(searchSpacePositions[2 * u], searchSpacePositions[2 * u + 1]);
+    }
+
+    return alignment;
+}
+
+std::vector<std::optional<std::pair<float, float>>> Frame::GetSearchSpaceMatchingAlignment() {
+    auto size = searchSpacePanel->Manager().Graph().size();
+    std::vector<std::optional<std::pair<float, float>>> alignment(size);
+    if (!matchingResult.has_value()) return alignment;
+
+    auto& patternPositions = patternPanel->Manager().Positions2D();
+
+    for (unsigned int v = 0; v < matchingResult.value().size(); v++) {
+        auto u = matchingResult.value()[v];
+        alignment[u] = std::make_pair(patternPositions[2 * v], patternPositions[2 * v + 1]);
+    }
+
+    return alignment;
 }

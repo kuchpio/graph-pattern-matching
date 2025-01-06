@@ -11,8 +11,9 @@
 #include "graphPanel.h"
 #include "graphCanvas.h"
 
-GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<void()> clearMatchingCallback)
-    : wxPanel(parent), clearMatchingCallback(clearMatchingCallback), matching(false) {
+GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<void()> clearMatchingCallback,
+    std::function<std::vector<std::optional<std::pair<float, float>>>()> getMatchingAlignmentCallback)
+    : wxPanel(parent), clearMatchingCallback(clearMatchingCallback), canModifyGraph(true) {
     auto sizer = new wxBoxSizer(wxVERTICAL);
 
     auto nameLabel = new wxStaticText(this, wxID_ANY, title);
@@ -65,16 +66,12 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
     disconnectButton = new wxButton(modifyPanel, wxID_ANY, "Disconnect");
     contractButton = new wxButton(modifyPanel, wxID_ANY, "Contract");
     subdivideButton = new wxButton(modifyPanel, wxID_ANY, "Subdivide");
-    undoButton = new wxButton(modifyPanel, wxID_ANY, "Undo");
-    redoButton = new wxButton(modifyPanel, wxID_ANY, "Redo");
     modifySizer->Add(deleteButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
     modifySizer->Add(connectButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
     modifySizer->Add(disconnectButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
     modifySizer->Add(contractButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
     modifySizer->Add(subdivideButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
     modifySizer->AddStretchSpacer(1);
-    modifySizer->Add(undoButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
-    modifySizer->Add(redoButton, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT | wxTOP | wxBOTTOM, 5);
     modifyPanel->SetSizerAndFit(modifySizer);
     notebook->AddPage(modifyPanel, "Edit");
 
@@ -94,6 +91,7 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
         manager.ContractSelection();
         if (manager.IsAnimationRunning()) {
             this->clearMatchingCallback();
+            DisableGraphModifications();
         } else {
             OnGraphUpdate();
         }
@@ -108,11 +106,14 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
     auto anchorButton = new wxButton(drawPanel, wxID_ANY, "Anchor");
     auto freeButton = new wxButton(drawPanel, wxID_ANY, "Free");
     autoVertexPositioningCheckbox = new wxCheckBox(drawPanel, wxID_ANY, "Automatic vertex positioning");
+    alignButton = new wxButton(drawPanel, wxID_ANY, "Align");
+    alignButton->Disable();
     FPSInfoLabel = new wxStaticText(drawPanel, wxID_ANY, "FPS: 00000");
     drawSizer->Add(anchorButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
     drawSizer->Add(freeButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
     drawSizer->Add(autoVertexPositioningCheckbox, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
     drawSizer->AddStretchSpacer(1);
+    drawSizer->Add(alignButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
     drawSizer->Add(FPSInfoLabel, 0, wxALIGN_CENTER | wxALL, 5);
     drawPanel->SetSizerAndFit(drawSizer);
     notebook->AddPage(drawPanel, "View");
@@ -126,6 +127,11 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
 	    canvas->SetVertexStates(manager.GetStates().data());
     });
     autoVertexPositioningCheckbox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& event) { manager.Stop(); });
+    alignButton->Bind(wxEVT_BUTTON, [this, getMatchingAlignmentCallback](wxCommandEvent& event) {
+        auto alignment = getMatchingAlignmentCallback();
+        manager.AlignNodes(alignment);
+	    canvas->SetVertexStates(manager.GetStates().data());
+    });
 
     sizer->Add(nameLabel, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, 5);
     sizer->Add(notebook, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
@@ -156,8 +162,8 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
     Bind(wxEVT_IDLE, &GraphPanel::OnIdle, this);
 }
 
-const core::Graph& GraphPanel::GetGraph() const {
-    return manager.Graph();
+const GraphManager& GraphPanel::Manager() const {
+    return manager;
 }
 
 void GraphPanel::OnGraphUpdate() {
@@ -171,21 +177,8 @@ void GraphPanel::OnGraphUpdate() {
     this->clearMatchingCallback();
 }
 
-void GraphPanel::OnMatchingStart() {
-    matching = true;
-    openButton->Disable();
-    loadButton->Disable();
-    deleteButton->Disable();
-    connectButton->Disable();
-    disconnectButton->Disable();
-    contractButton->Disable();
-    subdivideButton->Disable();
-    undoButton->Disable();
-    redoButton->Disable();
-}
-
-void GraphPanel::OnMatchingEnd(const std::vector<unsigned int>& labelling) {
-    matching = false;
+void GraphPanel::EnableGraphModifications() {
+    canModifyGraph = true;
     openButton->Enable();
     if (pathToImage != "") loadButton->Enable();
     deleteButton->Enable();
@@ -193,8 +186,35 @@ void GraphPanel::OnMatchingEnd(const std::vector<unsigned int>& labelling) {
     disconnectButton->Enable();
     contractButton->Enable();
     subdivideButton->Enable();
-    undoButton->Enable();
-    redoButton->Enable();
+}
+
+void GraphPanel::DisableGraphModifications() {
+    canModifyGraph = false;
+    openButton->Disable();
+    loadButton->Disable();
+    deleteButton->Disable();
+    connectButton->Disable();
+    disconnectButton->Disable();
+    contractButton->Disable();
+    subdivideButton->Disable();
+}
+
+void GraphPanel::OnMatchingStart() {
+    DisableGraphModifications();
+}
+
+void GraphPanel::OnMatchingEnd() {
+    EnableGraphModifications();
+    alignButton->Disable();
+
+	std::vector<unsigned int> labelling(manager.Graph().size(), 0);
+    auto renderedLabelling = manager.GetRenderedLabelling(labelling);
+    canvas->SetVertexLabels(renderedLabelling.data());
+}
+
+void GraphPanel::OnMatchingEnd(const std::vector<unsigned int>& labelling) {
+    EnableGraphModifications();
+    alignButton->Enable();
 
     auto renderedLabelling = manager.GetRenderedLabelling(labelling);
     canvas->SetVertexLabels(renderedLabelling.data());
@@ -240,7 +260,7 @@ void GraphPanel::OpenFromFile(wxCommandEvent& event) {
 
         pathToImage = fileDialog->GetPath();
         vertexCountInput->Enable();
-        if (!matching) loadButton->Enable();
+        if (canModifyGraph) loadButton->Enable();
     }
 
     fileDialog->Destroy();
@@ -286,6 +306,7 @@ void GraphPanel::OnIdle(wxIdleEvent& event) {
         canvas->SetVertexStates(manager.GetStates().data());
         auto edges = manager.GetEdges();
         canvas->SetEdges(edges.data(), edges.size() / 2);
+        EnableGraphModifications();
     }
     
     if (!vertexDragging) manager.UpdateBounds();
@@ -351,13 +372,13 @@ void GraphPanel::OnCanvasClick(wxMouseEvent& event) {
         areaSelectionStartPoint = std::nullopt;
         vertexDragging = false;
 
-    } else if (event.LeftDClick() && !matching) {
+    } else if (event.LeftDClick() && canModifyGraph) {
 
         manager.AddVertex(worldX, worldY);
 
         OnGraphUpdate();
 
-    } else if (event.RightDown() && !matching) {
+    } else if (event.RightDown() && canModifyGraph) {
 
         auto collidingNodes = manager.GetCollidingNodes(worldX, worldY, worldNodeRadius);
         if (!collidingNodes.empty()) connectionStartVertex = collidingNodes.front();
