@@ -30,18 +30,27 @@ void GraphManager::Initialize(core::Graph&& newGraph, std::vector<std::pair<floa
     vertexVelocities2D[1] = std::vector<float>(2 * graph.size());
     vertexStates = std::vector<unsigned int>(graph.size());
 
+    float minX = FLT_MAX, minY = FLT_MAX, maxX = FLT_MIN, maxY = FLT_MIN;
     for (vertex v = 0; v < graph.size(); v++) {
         auto [newX, newY] = vertexPositions[v];
         vertexPositions2D[readBufferId][2 * v] = newX;
         vertexPositions2D[readBufferId][2 * v + 1] = newY;
         vertexVelocities2D[readBufferId][2 * v] = vertexVelocities2D[readBufferId][2 * v + 1] = 0.0f;
         vertexStates[v] = 0;
+
+        if (newX < minX) minX = newX;
+        if (newX > maxX) maxX = newX;
+        if (newY < minY) minY = newY;
+        if (newY > maxY) maxY = newY;
     }
+
+    boundingWidth = renderedVertexCount <= 1 ? 1.0 : maxX - minX;
+    boundingHeight = renderedVertexCount <= 1 ? 1.0 : maxY - minY;
+    centerX = renderedVertexCount == 0 ? 0.0f : (minX + maxX) / 2;
+    centerY = renderedVertexCount == 0 ? 0.0f : (minY + maxY) / 2;
 
     ResizeAnimationData();
     animationTimeLeftSeconds = std::nullopt;
-
-    UpdateBounds();
 }
 
 void GraphManager::AlignNodes(std::vector<std::optional<std::pair<float, float>>>& positions2D) {
@@ -64,7 +73,7 @@ void GraphManager::ResizeAnimationData() {
 	renderedVertexCount = graph.size();
 }
 
-void GraphManager::UpdateBounds() {
+void GraphManager::UpdateBounds(float deltaTimeSeconds) {
     float minX = FLT_MAX, minY = FLT_MAX, maxX = FLT_MIN, maxY = FLT_MIN;
     for (vertex v = 0; v < renderedVertexCount; v++) {
         float newX = vertexRenderedPositions2D[2 * v];
@@ -76,10 +85,21 @@ void GraphManager::UpdateBounds() {
         if (newY > maxY) maxY = newY;
     }
 
-    boundingWidth = renderedVertexCount <= 1 ? 1.0 : maxX - minX;
-    boundingHeight = renderedVertexCount <= 1 ? 1.0 : maxY - minY;
-    centerX = renderedVertexCount == 0 ? 0.0f : (minX + maxX) / 2;
-    centerY = renderedVertexCount == 0 ? 0.0f : (minY + maxY) / 2;
+    auto goalBoundingWidth = renderedVertexCount <= 1 ? 1.0 : maxX - minX;
+    auto goalBoundingHeight = renderedVertexCount <= 1 ? 1.0 : maxY - minY;
+    auto goalCenterX = renderedVertexCount == 0 ? 0.0f : (minX + maxX) / 2;
+    auto goalCenterY = renderedVertexCount == 0 ? 0.0f : (minY + maxY) / 2;
+
+    auto delta = BOUNDS_MOVING_SPEED * deltaTimeSeconds;
+    boundingWidth = Approach(boundingWidth, goalBoundingWidth, delta);
+    boundingHeight = Approach(boundingHeight, goalBoundingHeight, delta);
+    centerX = Approach(centerX, goalCenterX, delta);
+    centerY = Approach(centerY, goalCenterY, delta);
+}
+
+float GraphManager::Approach(float value, float goal, float change) {
+    if (change >= abs(value - goal)) return goal;
+    return value + change * ((goal > value) - (value > goal));
 }
 
 void GraphManager::UpdatePositions(float deltaTimeSeconds, bool dragging) {

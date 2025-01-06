@@ -8,6 +8,7 @@ class GraphManager {
     const bool ANIMATE_CONTRACTION = true;
     const float ALIGNMENT_ANIMATION_TOTAL_TIME_SECONDS = 2.0;
     const bool ANIMATE_ALIGNMENT = true;
+    const float BOUNDS_MOVING_SPEED = 2.0;
 
     core::Graph graph;
 
@@ -26,6 +27,7 @@ class GraphManager {
     const float DRAG = 4.0f;
 
     void ResizeAnimationData();
+    static float Approach(float value, float goal, float change);
 
   public:
     GraphManager();
@@ -34,6 +36,7 @@ class GraphManager {
     void Initialize(core::Graph&& graph, std::vector<std::pair<float, float>>&& vertexPositions);
     void UpdatePositions(float deltaTimeSeconds, bool dragging);
     bool UpdateRenderedPositions(float deltaTimeSeconds);
+    void UpdateBounds(float deltaTimeSeconds);
     bool IsAnimationRunning() const;
     vertex RenderedVertexCount() const;
 
@@ -54,7 +57,6 @@ class GraphManager {
     void SubdivideSelection();
     void AnchorSelection();
     void FreeSelection();
-    void UpdateBounds();
     void AlignNodes(std::vector<std::optional<std::pair<float, float>>>& positions2D);
 
     const std::vector<float>& Positions2D() const;

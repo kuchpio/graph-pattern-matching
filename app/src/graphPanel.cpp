@@ -309,7 +309,7 @@ void GraphPanel::OnIdle(wxIdleEvent& event) {
         EnableGraphModifications();
     }
     
-    if (!vertexDragging) manager.UpdateBounds();
+    if (!vertexDragging) manager.UpdateBounds(elapsedSeconds.count());
 
     auto& vertexPositions2D = manager.Positions2D();
     auto [boundingWidth, boundingHeight] = manager.BoundingSize();
