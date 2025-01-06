@@ -4,8 +4,10 @@
 #include <math.h>
 #include <cfloat>
 #include <algorithm>
+#include <numeric>
 
-GraphManager::GraphManager() : graph(0), boundingWidth(1.0), boundingHeight(1.0), centerX(0), centerY(0) {
+GraphManager::GraphManager() : graph(0) {
+    Initialize(std::move(graph));
 }
 
 void GraphManager::Initialize(core::Graph&& newGraph) {
@@ -36,14 +38,24 @@ void GraphManager::Initialize(core::Graph&& newGraph, std::vector<std::pair<floa
         vertexStates[v] = 0;
     }
 
+    ResizeAnimationData();
+    animationTimeLeftSeconds = std::nullopt;
+
     UpdateBounds();
+}
+
+void GraphManager::ResizeAnimationData() {
+	vertexRenderedPositions2D.resize(2 * graph.size());
+	tracking.resize(graph.size());
+	std::iota(tracking.begin(), tracking.end(), 0);
+	renderedVertexCount = graph.size();
 }
 
 void GraphManager::UpdateBounds() {
     float minX = FLT_MAX, minY = FLT_MAX, maxX = FLT_MIN, maxY = FLT_MIN;
-    for (vertex v = 0; v < graph.size(); v++) {
-        float newX = vertexPositions2D[readBufferId][2 * v];
-        float newY = vertexPositions2D[readBufferId][2 * v + 1];
+    for (vertex v = 0; v < renderedVertexCount; v++) {
+        float newX = vertexRenderedPositions2D[2 * v];
+        float newY = vertexRenderedPositions2D[2 * v + 1];
 
         if (newX < minX) minX = newX;
         if (newX > maxX) maxX = newX;
@@ -51,10 +63,10 @@ void GraphManager::UpdateBounds() {
         if (newY > maxY) maxY = newY;
     }
 
-    boundingWidth = graph.size() <= 1 ? 1.0 : maxX - minX;
-    boundingHeight = graph.size() <= 1 ? 1.0 : maxY - minY;
-    centerX = (minX + maxX) / 2;
-    centerY = (minY + maxY) / 2;
+    boundingWidth = renderedVertexCount <= 1 ? 1.0 : maxX - minX;
+    boundingHeight = renderedVertexCount <= 1 ? 1.0 : maxY - minY;
+    centerX = renderedVertexCount == 0 ? 0.0f : (minX + maxX) / 2;
+    centerY = renderedVertexCount == 0 ? 0.0f : (minY + maxY) / 2;
 }
 
 void GraphManager::UpdatePositions(float deltaTimeSeconds, bool dragging) {
@@ -100,8 +112,42 @@ void GraphManager::UpdatePositions(float deltaTimeSeconds, bool dragging) {
     readBufferId = 1 - readBufferId;
 }
 
+bool GraphManager::UpdateRenderedPositions(float deltaTimeSeconds) {
+    auto updateRequired = false;
+    if (animationTimeLeftSeconds.has_value() && animationTimeLeftSeconds.value() < deltaTimeSeconds) {
+        ResizeAnimationData();
+        animationTimeLeftSeconds = std::nullopt;
+        updateRequired = true;
+    }
+
+    if (IsAnimationRunning()) {
+        for (vertex v = 0; v < renderedVertexCount; v++) {
+			auto dx = vertexPositions2D[readBufferId][2 * tracking[v]] - vertexRenderedPositions2D[2 * v];
+			auto dy = vertexPositions2D[readBufferId][2 * tracking[v] + 1] - vertexRenderedPositions2D[2 * v + 1];
+			vertexRenderedPositions2D[2 * v] += deltaTimeSeconds * dx / animationTimeLeftSeconds.value();
+			vertexRenderedPositions2D[2 * v + 1] += deltaTimeSeconds * dy / animationTimeLeftSeconds.value();
+        }
+	    animationTimeLeftSeconds.value() -= deltaTimeSeconds;
+    } else {
+        for (vertex v = 0; v < renderedVertexCount; v++) {
+			vertexRenderedPositions2D[2 * v] = vertexPositions2D[readBufferId][2 * tracking[v]];
+			vertexRenderedPositions2D[2 * v + 1] = vertexPositions2D[readBufferId][2 * tracking[v] + 1];
+        }
+    }
+
+    return updateRequired;
+}
+
+bool GraphManager::IsAnimationRunning() const {
+    return animationTimeLeftSeconds.has_value() && animationTimeLeftSeconds.value() > 0.0f;
+}
+
+vertex GraphManager::RenderedVertexCount() const {
+    return renderedVertexCount;
+}
+
 bool GraphManager::AddVertex(float x, float y) {
-    graph.add_vertex();
+    auto v = graph.add_vertex();
     vertexPositions2D[readBufferId].push_back(x);
     vertexPositions2D[readBufferId].push_back(y);
     vertexPositions2D[1 - readBufferId].push_back(0.0f);
@@ -111,6 +157,8 @@ bool GraphManager::AddVertex(float x, float y) {
     vertexVelocities2D[1 - readBufferId].push_back(0.0f);
     vertexVelocities2D[1 - readBufferId].push_back(0.0f);
     vertexStates.push_back(0b01u);
+
+    ResizeAnimationData();
     return true;
 }
 
@@ -122,10 +170,10 @@ void GraphManager::ClearSelection() {
 
 std::vector<vertex> GraphManager::GetCollidingNodes(float x, float y, float nodeRadius) const {
     std::vector<vertex> collidingNodes;
-    for (vertex i = 0; i < graph.size(); i++) {
-        float dx = x - vertexPositions2D[readBufferId][2 * i];
-        float dy = y - vertexPositions2D[readBufferId][2 * i + 1];
-        if (dx * dx + dy * dy <= nodeRadius * nodeRadius) collidingNodes.push_back(i);
+    for (vertex v = 0; v < renderedVertexCount; v++) {
+        float dx = x - vertexRenderedPositions2D[2 * v];
+        float dy = y - vertexRenderedPositions2D[2 * v + 1];
+        if (dx * dx + dy * dy <= nodeRadius * nodeRadius) collidingNodes.push_back(v);
     }
     return collidingNodes;
 }
@@ -135,9 +183,9 @@ std::vector<vertex> GraphManager::GetCollidingNodes(float startX, float startY, 
     if (startY > endY) std::swap(startY, endY);
 
     std::vector<vertex> collidingNodes;
-    for (vertex v = 0; v < graph.size(); v++) {
-        float vertexX = vertexPositions2D[readBufferId][2 * v];
-        float vertexY = vertexPositions2D[readBufferId][2 * v + 1];
+    for (vertex v = 0; v < renderedVertexCount; v++) {
+        float vertexX = vertexRenderedPositions2D[2 * v];
+        float vertexY = vertexRenderedPositions2D[2 * v + 1];
 
         if (vertexX < startX || vertexX > endX || vertexY < startY || vertexY > endY) continue;
         collidingNodes.push_back(v);
@@ -146,20 +194,20 @@ std::vector<vertex> GraphManager::GetCollidingNodes(float startX, float startY, 
 }
 
 void GraphManager::SelectNodes(const std::vector<vertex>& nodes) {
-    for (auto v : nodes) vertexStates[v] |= 0b01u;
+    for (auto v : nodes) vertexStates[tracking[v]] |= 0b01u;
 }
 
 void GraphManager::ToggleNodes(const std::vector<vertex>& nodes) {
-    for (auto v : nodes) vertexStates[v] ^= 0b01u;
+    for (auto v : nodes) vertexStates[tracking[v]] ^= 0b01u;
 }
 
 void GraphManager::DeleteSelection() {
-    std::vector<vertex> toBeRemoved;
+    std::vector<vertex> selectedVertices;
+
     for (unsigned int i = graph.size(); i > 0; i--) {
         vertex v = i - 1;
         if (vertexStates[v] & 0b01u) {
-            toBeRemoved.push_back(v);
-
+            selectedVertices.push_back(v);
             vertexPositions2D[0].erase(vertexPositions2D[0].begin() + 2 * v, vertexPositions2D[0].begin() + 2 * v + 2);
             vertexPositions2D[1].erase(vertexPositions2D[1].begin() + 2 * v, vertexPositions2D[1].begin() + 2 * v + 2);
             vertexVelocities2D[0].erase(vertexVelocities2D[0].begin() + 2 * v, vertexVelocities2D[0].begin() + 2 * v + 2);
@@ -167,7 +215,10 @@ void GraphManager::DeleteSelection() {
             vertexStates.erase(vertexStates.begin() + v);
         }
     }
-    graph.remove_vertices(toBeRemoved);
+
+    graph.remove_vertices(selectedVertices);
+
+    ResizeAnimationData();
 }
 
 void GraphManager::ConnectSelection() {
@@ -182,8 +233,9 @@ void GraphManager::ConnectSelection() {
 }
 
 void GraphManager::ConnectNodes(vertex start, vertex end) {
-	graph.add_edge(start, end);
-	graph.add_edge(end, start);
+    if (tracking[start] == tracking[end]) return;
+	graph.add_edge(tracking[start], tracking[end]);
+	graph.add_edge(tracking[end], tracking[start]);
 }
 
 void GraphManager::DisconnectSelection() {
@@ -199,10 +251,11 @@ void GraphManager::DisconnectSelection() {
 
 void GraphManager::ContractSelection() {
 
-    // 1. Preprocessing
     auto size = graph.size();
     std::vector<vertex> selectedVertices;
     bool* visited = new bool[size];
+
+    // 1. Preprocessing
     for (unsigned int i = size; i > 0; i--) {
         vertex v = i - 1;
         if (vertexStates[v] & 0b01u) {
@@ -214,6 +267,7 @@ void GraphManager::ContractSelection() {
     // 2. Add vertex for each connected component and edges between them.
     std::vector<vertex> toVisit;
     std::vector<vertex> nonContractedEnds;
+    std::vector<vertex> contractedVertices;
     for (vertex v = 0; v < size; v++) {
         if (visited[v]) continue;
         toVisit.emplace_back(v);
@@ -228,6 +282,7 @@ void GraphManager::ContractSelection() {
             v_x += vertexVelocities2D[readBufferId][2 * u];
             v_y += vertexVelocities2D[readBufferId][2 * u + 1];
             ccSize++;
+            contractedVertices.emplace_back(u);
             for (auto w : graph.neighbours(u)) {
                 if (!(vertexStates[w] & 0b01u)) {
                     nonContractedEnds.emplace_back(w);
@@ -251,6 +306,13 @@ void GraphManager::ContractSelection() {
         vertexVelocities2D[1 - readBufferId].push_back(0.0f);
         vertexVelocities2D[1 - readBufferId].push_back(0.0f);
         vertexStates.push_back(0b01u);
+
+        while (!contractedVertices.empty()) {
+            vertex u = contractedVertices.back();
+            contractedVertices.pop_back();
+            tracking[u] = cc;
+        }
+
         while (!nonContractedEnds.empty()) {
             vertex u = nonContractedEnds.back();    
             nonContractedEnds.pop_back();
@@ -260,16 +322,31 @@ void GraphManager::ContractSelection() {
     }
 
     // 3. Remove vertices from each connected component
+    int* toBeRemoved = new int[graph.size()]{false};
     for (auto v : selectedVertices) {
+        toBeRemoved[v] = true;
 		vertexPositions2D[0].erase(vertexPositions2D[0].begin() + 2 * v, vertexPositions2D[0].begin() + 2 * v + 2);
 		vertexPositions2D[1].erase(vertexPositions2D[1].begin() + 2 * v, vertexPositions2D[1].begin() + 2 * v + 2);
 		vertexVelocities2D[0].erase(vertexVelocities2D[0].begin() + 2 * v, vertexVelocities2D[0].begin() + 2 * v + 2);
 		vertexVelocities2D[1].erase(vertexVelocities2D[1].begin() + 2 * v, vertexVelocities2D[1].begin() + 2 * v + 2);
 		vertexStates.erase(vertexStates.begin() + v);
     }
-    graph.remove_vertices(selectedVertices);
+    vertex* vertexIndexDelta = new vertex[graph.size() + 1];
+    vertexIndexDelta[0] = 0;
+    std::partial_sum(toBeRemoved, toBeRemoved + graph.size(), vertexIndexDelta + 1);
+	std::transform(tracking.begin(), tracking.end(), tracking.begin(),
+				   [vertexIndexDelta](vertex v) { return v - vertexIndexDelta[v]; });
+    graph.remove_vertices(selectedVertices, toBeRemoved, vertexIndexDelta);
+
+    if (ANIMATE_CONTRACTION) {
+        animationTimeLeftSeconds = CONTRACT_ANIMATION_TOTAL_TIME_SECONDS;
+    } else {
+        ResizeAnimationData();
+    }
 
     delete[] visited;
+    delete[] toBeRemoved;
+    delete[] vertexIndexDelta;
 }
 
 void GraphManager::SubdivideSelection() {
@@ -301,6 +378,8 @@ void GraphManager::SubdivideSelection() {
             }
         }
     }
+
+    ResizeAnimationData();
 }
 
 void GraphManager::AnchorSelection() {
@@ -316,26 +395,26 @@ void GraphManager::FreeSelection() {
 }
 
 const std::vector<float>& GraphManager::Positions2D() const {
-    return vertexPositions2D[readBufferId];
+    return vertexRenderedPositions2D;
 }
 
 const std::pair<float, float> GraphManager::Position2D(vertex v) const {
-    return std::make_pair(vertexPositions2D[readBufferId][2 * v], vertexPositions2D[readBufferId][2 * v + 1]);
+    return std::make_pair(vertexRenderedPositions2D[2 * v], vertexRenderedPositions2D[2 * v + 1]);
 }
 
-const std::vector<unsigned int>& GraphManager::States() const {
-    return vertexStates;
-}
-
-const core::Graph& GraphManager::Graph() const {
-    return graph;
+const std::vector<unsigned int> GraphManager::GetStates() const {
+    std::vector<unsigned int> states(renderedVertexCount);
+    for (unsigned int i = 0; i < renderedVertexCount; i++) {
+        states[i] = vertexStates[tracking[i]];
+    }
+    return states;
 }
 
 const std::vector<unsigned int> GraphManager::GetEdges() const {
     std::vector<unsigned int> edges;
-    for (unsigned int i = 0; i < graph.size(); i++) {
+    for (unsigned int i = 0; i < renderedVertexCount; i++) {
         for (unsigned int j = 0; j < i; j++) {
-            if (graph.has_edge(i, j) || graph.has_edge(j, i)) {
+            if (graph.has_edge(tracking[i], tracking[j]) || graph.has_edge(tracking[j], tracking[i])) {
                 edges.push_back(i);
                 edges.push_back(j);
             }
@@ -344,12 +423,26 @@ const std::vector<unsigned int> GraphManager::GetEdges() const {
     return edges;
 }
 
+const std::vector<unsigned int> GraphManager::GetRenderedLabelling(const std::vector<unsigned int>& labelling) const {
+    std::vector<unsigned int> renderedLabelling(renderedVertexCount);
+
+    for (unsigned int i = 0; i < renderedVertexCount; i++) {
+        renderedLabelling[i] = labelling[tracking[i]];
+    }
+
+    return renderedLabelling;
+}
+
 const std::pair<float, float> GraphManager::BoundingSize() {
     return std::make_pair(boundingWidth, boundingHeight);
 }
 
 const std::pair<float, float> GraphManager::Center() {
     return std::make_pair(centerX, centerY);
+}
+
+const core::Graph& GraphManager::Graph() const {
+    return graph;
 }
 
 void GraphManager::OnVertexDrag(float dx, float dy) {

@@ -98,6 +98,17 @@ bool Graph::remove_vertices(const std::vector<vertex>& verticesSortedDesc) {
     vertexIndexDelta[0] = 0;
     std::partial_sum(toBeRemoved, toBeRemoved + _adjacencyList.size(), vertexIndexDelta + 1);
 
+    remove_vertices(verticesSortedDesc, toBeRemoved, vertexIndexDelta);
+
+    // 4. Cleanup
+    delete[] toBeRemoved;
+    delete[] vertexIndexDelta;
+
+    return true;
+}
+
+bool Graph::remove_vertices(const std::vector<vertex>& verticesSortedDesc, const int* toBeRemoved, const vertex* vertexIndexDelta) {
+
     // 2. Remove incoming edges
 	for (auto& neighbours : _adjacencyList) {
         std::erase_if(neighbours, [toBeRemoved](auto v) { return toBeRemoved[v]; });
@@ -107,10 +118,6 @@ bool Graph::remove_vertices(const std::vector<vertex>& verticesSortedDesc) {
     
     // 3. Remove outgoing edges
     for (auto v : verticesSortedDesc) _adjacencyList.erase(_adjacencyList.begin() + v);
-
-    // 4. Cleanup
-    delete[] toBeRemoved;
-    delete[] vertexIndexDelta;
 
     return true;
 }

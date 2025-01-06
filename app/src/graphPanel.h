@@ -39,6 +39,7 @@ class GraphPanel : public wxPanel {
     void SaveToFile(wxCommandEvent& event);
     void OnCanvasClick(wxMouseEvent& event);
     void OnCanvasMotion(wxMouseEvent& event);
+    void OnGraphUpdate();
 
   public:
     GraphPanel(wxWindow* parent, const wxString& title, std::function<void()> clearMatchingCallback);

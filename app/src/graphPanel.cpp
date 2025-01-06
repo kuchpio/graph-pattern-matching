@@ -55,15 +55,7 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
             wxLogDebug("ERROR: %s", err.what());
             return;
 		}
-
-		auto& vertexStates = manager.States();
-		auto edges = manager.GetEdges();
-
-        canvas->SetVertexCount(manager.Graph().size());
-		canvas->SetVertexStates(vertexStates.data());
-		canvas->SetEdges(edges.data(), edges.size() / 2);
-
-		this->clearMatchingCallback();
+        OnGraphUpdate();
     });
 
     auto modifyPanel = new wxPanel(notebook);
@@ -88,52 +80,27 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
 
     deleteButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
         manager.DeleteSelection();
-
-        auto& vertexStates = manager.States();
-        auto edges = manager.GetEdges();
-
-        canvas->SetVertexCount(manager.Graph().size());
-        canvas->SetVertexStates(vertexStates.data());
-        canvas->SetEdges(edges.data(), edges.size() / 2);
-
-        this->clearMatchingCallback();
+        OnGraphUpdate();
     });
     connectButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
         manager.ConnectSelection();
-
-        auto edges = manager.GetEdges();
-        canvas->SetEdges(edges.data(), edges.size() / 2);
-
-        this->clearMatchingCallback();
+        OnGraphUpdate();
     });
     disconnectButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
         manager.DisconnectSelection();
-
-        auto edges = manager.GetEdges();
-        canvas->SetEdges(edges.data(), edges.size() / 2);
-
-        this->clearMatchingCallback();
+        OnGraphUpdate();
     });
     contractButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
         manager.ContractSelection();
-
-        auto& vertexStates = manager.States();
-        auto edges = manager.GetEdges();
-
-        canvas->SetVertexCount(manager.Graph().size());
-        canvas->SetVertexStates(vertexStates.data());
-        canvas->SetEdges(edges.data(), edges.size() / 2);
-
-        this->clearMatchingCallback();
+        if (manager.IsAnimationRunning()) {
+            this->clearMatchingCallback();
+        } else {
+            OnGraphUpdate();
+        }
     });
     subdivideButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
         manager.SubdivideSelection();
-
-        auto edges = manager.GetEdges();
-        canvas->SetVertexCount(manager.Graph().size());
-        canvas->SetEdges(edges.data(), edges.size() / 2);
-
-        this->clearMatchingCallback();
+        OnGraphUpdate();
     });
 
     auto drawPanel = new wxPanel(notebook);
@@ -152,17 +119,11 @@ GraphPanel::GraphPanel(wxWindow* parent, const wxString& title, std::function<vo
 
     anchorButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
         manager.AnchorSelection();
-
-        auto& vertexStates = manager.States();
-        canvas->SetVertexStates(vertexStates.data());
-        canvas->Refresh();
+	    canvas->SetVertexStates(manager.GetStates().data());
     });
     freeButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
         manager.FreeSelection();
-
-        auto& vertexStates = manager.States();
-        canvas->SetVertexStates(vertexStates.data());
-        canvas->Refresh();
+	    canvas->SetVertexStates(manager.GetStates().data());
     });
     autoVertexPositioningCheckbox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& event) { manager.Stop(); });
 
@@ -199,6 +160,17 @@ const core::Graph& GraphPanel::GetGraph() const {
     return manager.Graph();
 }
 
+void GraphPanel::OnGraphUpdate() {
+	canvas->SetVertexCount(manager.RenderedVertexCount());
+    auto& vertexPositions2D = manager.Positions2D();
+    canvas->SetVertexPositions(vertexPositions2D.data());
+	canvas->SetVertexStates(manager.GetStates().data());
+	auto edges = manager.GetEdges();
+	canvas->SetEdges(edges.data(), edges.size() / 2);
+
+    this->clearMatchingCallback();
+}
+
 void GraphPanel::OnMatchingStart() {
     matching = true;
     openButton->Disable();
@@ -224,7 +196,8 @@ void GraphPanel::OnMatchingEnd(const std::vector<unsigned int>& labelling) {
     undoButton->Enable();
     redoButton->Enable();
 
-    canvas->SetVertexLabels(labelling.data());
+    auto renderedLabelling = manager.GetRenderedLabelling(labelling);
+    canvas->SetVertexLabels(renderedLabelling.data());
 }
 
 void GraphPanel::OpenFromFile(wxCommandEvent& event) {
@@ -257,14 +230,7 @@ void GraphPanel::OpenFromFile(wxCommandEvent& event) {
             return;
         }
 
-        auto& vertexStates = manager.States();
-        auto edges = manager.GetEdges();
-
-        canvas->SetVertexCount(manager.Graph().size());
-        canvas->SetVertexStates(vertexStates.data());
-        canvas->SetEdges(edges.data(), edges.size() / 2);
-
-        clearMatchingCallback();
+        OnGraphUpdate();
 
         pathToImage = "";
         vertexCountInput->Disable();
@@ -313,13 +279,16 @@ void GraphPanel::OnIdle(wxIdleEvent& event) {
 
     if (autoVertexPositioningCheckbox->IsChecked()) {
         manager.UpdatePositions(elapsedSeconds.count(), vertexDragging);
-        if (!vertexDragging) manager.UpdateBounds();
     }
 
-    fpsArray[fpsIndex++] = (int)(1.0 / elapsedSeconds.count());
-    if (fpsIndex >= FPS_ANALYSIS_COUNT) fpsIndex = 0;
-    int avgFPS = (int)(std::accumulate(fpsArray, fpsArray + FPS_ANALYSIS_COUNT, 0) / FPS_ANALYSIS_COUNT);
-    FPSInfoLabel->SetLabel(wxString::Format("FPS: %5d", avgFPS));
+    if (manager.UpdateRenderedPositions(elapsedSeconds.count())) {
+        canvas->SetVertexCount(manager.RenderedVertexCount());
+        canvas->SetVertexStates(manager.GetStates().data());
+        auto edges = manager.GetEdges();
+        canvas->SetEdges(edges.data(), edges.size() / 2);
+    }
+    
+    if (!vertexDragging) manager.UpdateBounds();
 
     auto& vertexPositions2D = manager.Positions2D();
     auto [boundingWidth, boundingHeight] = manager.BoundingSize();
@@ -328,6 +297,11 @@ void GraphPanel::OnIdle(wxIdleEvent& event) {
     canvas->SetVertexPositions(vertexPositions2D.data());
     canvas->SetBoundingSize(boundingWidth, boundingHeight);
     canvas->SetCenterPosition(centerX, centerY);
+
+    fpsArray[fpsIndex++] = (int)(1.0 / elapsedSeconds.count());
+    if (fpsIndex >= FPS_ANALYSIS_COUNT) fpsIndex = 0;
+    int avgFPS = (int)(std::accumulate(fpsArray, fpsArray + FPS_ANALYSIS_COUNT, 0) / FPS_ANALYSIS_COUNT);
+    FPSInfoLabel->SetLabel(wxString::Format("FPS: %5d", avgFPS));
 
     canvas->Refresh();
     event.RequestMore();
@@ -352,10 +326,7 @@ void GraphPanel::OnCanvasClick(wxMouseEvent& event) {
         auto collidingNodes = manager.GetCollidingNodes(worldX, worldY, worldNodeRadius);
         if (!event.ControlDown()) manager.SelectNodes(collidingNodes);
 
-        if (!event.ControlDown()) {
-			auto& vertexStates = manager.States();
-			canvas->SetVertexStates(vertexStates.data());
-        }
+        if (!event.ControlDown()) canvas->SetVertexStates(manager.GetStates().data());
 
         areaSelectionStartPoint = collidingNodes.empty() ? std::make_optional(point) : std::nullopt;
         vertexDragging = !collidingNodes.empty();
@@ -369,11 +340,12 @@ void GraphPanel::OnCanvasClick(wxMouseEvent& event) {
             manager.SelectNodes(collidingNodes);
         } else if (event.ControlDown()) {
             auto collidingNodes = manager.GetCollidingNodes(worldX, worldY, worldNodeRadius);
+			auto last = std::unique(collidingNodes.begin(), collidingNodes.end());
+			collidingNodes.erase(last, collidingNodes.end());
             manager.ToggleNodes(collidingNodes);
         }
 
-		auto& vertexStates = manager.States();
-		canvas->SetVertexStates(vertexStates.data());
+        canvas->SetVertexStates(manager.GetStates().data());
         canvas->ClearUtilityLoop();
 
         areaSelectionStartPoint = std::nullopt;
@@ -383,12 +355,7 @@ void GraphPanel::OnCanvasClick(wxMouseEvent& event) {
 
         manager.AddVertex(worldX, worldY);
 
-        auto& vertexPositions = manager.Positions2D();
-		auto& vertexStates = manager.States();
-        canvas->SetVertexCount(manager.Graph().size());
-        canvas->SetVertexPositions(vertexPositions.data());
-		canvas->SetVertexStates(vertexStates.data());
-        clearMatchingCallback();
+        OnGraphUpdate();
 
     } else if (event.RightDown() && !matching) {
 
@@ -401,9 +368,7 @@ void GraphPanel::OnCanvasClick(wxMouseEvent& event) {
         if (!collidingNodes.empty()) {
             manager.ConnectNodes(connectionStartVertex.value(), collidingNodes.front());
         
-			auto edges = manager.GetEdges();
-			canvas->SetEdges(edges.data(), edges.size() / 2);
-			clearMatchingCallback();
+            OnGraphUpdate();
         }
         canvas->ClearUtilityLoop();
 
