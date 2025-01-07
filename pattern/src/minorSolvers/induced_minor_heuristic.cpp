@@ -1,4 +1,5 @@
 #include "induced_minor_heuristic.h"
+#include <algorithm>
 
 #define MAX_RECURSION_DEPTH 10
 
@@ -14,14 +15,17 @@ std::optional<std::vector<vertex>> InducedMinorHeuristic::tpRecursion(const core
     if (!maxDegreeConstraint(G, H)) return std::nullopt;
 
     auto subgraphMatching = subgraphSolver.match(G, H);
-    if (subgraphMatching) return subgraphMatching;
+    if (subgraphMatching) {
+        mapping_ = mapping;
+        return subgraphMatching;
+    }
 
     for (int i = lastSkippedEdge; i < G.edges().size(); i++) {
         auto [u, v] = G.edges()[i];
         auto newMinor = contractEdge(G, u, v);
         auto newMapping = updateMapping(mapping, u, v);
         auto matching = tpRecursion(newMinor, H, newMapping, depth + 1, i);
-        if (matching) return getResult(newMapping, matching.value());
+        if (matching) return matching;
     }
     return std::nullopt;
 }

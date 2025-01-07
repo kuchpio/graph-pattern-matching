@@ -10,7 +10,9 @@ std::optional<std::vector<vertex>> TopologicalMinorHeuristic::match(const core::
     std::vector<vertex> mapping(G.size());
     std::iota(mapping.begin(), mapping.end(), 0);
 
-    return tpRecursion(G, H, mapping, 0, 0);
+    auto matching = tpRecursion(G, H, mapping, 0, 0);
+    if (matching) return getResult(mapping_, matching.value());
+    return std::nullopt;
 }
 
 std::optional<std::vector<vertex>> TopologicalMinorHeuristic::tpRecursion(const core::Graph G, const core::Graph& H,
@@ -21,15 +23,18 @@ std::optional<std::vector<vertex>> TopologicalMinorHeuristic::tpRecursion(const 
     if (interrupted_) return std::nullopt;
 
     auto subgraphMatching = subgraphMatcher_->match(G, H);
-    if (subgraphMatching) return subgraphMatching;
+    if (subgraphMatching) {
+        mapping_ = mapping;
+        return subgraphMatching;
+    }
 
     for (int i = lastSkippedEdge; i < G.edges().size(); i++) {
         auto [u, v] = G.edges()[i];
-        if (G.degree_in(v) + G.degree_out(v) == 2) {
+        if (G.degree_in(v) + G.degree_out(v) == 2 || G.degree_in(u) + G.degree_out(u) == 2) {
             auto newMinor = contractEdge(G, u, v);
             auto newMapping = updateMapping(mapping, u, v);
             auto matching = tpRecursion(newMinor, H, newMapping, depth + 1, i);
-            if (matching) return getResult(newMapping, matching.value());
+            if (matching) return matching;
         }
     }
     return std::nullopt;

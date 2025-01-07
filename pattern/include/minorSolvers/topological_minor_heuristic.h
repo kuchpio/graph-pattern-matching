@@ -7,7 +7,7 @@ namespace pattern
 {
 class TopologicalMinorHeuristic : public MinorMatcher {
   public:
-    TopologicalMinorHeuristic(SubgraphMatcher* subgraphMatcher) : subgraphMatcher_(subgraphMatcher) {};
+    TopologicalMinorHeuristic(SubgraphMatcher* subgraphMatcher) : subgraphMatcher_(subgraphMatcher){};
     std::optional<std::vector<vertex>> match(const core::Graph& G, const core::Graph& Q) override;
 
   protected:
@@ -20,5 +20,7 @@ class TopologicalMinorHeuristic : public MinorMatcher {
     static std::vector<vertex> getResult(const std::vector<vertex>& mapping,
                                          const std::vector<vertex>& contractedResult);
     SubgraphMatcher* subgraphMatcher_;
+    std::vector<vertex> mapping_;
 };
+
 } // namespace pattern

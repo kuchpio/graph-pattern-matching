@@ -6,6 +6,7 @@
 
 #include <optional>
 #include <vector>
+#include <cstdint>
 
 namespace pattern
 {

@@ -193,14 +193,16 @@ TEST(TopologicalMinorIsomorphism, HasTopologicalMinor) {
     G.add_edge(3, 4);
     G.add_edge(4, 5);
     G.add_edge(5, 0);
-    G.add_edge(1, 4); // Extra edge to make Q a topological minor
+    G.add_edge(1, 4);
+    G.add_edge(4, 1); // Extra edge to make Q a topological minor
 
     // Define edges for the smaller graph Q (square with a diagonal)
     Q.add_edge(0, 1);
     Q.add_edge(1, 2);
     Q.add_edge(2, 3);
     Q.add_edge(3, 0);
-    Q.add_edge(1, 3); // Diagonal edge
+    Q.add_edge(1, 3);
+    Q.add_edge(3, 1); // Diagonal edge
 
     auto matcher = TopologicalMinorHeuristicSolver();
 
@@ -209,9 +211,9 @@ TEST(TopologicalMinorIsomorphism, HasTopologicalMinor) {
     EXPECT_TRUE(matching.has_value());
 
     auto correctMatching = std::vector<vertex>{1, 1, 1, 2, 3, 0};
-    EXPECT_TRUE(utils::MatchingChecker::checkMinorMatching(G, Q, correctMatching));
-    auto rempty = std::vector<vertex>();
-    // EXPECT_EQ(matching.value(), rempty);
+    EXPECT_TRUE(utils::MatchingChecker::checkMinorMatching(G, Q, matching.value()));
+    //  auto rempty = std::vector<vertex>();
+    //    EXPECT_EQ(matching.value(), rempty);
 }
 
 TEST(InducedMinorIsomorphism, SmallNotInducedMinor) {
