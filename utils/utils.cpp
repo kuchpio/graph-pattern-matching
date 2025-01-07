@@ -216,4 +216,42 @@ bool MatchingChecker::checkInducedSubgraphMatching(const core::Graph& G, const c
     return G.is_induced_subgraph(reorderedQ);
 }
 
+bool MatchingChecker::checkMinorMatching(const core::Graph& G, const core::Graph& H,
+                                         const std::vector<vertex>& mapping) {
+    auto minorMapping = toMinorMapping(mapping);
+
+    for (int i = 0; i < minorMapping.size(); ++i) {
+        auto& vMappings = minorMapping[i];
+        for (auto u : H.get_neighbours(i)) {
+            bool flag = false;
+            for (auto v : vMappings) {
+                for (auto vNeighbour : G.get_neighbours(v))
+                    if (mapping[vNeighbour] == u) flag = true;
+            }
+            if (!flag) return false;
+        }
+    }
+    return true;
+}
+
+bool MatchingChecker::checkInducedMinorMatching(const core::Graph& G, const core::Graph& H,
+                                                const std::vector<vertex>& mapping) {
+    auto minorMapping = toMinorMapping(mapping);
+    return false;
+}
+
+std::vector<std::vector<vertex>> MatchingChecker::toMinorMapping(const std::vector<vertex>& mapping) {
+    std::size_t minorSize = 0;
+
+    for (auto item : mapping)
+        if (item != SIZE_MAX && item > minorSize) minorSize = item;
+    minorSize = minorSize + 1;
+
+    auto minorMapping = std::vector<std::vector<vertex>>(minorSize);
+    for (int i = 0; i < mapping.size(); ++i)
+        if (mapping[i] != SIZE_MAX) minorMapping[mapping[i]].push_back(i);
+
+    return minorMapping;
+}
+
 } // namespace utils

@@ -5,6 +5,7 @@
 #include "topological_minor_heuristic_solver.h"
 #include "induced_minor_heuristic.h"
 #include "topological_induced_minor_heuristic_solver.h"
+#include "utils.h"
 
 #include "gtest/gtest.h"
 namespace pattern
@@ -204,7 +205,13 @@ TEST(TopologicalMinorIsomorphism, HasTopologicalMinor) {
     auto matcher = TopologicalMinorHeuristicSolver();
 
     // Check for minor relationship - expecting true because Q is a topological minor of G
-    EXPECT_TRUE(matcher.match(G, Q).has_value());
+    auto matching = matcher.match(G, Q);
+    EXPECT_TRUE(matching.has_value());
+
+    auto correctMatching = std::vector<vertex>{1, 1, 1, 2, 3, 0};
+    EXPECT_TRUE(utils::MatchingChecker::checkMinorMatching(G, Q, correctMatching));
+    auto rempty = std::vector<vertex>();
+    // EXPECT_EQ(matching.value(), rempty);
 }
 
 TEST(InducedMinorIsomorphism, SmallNotInducedMinor) {
