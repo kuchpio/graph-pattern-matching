@@ -10,8 +10,10 @@
 #include "induced_subgraph_matcher.h"
 #include "minor_matcher.h"
 #include "induced_minor_matcher.h"
-#include "topological_minor_matcher.h"
+#include "topological_minor_heuristic_solver.h"
+#include "topological_induced_minor_heuristic_solver.h"
 #include "topological_induced_minor_matcher.h"
+#include "induced_minor_heuristic.h"
 
 #include "frame.h"
 #include "graphPanel.h"
@@ -100,8 +102,8 @@ void Frame::OnMatchingStart() {
 void Frame::OnMatchingStop() {
     startStopMatchingButton->Disable();
     matchingStatus->SetLabel("Stopping the matching process...");
-
     // TODO: currentlyWorkingMatcher->cancel();
+    currentlyWorkingMatcher->interrupt();
 }
 
 void Frame::OnMatchingComplete(bool matchFound) {
@@ -149,15 +151,15 @@ pattern::PatternMatcher* Frame::GetSelectedMatcher() const {
 
     if (minorRadioButton->GetValue()) {
         if (inducedCheckbox->GetValue()) {
-            return new pattern::InducedMinorMatcher();
+            return new pattern::InducedMinorHeuristic();
         }
 
         return new pattern::MinerMinorMatcher();
     }
 
     if (inducedCheckbox->GetValue()) {
-        return new pattern::TopologicalInducedMinorMatcher();
+        return new pattern::InducedTopologicalMinorHeuristicSolver();
     }
 
-    return new pattern::TopologicalMinorMatcher();
+    return new pattern::TopologicalMinorHeuristicSolver();
 }

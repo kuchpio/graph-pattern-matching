@@ -30,6 +30,11 @@ vertex Graph::size() const {
     return this->_adjacencyList.size();
 }
 
+vertex Graph::add_vertex() {
+    this->_adjacencyList.emplace_back(std::vector<vertex>());
+    return this->_adjacencyList.size() - 1;
+}
+
 void Graph::add_edge(vertex u, vertex v) {
     if (std::find(this->_adjacencyList[u].begin(), this->_adjacencyList[u].end(), v) != this->_adjacencyList[u].end())
         return;
@@ -105,6 +110,14 @@ bool Graph::remove_edge(vertex u, vertex v) {
 
 vertex Graph::degree_out(vertex v) const {
     return Graph::_adjacencyList[v].size();
+}
+
+std::vector<std::size_t> Graph::degrees_out() const {
+    auto degreesOut = std::vector<std::size_t>(this->size());
+    for (auto v = 0; v < this->size(); ++v) {
+        degreesOut[v] = degree_out(v);
+    }
+    return degreesOut;
 }
 
 std::vector<vertex> Graph::get_neighbours(vertex v) const {
@@ -192,9 +205,9 @@ bool Graph::operator==(const core::Graph& G) const {
     return this->_adjacencyList == G._adjacencyList;
 }
 
-bool Graph::is_subgraph(const core::Graph& subgprah) const {
-    for (auto v = 0; v < subgprah.size(); v++) {
-        for (auto u : subgprah.get_neighbours(v)) {
+bool Graph::has_subgraph(const core::Graph& subgraph) const {
+    for (auto v = 0; v < subgraph.size(); v++) {
+        for (auto u : subgraph.get_neighbours(v)) {
             if (this->has_edge(v, u) == false) return false;
         }
     }
@@ -211,6 +224,14 @@ bool Graph::is_induced_subgraph(const core::Graph& subgprah) const {
         }
     }
     return true;
+}
+
+vertex Graph::subdivide_edge(vertex u, vertex v) {
+    auto newVertex = this->add_vertex();
+    this->remove_edge(u, v);
+    this->add_edge(u, newVertex);
+    this->add_edge(newVertex, v);
+    return newVertex;
 }
 
 } // namespace core
