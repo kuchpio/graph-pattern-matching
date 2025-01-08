@@ -51,10 +51,11 @@ Frame::Frame(const wxString& title)
 
     auto splitter = new wxSplitterWindow(this);
 
-    patternPanel = new GraphPanel(splitter, "Pattern graph", 
-        [this]() { ClearMatching(); }, [this]() { return GetPatternMatchingAlignment(); });
-    searchSpacePanel = new GraphPanel(splitter, "Search space graph", 
-        [this]() { ClearMatching(); }, [this]() { return GetSearchSpaceMatchingAlignment(); });
+    patternPanel = new GraphPanel(
+        splitter, "Pattern graph", [this]() { ClearMatching(); }, [this]() { return GetPatternMatchingAlignment(); });
+    searchSpacePanel = new GraphPanel(
+        splitter, "Search space graph", [this]() { ClearMatching(); },
+        [this]() { return GetSearchSpaceMatchingAlignment(); });
 
     splitter->SetSashGravity(0.5);
     splitter->SplitVertically(searchSpacePanel, patternPanel);
@@ -112,8 +113,8 @@ void Frame::OnMatchingComplete() {
     startStopMatchingButton->Enable();
 
     if (matchingResult.has_value()) {
-		std::vector<unsigned int> patternLabelling(patternPanel->Manager().Graph().size(), 0);
-		std::vector<unsigned int> searchSpaceLabelling(searchSpacePanel->Manager().Graph().size(), 0);
+        std::vector<unsigned int> patternLabelling(patternPanel->Manager().Graph().size(), 0);
+        std::vector<unsigned int> searchSpaceLabelling(searchSpacePanel->Manager().Graph().size(), 0);
 
         matchingStatus->SetLabel("Match found");
 
@@ -124,12 +125,12 @@ void Frame::OnMatchingComplete() {
                 searchSpaceLabelling[v] = patternLabelling[u];
             }
         }
-		patternPanel->OnMatchingEnd(patternLabelling);
-		searchSpacePanel->OnMatchingEnd(searchSpaceLabelling);
+        patternPanel->OnMatchingEnd(patternLabelling);
+        searchSpacePanel->OnMatchingEnd(searchSpaceLabelling);
     } else {
         matchingStatus->SetLabel("Match not found");
-		patternPanel->OnMatchingEnd();
-		searchSpacePanel->OnMatchingEnd();
+        patternPanel->OnMatchingEnd();
+        searchSpacePanel->OnMatchingEnd();
     }
 
     if (isCloseRequested) Close();
@@ -148,8 +149,8 @@ void Frame::OnCloseRequest(wxCloseEvent& event) {
 void Frame::ClearMatching() {
     matchingStatus->SetLabel(wxEmptyString);
 
-	patternPanel->OnMatchingEnd();
-	searchSpacePanel->OnMatchingEnd();
+    patternPanel->OnMatchingEnd();
+    searchSpacePanel->OnMatchingEnd();
 }
 
 pattern::PatternMatcher* Frame::GetSelectedMatcher() const {

@@ -52,9 +52,9 @@ void GraphCanvas::OnPaint(wxPaintEvent& WXUNUSED(event)) {
     glDrawElements(GL_LINES, edgeCount * 2, GL_UNSIGNED_INT, 0);
 
     if (utilityLoopPointCount == 2) { // Connecting edge
-		glUseProgram(utilityShaderProgram);
-		glBindVertexArray(utilityVertexArrayObject);
-		glDrawArrays(GL_LINE_LOOP, 0, utilityLoopPointCount);
+        glUseProgram(utilityShaderProgram);
+        glBindVertexArray(utilityVertexArrayObject);
+        glDrawArrays(GL_LINE_LOOP, 0, utilityLoopPointCount);
     }
 
     glUseProgram(nodeShaderProgram);
@@ -62,9 +62,9 @@ void GraphCanvas::OnPaint(wxPaintEvent& WXUNUSED(event)) {
     glDrawArraysInstanced(GL_TRIANGLES, 0, 6, vertexCount);
 
     if (utilityLoopPointCount == 4) { // Area selection
-		glUseProgram(utilityShaderProgram);
-		glBindVertexArray(utilityVertexArrayObject);
-		glDrawArrays(GL_LINE_LOOP, 0, utilityLoopPointCount);
+        glUseProgram(utilityShaderProgram);
+        glBindVertexArray(utilityVertexArrayObject);
+        glDrawArrays(GL_LINE_LOOP, 0, utilityLoopPointCount);
     }
 
     glBindVertexArray(0);
@@ -173,13 +173,14 @@ bool GraphCanvas::InitializeOpenGL() {
     wxSystemSettings systemSettings;
     auto isDark = systemSettings.GetAppearance().IsDark();
     unsigned int colorsUniformIndexNode = glGetUniformBlockIndex(nodeShaderProgram, "colors");
-	unsigned int colorsUniformIndexEdge = glGetUniformBlockIndex(edgeShaderProgram, "colors");
+    unsigned int colorsUniformIndexEdge = glGetUniformBlockIndex(edgeShaderProgram, "colors");
     unsigned int colorsUniformIndexUtility = glGetUniformBlockIndex(utilityShaderProgram, "colors");
     glUniformBlockBinding(nodeShaderProgram, colorsUniformIndexNode, 1);
     glUniformBlockBinding(edgeShaderProgram, colorsUniformIndexEdge, 1);
     glUniformBlockBinding(utilityShaderProgram, colorsUniformIndexUtility, 1);
     glBindBuffer(GL_UNIFORM_BUFFER, colorsUniformBufferObject);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 4 * (4 + 9 + 1), isDark ? darkModeColors : lightModeColors, GL_STATIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 4 * (4 + 9 + 1), isDark ? darkModeColors : lightModeColors,
+                 GL_STATIC_DRAW);
     glBindBufferRange(GL_UNIFORM_BUFFER, 1, colorsUniformBufferObject, 0, sizeof(float) * 4 * (4 + 9 + 1));
 
     glBindBuffer(GL_UNIFORM_BUFFER, 0);

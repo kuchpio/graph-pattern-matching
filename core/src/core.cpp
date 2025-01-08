@@ -93,7 +93,8 @@ bool Graph::remove_vertices(const std::vector<vertex>& verticesSortedDesc) {
 
     // 1. Preprocessing
     int* toBeRemoved = new int[_adjacencyList.size()]{false};
-    for (auto v : verticesSortedDesc) toBeRemoved[v] = true;
+    for (auto v : verticesSortedDesc)
+        toBeRemoved[v] = true;
     vertex* vertexIndexDelta = new vertex[_adjacencyList.size() + 1];
     vertexIndexDelta[0] = 0;
     std::partial_sum(toBeRemoved, toBeRemoved + _adjacencyList.size(), vertexIndexDelta + 1);
@@ -107,17 +108,19 @@ bool Graph::remove_vertices(const std::vector<vertex>& verticesSortedDesc) {
     return true;
 }
 
-bool Graph::remove_vertices(const std::vector<vertex>& verticesSortedDesc, const int* toBeRemoved, const vertex* vertexIndexDelta) {
+bool Graph::remove_vertices(const std::vector<vertex>& verticesSortedDesc, const int* toBeRemoved,
+                            const vertex* vertexIndexDelta) {
 
     // 2. Remove incoming edges
-	for (auto& neighbours : _adjacencyList) {
+    for (auto& neighbours : _adjacencyList) {
         std::erase_if(neighbours, [toBeRemoved](auto v) { return toBeRemoved[v]; });
         std::transform(neighbours.begin(), neighbours.end(), neighbours.begin(),
                        [vertexIndexDelta](auto v) { return v - vertexIndexDelta[v]; });
-	}
-    
+    }
+
     // 3. Remove outgoing edges
-    for (auto v : verticesSortedDesc) _adjacencyList.erase(_adjacencyList.begin() + v);
+    for (auto v : verticesSortedDesc)
+        _adjacencyList.erase(_adjacencyList.begin() + v);
 
     return true;
 }

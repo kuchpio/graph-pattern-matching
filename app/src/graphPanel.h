@@ -42,8 +42,8 @@ class GraphPanel : public wxPanel {
     void DisableGraphModifications();
 
   public:
-    GraphPanel(wxWindow* parent, const wxString& title, std::function<void()> clearMatchingCallback, 
-        std::function<std::vector<std::optional<std::pair<float, float>>>()> getMatchingAlignmentCallback);
+    GraphPanel(wxWindow* parent, const wxString& title, std::function<void()> clearMatchingCallback,
+               std::function<std::vector<std::optional<std::pair<float, float>>>()> getMatchingAlignmentCallback);
 
     void OnMatchingStart();
     void OnMatchingEnd();
