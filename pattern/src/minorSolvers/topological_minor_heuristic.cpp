@@ -30,7 +30,7 @@ std::optional<std::vector<vertex>> TopologicalMinorHeuristic::tpRecursion(const 
 
     for (int i = lastSkippedEdge; i < G.edges().size(); i++) {
         auto [u, v] = G.edges()[i];
-        if (G.degree_in(v) + G.degree_out(v) == 2 || G.degree_in(u) + G.degree_out(u) == 2) {
+        if ((G.degree_in(v) == 2 && G.degree_out(v) == 2) || (G.degree_in(u) == 2 && G.degree_out(u) == 2)) {
             auto newMinor = contractEdge(G, u, v);
             auto newMapping = updateMapping(mapping, u, v);
             auto matching = tpRecursion(newMinor, H, newMapping, depth + 1, i);
