@@ -30,7 +30,7 @@ static std::string exec(const char* cmd) {
     return result;
 }
 
-std::pair<core::Graph, std::vector<std::pair<float, float>>> grapherize(const std::string& imagePath, int vertexCount) {
+std::pair<core::Graph, std::vector<std::pair<float, float>>> grapherize(const std::string& imagePath, int vertexCount, bool isGraph ) {
     if (vertexCount <= 0) {
         throw std::runtime_error("Vertex count must be greater than 0.");
     }
@@ -45,8 +45,7 @@ std::pair<core::Graph, std::vector<std::pair<float, float>>> grapherize(const st
         throw std::runtime_error("Image file not found: " + imagePath);
     }
 
-    std::string command = "python " + scriptPath + " " + imagePath + " " + std::to_string(vertexCount);
-
+    std::string command = "python " + scriptPath + " --image_path " + imagePath + " --n_clusters " + std::to_string(vertexCount) + " " + (isGraph ? "" : "--graph");
     std::string output = exec(command.c_str());
 
     nlohmann::json graphData = nlohmann::json::parse(output);
