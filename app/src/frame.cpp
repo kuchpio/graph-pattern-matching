@@ -159,8 +159,11 @@ pattern::PatternMatcher* Frame::GetSelectedMatcher() const {
         if (inducedCheckbox->GetValue()) {
             return new pattern::Vf2InducedSubgraphSolver();
         }
-
+#ifdef CUDA_ENABLED
         return new pattern::CudaSubgraphMatcher();
+#elif
+        return new pattern::Vf2SubgraphSolver();
+#endif
     }
 
     if (minorRadioButton->GetValue()) {
