@@ -2,6 +2,7 @@
 #include "native_subgraph_matcher.h"
 #include "vf2_induced_subgraph_solver.hpp"
 #include "vf2_subgraph_solver.hpp"
+#include "cuda_subgraph_matcher.h"
 #include "wx/splitter.h"
 #include "wx/app.h"
 #include <numeric>
@@ -10,8 +11,10 @@
 #include "induced_subgraph_matcher.h"
 #include "minor_matcher.h"
 #include "induced_minor_matcher.h"
-#include "topological_minor_matcher.h"
+#include "topological_minor_heuristic_solver.h"
+#include "topological_induced_minor_heuristic_solver.h"
 #include "topological_induced_minor_matcher.h"
+#include "induced_minor_heuristic.h"
 
 #include "frame.h"
 #include "graphPanel.h"
@@ -99,8 +102,7 @@ void Frame::OnMatchingStart() {
 void Frame::OnMatchingStop() {
     startStopMatchingButton->Disable();
     matchingStatus->SetLabel("Stopping the matching process...");
-
-    // TODO: currentlyWorkingMatcher->cancel();
+    currentlyWorkingMatcher->interrupt();
 }
 
 void Frame::OnMatchingComplete() {
@@ -117,7 +119,10 @@ void Frame::OnMatchingComplete() {
 
         std::iota(patternLabelling.begin(), patternLabelling.end(), 1);
         for (unsigned int v = 0; v < matchingResult.value().size(); v++) {
-            searchSpaceLabelling[matchingResult.value()[v]] = patternLabelling[v];
+            auto u = matchingResult.value()[v];
+            if (u < patternLabelling.size()) {
+                searchSpaceLabelling[v] = patternLabelling[u];
+            }
         }
 		patternPanel->OnMatchingEnd(patternLabelling);
 		searchSpacePanel->OnMatchingEnd(searchSpaceLabelling);
@@ -154,49 +159,52 @@ pattern::PatternMatcher* Frame::GetSelectedMatcher() const {
             return new pattern::Vf2InducedSubgraphSolver();
         }
 
-        return new pattern::Vf2SubgraphSolver();
+        return new pattern::CudaSubgraphMatcher();
     }
 
     if (minorRadioButton->GetValue()) {
         if (inducedCheckbox->GetValue()) {
-            return new pattern::InducedMinorMatcher();
+            return new pattern::InducedMinorHeuristic();
         }
 
         return new pattern::MinerMinorMatcher();
     }
 
     if (inducedCheckbox->GetValue()) {
-        return new pattern::TopologicalInducedMinorMatcher();
+        return new pattern::InducedTopologicalMinorHeuristicSolver();
     }
 
-    return new pattern::TopologicalMinorMatcher();
+    return new pattern::TopologicalMinorHeuristicSolver();
 }
 
 std::vector<std::optional<std::pair<float, float>>> Frame::GetPatternMatchingAlignment() {
-    auto size = patternPanel->Manager().Graph().size();
-    std::vector<std::optional<std::pair<float, float>>> alignment(size);
+    auto patternSize = patternPanel->Manager().Graph().size();
+    std::vector<std::optional<std::pair<float, float>>> alignment(patternSize);
     if (!matchingResult.has_value()) return alignment;
 
     auto& searchSpacePositions = searchSpacePanel->Manager().Positions2D();
 
     for (unsigned int v = 0; v < matchingResult.value().size(); v++) {
         auto u = matchingResult.value()[v];
-        alignment[v] = std::make_pair(searchSpacePositions[2 * u], searchSpacePositions[2 * u + 1]);
+        if (u >= patternSize) continue;
+        alignment[u] = std::make_pair(searchSpacePositions[2 * v], searchSpacePositions[2 * v + 1]);
     }
 
     return alignment;
 }
 
 std::vector<std::optional<std::pair<float, float>>> Frame::GetSearchSpaceMatchingAlignment() {
-    auto size = searchSpacePanel->Manager().Graph().size();
-    std::vector<std::optional<std::pair<float, float>>> alignment(size);
+    auto patternSize = patternPanel->Manager().Graph().size();
+    auto searchSpaceSize = searchSpacePanel->Manager().Graph().size();
+    std::vector<std::optional<std::pair<float, float>>> alignment(searchSpaceSize);
     if (!matchingResult.has_value()) return alignment;
 
     auto& patternPositions = patternPanel->Manager().Positions2D();
 
     for (unsigned int v = 0; v < matchingResult.value().size(); v++) {
         auto u = matchingResult.value()[v];
-        alignment[u] = std::make_pair(patternPositions[2 * v], patternPositions[2 * v + 1]);
+        if (u >= patternSize) continue;
+        alignment[v] = std::make_pair(patternPositions[2 * u], patternPositions[2 * u + 1]);
     }
 
     return alignment;

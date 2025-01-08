@@ -116,6 +116,7 @@ void GraphManager::UpdatePositions(float deltaTimeSeconds, bool dragging) {
             float dx = x - vertexPositions2D[readBufferId][2 * j];
             float dy = y - vertexPositions2D[readBufferId][2 * j + 1];
             float dist = sqrtf(dx * dx + dy * dy);
+            if (dist < MIN_NODE_DISTANCE) dist = MIN_NODE_DISTANCE;
 
             if (graph.has_edge(i, j) || graph.has_edge(j, i)) {
                 float springCoefficient = -SPRING_STRENGTH * logf(dist / SPRING_LENGTH) / dist;

@@ -25,6 +25,7 @@ class GraphManager {
     const float SPRING_LENGTH = 1.0f;
     const float REPULSION_STRENGTH = 10.0f;
     const float DRAG = 4.0f;
+    const float MIN_NODE_DISTANCE = 0.1f;
 
     void ResizeAnimationData();
     static float Approach(float value, float goal, float change);

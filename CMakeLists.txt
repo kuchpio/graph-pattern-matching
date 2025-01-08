@@ -1,16 +1,23 @@
-﻿cmake_minimum_required (VERSION 3.16 FATAL_ERROR)
+﻿cmake_minimum_required (VERSION 3.19 FATAL_ERROR)
+
+option(WITH_CUDA "enables CUDA algorithms" ON)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+
+
 project("graph-pattern-matching")
-enable_language("CUDA")
+if(WITH_CUDA)
+    set(CMAKE_CUDA_LIBRARY_ARCHITECTURE x86_64-linux-gnu)
+    enable_language("CUDA")
+endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 enable_testing()
 
-add_subdirectory("external")
+add_subdirectory("external")    
 
 add_subdirectory("core")
 add_subdirectory("core/test")

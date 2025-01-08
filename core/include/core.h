@@ -25,8 +25,9 @@ class Graph {
     bool remove_edge(vertex u, vertex v);
     bool has_edge(vertex u, vertex v) const;
     bool contract_edge(vertex u, vertex v);
-    bool is_subgraph(const core::Graph& G) const;
+    bool has_subgraph(const core::Graph& G) const;
     bool is_induced_subgraph(const core::Graph& G) const;
+    vertex subdivide_edge(vertex u, vertex v);
 
     // operator
     bool operator==(const core::Graph& G) const;
@@ -43,6 +44,7 @@ class Graph {
     Graph applyMapping(const std::vector<vertex>& mapping) const;
     Graph reorder(const std::vector<vertex>& order) const;
     std::size_t degree_out(vertex v) const;
+    std::vector<std::size_t> degrees_out() const;
 };
 } // namespace core
 
