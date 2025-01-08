@@ -31,7 +31,7 @@ class Vf2Solver {
         if (vf2::match(&state, &n, big_nodes.data(), small_nodes.data())) {
 
             std::vector<vertex> result = std::vector<vertex>(bigGraph.size(), SIZE_MAX);
-            for (int i = 0; i < result.size(); i++)
+            for (int i = 0; i < smallGraph.size(); i++)
                 result[big_nodes[i]] = small_nodes[i];
             return result;
         }
