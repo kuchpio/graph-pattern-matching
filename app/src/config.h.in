@@ -1,0 +1,10 @@
+#ifndef CONFIG_HPP
+#define CONFIG_HPP
+
+#ifdef CUDA_ENABLED
+#undef CUDA_ENABLED
+#endif
+
+#cmakedefine CUDA_ENABLED
+
+#endif

@@ -28,6 +28,12 @@ class MatchingChecker {
     static bool checkSubgraphMatching(const core::Graph& G, const core::Graph& Q, const std::vector<vertex>& mapping);
     static bool checkInducedSubgraphMatching(const core::Graph& G, const core::Graph& Q,
                                              const std::vector<vertex>& mapping);
+    static bool checkMinorMatching(const core::Graph& G, const core::Graph& H, const std::vector<vertex>& mapping);
+    static bool checkInducedMinorMatching(const core::Graph& G, const core::Graph& H,
+                                          const std::vector<vertex>& mapping);
+
+  protected:
+    static std::vector<std::vector<vertex>> toMinorMapping(const std::vector<vertex>& mapping);
 };
 
 } // namespace utils

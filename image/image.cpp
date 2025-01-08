@@ -11,6 +11,11 @@
 #define EDGE_DETECTION_DIR "./"
 #endif
 
+#ifdef __linux__
+#define _popen(cmd, mode) popen(cmd, mode)
+#define _pclose(pipe) pclose(pipe)
+#endif
+
 namespace image
 {
 
