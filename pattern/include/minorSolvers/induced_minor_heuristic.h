@@ -7,7 +7,7 @@ namespace pattern
 {
 class InducedMinorHeuristic : public TopologicalMinorHeuristic {
   public:
-    InducedMinorHeuristic() : TopologicalMinorHeuristic(nullptr) {};
+    InducedMinorHeuristic() : TopologicalMinorHeuristic(nullptr){};
 
   protected:
     std::optional<std::vector<vertex>> tpRecursion(const core::Graph G, const core::Graph& H,
