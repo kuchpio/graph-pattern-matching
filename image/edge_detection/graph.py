@@ -141,7 +141,7 @@ def main(image_path, n_clusters=50, triangulation=True):
     else:
         G, vertices = build_graph_from_image(image_path, n_clusters)
     
-    nodes = [{'id': int(idx), 'pos': [coord for coord in vertex]} for idx, vertex in enumerate(vertices)]
+    nodes = [{'id': int(idx), 'pos': [vertex[1], vertex[0]]} for idx, vertex in enumerate(vertices)]
     edges = [{'source': int(edge[0]), 'target': int(edge[1])} for edge in G.edges()]
 
     graph_data = {'nodes': nodes, 'edges': edges}
