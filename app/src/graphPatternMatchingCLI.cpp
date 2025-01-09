@@ -15,11 +15,9 @@ void GraphPatternMatchingCLI::addMainCommandOptions() {
         return std::string{"The value" + name + "is not a valid pattern."};
     };
 
-    app_.add_option("pattern", pattern_, "kind of pattern to be searched for. Required Option.")
-        ->required()
-        ->check(mapNameValidator);
+    app_.add_option("pattern", pattern_, "kind of pattern to be searched for.")->required()->check(mapNameValidator);
 
-    app_.add_flag("-i,--induced", induced_, "Changes the pattern we are looking for to be inudced.");
+    app_.add_flag("-i,--induced", induced_, "makes the pattern induced.");
 
     app_.add_option("searchSpaceFilePath", input1_, "path to the search space graph file")
         ->required()
