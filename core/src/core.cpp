@@ -3,6 +3,7 @@
 #include <vector>
 #include <algorithm>
 #include <tuple>
+#include <numeric>
 
 namespace core
 {
@@ -28,6 +29,11 @@ Graph::Graph(std::vector<std::tuple<vertex, vertex>> edges) {
 
 vertex Graph::size() const {
     return this->_adjacencyList.size();
+}
+
+vertex Graph::add_vertex() {
+    this->_adjacencyList.emplace_back(std::vector<vertex>());
+    return this->_adjacencyList.size() - 1;
 }
 
 void Graph::add_edge(vertex u, vertex v) {
@@ -83,15 +89,39 @@ bool Graph::remove_vertex(vertex v) {
     return true;
 }
 
-bool Graph::remove_vertices(std::vector<vertex> vertices) {
-    // naive to be speed up
-    for (auto v : vertices) {
-        if (v - 1 > this->size()) return false;
+bool Graph::remove_vertices(const std::vector<vertex>& verticesSortedDesc) {
+
+    // 1. Preprocessing
+    int* toBeRemoved = new int[_adjacencyList.size()]{false};
+    for (auto v : verticesSortedDesc)
+        toBeRemoved[v] = true;
+    vertex* vertexIndexDelta = new vertex[_adjacencyList.size() + 1];
+    vertexIndexDelta[0] = 0;
+    std::partial_sum(toBeRemoved, toBeRemoved + _adjacencyList.size(), vertexIndexDelta + 1);
+
+    remove_vertices(verticesSortedDesc, toBeRemoved, vertexIndexDelta);
+
+    // 4. Cleanup
+    delete[] toBeRemoved;
+    delete[] vertexIndexDelta;
+
+    return true;
+}
+
+bool Graph::remove_vertices(const std::vector<vertex>& verticesSortedDesc, const int* toBeRemoved,
+                            const vertex* vertexIndexDelta) {
+
+    // 2. Remove incoming edges
+    for (auto& neighbours : _adjacencyList) {
+        std::erase_if(neighbours, [toBeRemoved](auto v) { return toBeRemoved[v]; });
+        std::transform(neighbours.begin(), neighbours.end(), neighbours.begin(),
+                       [vertexIndexDelta](auto v) { return v - vertexIndexDelta[v]; });
     }
 
-    for (auto v : vertices) {
-        this->remove_vertex(v);
-    }
+    // 3. Remove outgoing edges
+    for (auto v : verticesSortedDesc)
+        _adjacencyList.erase(_adjacencyList.begin() + v);
+
     return true;
 }
 
@@ -107,7 +137,20 @@ vertex Graph::degree_out(vertex v) const {
     return Graph::_adjacencyList[v].size();
 }
 
+std::vector<std::size_t> Graph::degrees_out() const {
+    auto degreesOut = std::vector<std::size_t>(this->size());
+    for (auto v = 0; v < this->size(); ++v) {
+        degreesOut[v] = degree_out(v);
+    }
+    return degreesOut;
+}
+
 std::vector<vertex> Graph::get_neighbours(vertex v) const {
+    if (v >= this->size()) return std::vector<vertex>();
+    return Graph::_adjacencyList[v];
+}
+
+const std::vector<vertex>& Graph::neighbours(vertex v) const {
     if (v >= this->size()) return std::vector<vertex>();
     return Graph::_adjacencyList[v];
 }
@@ -192,9 +235,9 @@ bool Graph::operator==(const core::Graph& G) const {
     return this->_adjacencyList == G._adjacencyList;
 }
 
-bool Graph::is_subgraph(const core::Graph& subgprah) const {
-    for (auto v = 0; v < subgprah.size(); v++) {
-        for (auto u : subgprah.get_neighbours(v)) {
+bool Graph::has_subgraph(const core::Graph& subgraph) const {
+    for (auto v = 0; v < subgraph.size(); v++) {
+        for (auto u : subgraph.get_neighbours(v)) {
             if (this->has_edge(v, u) == false) return false;
         }
     }
@@ -211,6 +254,14 @@ bool Graph::is_induced_subgraph(const core::Graph& subgprah) const {
         }
     }
     return true;
+}
+
+vertex Graph::subdivide_edge(vertex u, vertex v) {
+    auto newVertex = this->add_vertex();
+    this->remove_edge(u, v);
+    this->add_edge(u, newVertex);
+    this->add_edge(newVertex, v);
+    return newVertex;
 }
 
 } // namespace core

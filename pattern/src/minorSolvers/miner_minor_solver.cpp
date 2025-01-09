@@ -3,13 +3,14 @@
 #include "find_embedding/graph.hpp"
 #include "miner_minor_matcher.hpp"
 #include <vector>
+#include <atomic>
 
 class MyCppInteractions : public find_embedding::LocalInteraction {
   public:
-    bool _canceled = false;
-    void cancel() {
-        _canceled = true;
+    MyCppInteractions(std::atomic_bool const* interrupted) {
+        interrupted_ = interrupted;
     }
+    std::atomic_bool const* interrupted_;
 
   private:
     void displayOutputImpl(int, const std::string& mess) const override {
@@ -19,7 +20,7 @@ class MyCppInteractions : public find_embedding::LocalInteraction {
         std::cerr << mess << std::endl;
     }
     bool cancelledImpl() const override {
-        return _canceled;
+        return interrupted_ && *interrupted_;
     }
 };
 
@@ -27,16 +28,18 @@ namespace pattern
 {
 std::optional<std::vector<vertex>> MinerMinorMatcher::match(const core::Graph& G, const core::Graph& H) {
     find_embedding::optional_parameters params;
-    params.localInteractionPtr.reset(new MyCppInteractions);
+    params.localInteractionPtr.reset(new MyCppInteractions(&this->interrupted_));
 
     auto bigGraph = this->convert_graph(G);
     auto smallGraph = this->convert_graph(H);
     std::vector<std::vector<int>> chains;
     if (find_embedding::findEmbedding(smallGraph, bigGraph, params, chains) == false) return std::nullopt;
-    auto solution = std::vector<vertex>(H.size());
+    auto solution = std::vector<vertex>(G.size(), SIZE_MAX);
 
-    for (int i = 0; i < solution.size(); i++)
-        solution[i] = chains[i][0];
+    for (int i = 0; i < chains.size(); i++)
+        for (int j = 0; j < chains[i].size(); j++)
+            solution[chains[i][j]] = i;
+
     return solution;
 }
 
