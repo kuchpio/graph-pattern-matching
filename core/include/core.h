@@ -19,7 +19,9 @@ class Graph {
     void add_edge(vertex u, vertex v);
     void add_edges(std::vector<std::tuple<vertex, vertex>> edges);
     bool remove_vertex(vertex v);
-    bool remove_vertices(std::vector<vertex> vertices);
+    bool remove_vertices(const std::vector<vertex>& verticesSortedDesc);
+    bool remove_vertices(const std::vector<vertex>& verticesSortedDesc, const int* toBeRemoved,
+                         const vertex* vertexIndexDelta);
     bool remove_edge(vertex u, vertex v);
     bool has_edge(vertex u, vertex v) const;
     bool contract_edge(vertex u, vertex v);
@@ -35,6 +37,7 @@ class Graph {
     vertex edge_count() const;
     std::vector<std::tuple<vertex, vertex>> edges() const;
     std::vector<vertex> get_neighbours(vertex v) const;
+    const std::vector<vertex>& neighbours(vertex v) const;
 
     void topological_sort();
     void reorder(const std::vector<vertex>& order);

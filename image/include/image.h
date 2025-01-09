@@ -7,6 +7,7 @@
 namespace image
 {
 
-std::pair<core::Graph, std::vector<std::pair<float, float>>> grapherize(const std::string& imagePath, int vertexCount);
+std::pair<core::Graph, std::vector<std::pair<float, float>>> grapherize(const std::string& imagePath, int vertexCount,
+                                                                        bool graph = true);
 
 }

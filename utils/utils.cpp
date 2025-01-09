@@ -146,7 +146,7 @@ core::Graph GraphFactory::random_connected_graph(std::size_t vertex_count, float
         for (int u = 0; u < spanningTree.size(); u++) {
             if (u == v) continue;
             float probability = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-            if (probability > edge_probability) {
+            if (probability > (1.0f - edge_probability)) {
                 spanningTree.add_edge(v, u);
             }
         }
