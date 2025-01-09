@@ -24,8 +24,10 @@ class ResultTable {
     uint32_t size = 0;
     uint32_t rowCount = 0;
     std::vector<uint32_t> mapping;
+    std::vector<uint32_t> vertexOrdering;
     void map(uint32_t v) {
         mapping[v] = size++;
+        vertexOrdering.push_back(v);
     }
     void print();
 };
@@ -92,7 +94,7 @@ class CudaSubgraphMatcher : public SubgraphMatcher {
                                                  uint32_t* dev_GBAOffsets, ResultTable& resultTable,
                                                  const CudaGraph& graph, uint32_t baseIndex);
 
-    std::optional<std::vector<vertex>> obtainResult(const ResultTable& resultTable);
+    std::optional<std::vector<vertex>> obtainResult(const ResultTable& resultTable, const CudaGraph& bigGraph);
     void freeNotMappedCandidates(const std::vector<uint32_t>& mapping, const std::vector<uint32_t*>& candidates);
 
     // ResultTable resultTable_ = ResultTable();

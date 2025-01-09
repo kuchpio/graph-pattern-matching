@@ -3,6 +3,9 @@
 
 bool App::OnInit() {
     srand(100);
+#ifdef __WXMSW__
+    MSWEnableDarkMode();
+#endif
     auto frame = new Frame("Graph pattern matching");
     frame->Show();
     return true;
