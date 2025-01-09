@@ -18,6 +18,7 @@
 
 #include "frame.h"
 #include "graphPanel.h"
+#include "configDialog.h"
 
 Frame::Frame(const wxString& title)
     : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxDefaultSize), currentlyWorkingMatcher(nullptr),
@@ -34,6 +35,8 @@ Frame::Frame(const wxString& title)
     startStopMatchingButton = new wxButton(mainPanel, wxID_ANY, "Match");
     matchingStatus = new wxStaticText(mainPanel, wxID_ANY, "");
     auto optionsButton = new wxButton(mainPanel, wxID_ANY, "Settings");
+    auto configDialog = new ConfigDialog(this);
+
 
     auto mainPanelSizer = new wxBoxSizer(wxHORIZONTAL);
     mainPanelSizer->Add(modeLabel, 0, wxALIGN_CENTER | wxLEFT, 5);
@@ -72,7 +75,31 @@ Frame::Frame(const wxString& title)
             OnMatchingStart();
         }
     });
+    optionsButton->Bind(wxEVT_BUTTON, [this, configDialog](wxCommandEvent& event) { 
+        auto config = new wxConfig(APP_NAME_ID);
+
+        configDialog->Load(config);
+        if (configDialog->ShowModal() == wxID_OK) {
+            configDialog->Save(config);
+            LoadConfig(config);
+        }
+
+        delete config;
+    });
     Bind(wxEVT_CLOSE_WINDOW, &Frame::OnCloseRequest, this);
+
+    auto config = new wxConfig(APP_NAME_ID);
+    LoadConfig(config);
+    delete config;
+}
+
+void Frame::LoadConfig(const wxConfig* config) {
+    ConfigDefaults defaults;
+
+    auto animateContraction = config->ReadBool(defaults.ANIMATE_CONTRACTION_ID, defaults.ANIMATE_CONTRACTION);
+    auto animateAlignment = config->ReadBool(defaults.ANIMATE_ALIGNMENT_ID, defaults.ANIMATE_ALIGNMENT);
+    searchSpacePanel->SetAnimation(animateContraction, animateAlignment);
+    patternPanel->SetAnimation(animateContraction, animateAlignment);
 }
 
 void Frame::OnMatchingStart() {

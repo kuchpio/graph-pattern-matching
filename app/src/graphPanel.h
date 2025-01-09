@@ -49,4 +49,5 @@ class GraphPanel : public wxPanel {
     void OnMatchingEnd();
     void OnMatchingEnd(const std::vector<unsigned int>& labelling);
     const GraphManager& Manager() const;
+    void SetAnimation(bool contraction, bool alignment);
 };

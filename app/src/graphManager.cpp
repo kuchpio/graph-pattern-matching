@@ -63,7 +63,7 @@ void GraphManager::AlignNodes(std::vector<std::optional<std::pair<float, float>>
         }
     }
 
-    if (ANIMATE_ALIGNMENT) animationTimeLeftSeconds = ALIGNMENT_ANIMATION_TOTAL_TIME_SECONDS;
+    if (animateAlignment) animationTimeLeftSeconds = ALIGNMENT_ANIMATION_TOTAL_TIME_SECONDS;
 }
 
 void GraphManager::ResizeAnimationData() {
@@ -376,7 +376,7 @@ void GraphManager::ContractSelection() {
                    [vertexIndexDelta](vertex v) { return v - vertexIndexDelta[v]; });
     graph.remove_vertices(selectedVertices, toBeRemoved, vertexIndexDelta);
 
-    if (ANIMATE_CONTRACTION) {
+    if (animateContraction) {
         animationTimeLeftSeconds = CONTRACTION_ANIMATION_TOTAL_TIME_SECONDS;
     } else {
         ResizeAnimationData();
@@ -496,4 +496,12 @@ void GraphManager::Stop() {
     for (unsigned int i = 0; i < graph.size(); i++) {
         vertexVelocities2D[readBufferId][2 * i] = vertexVelocities2D[readBufferId][2 * i + 1] = 0.0f;
     }
+}
+
+void GraphManager::SetAnimateContraction(bool animate) {
+    animateContraction = animate;
+}
+
+void GraphManager::SetAnimateAlignment(bool animate) {
+    animateAlignment = animate;
 }

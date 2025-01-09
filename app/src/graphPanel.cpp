@@ -447,3 +447,8 @@ void GraphPanel::OnCanvasMotion(wxMouseEvent& event) {
     }
     prevMousePoint = mousePoint;
 }
+
+void GraphPanel::SetAnimation(bool contraction, bool alignment) {
+    manager.SetAnimateContraction(contraction);
+    manager.SetAnimateAlignment(alignment);
+}

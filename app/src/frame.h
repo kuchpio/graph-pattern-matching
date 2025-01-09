@@ -2,12 +2,17 @@
 
 #include <thread>
 #include "wx/wx.h"
+#include "wx/config.h"
+#include "configDefaults.h"
 
 #include "pattern.h"
 
 #include "graphPanel.h"
 
 class Frame : public wxFrame {
+    const wxString APP_NAME_ID = "GraphPatternMatching";
+    void LoadConfig(const wxConfig* config);
+
     GraphPanel *patternPanel, *searchSpacePanel;
 
     wxCheckBox* inducedCheckbox;
