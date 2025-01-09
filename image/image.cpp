@@ -11,7 +11,7 @@
 #define EDGE_DETECTION_DIR "./"
 #endif
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
 #define _popen(cmd, mode) popen(cmd, mode)
 #define _pclose(pipe) pclose(pipe)
 #endif

@@ -161,7 +161,7 @@ pattern::PatternMatcher* Frame::GetSelectedMatcher() const {
         }
 #ifdef CUDA_ENABLED
         return new pattern::CudaSubgraphMatcher();
-#elif
+#else
         return new pattern::Vf2SubgraphSolver();
 #endif
     }
