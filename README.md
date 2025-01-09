@@ -12,6 +12,30 @@ which are then processed to produce graph drawings corresponding to shapes visib
 That way we may investigate how pattern matching in graphs relates to pattern matching in images.
 
 
+## CLI 
+
+
+### Options
+
+#### Required Options
+- `pattern`
+  - **Description**: Kind of pattern to be searched for.
+  - **Validation**: Must be one of the predefined patterns in the application.
+
+#### File Options
+- `searchSpaceFilePath`
+  - **Description**: Path to the search space graph file.
+  - **Validation**: Must be an existing file.
+- `patternFilePath`
+  - **Description**: Path to the pattern graph file.
+  - **Validation**: Must be an existing file.
+
+### Flags
+- `-i`, `--induced`
+  - **Description**: Changes the pattern we are looking for to be induced.
+
+
+
 #### CUDA (optional)
 The program by default tries to compile all implemented algorithms including CUDA algorithms. That means the default *build* process requires CUDA library (see the [installation guide](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html) and download cuda from [here](https://developer.nvidia.com/cuda-downloads)) and [CUDA capable GPU](https://developer.nvidia.com/cuda-gpus) to *run* the CUDA algorithms. 
 

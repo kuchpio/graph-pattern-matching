@@ -3,6 +3,10 @@
 GraphPatternMatchingCLI::GraphPatternMatchingCLI() {
     app_.description("CLI tool for matching patterns in graphs.");
     addMainCommandOptions();
+
+    app_.footer("Example:\n"
+                "  ./graphPatternMatching subgraph file1 file2 \n"
+                "  ./graphPatternMatching minor --induced file1 file2\n");
 }
 
 void GraphPatternMatchingCLI::addMainCommandOptions() {
@@ -12,12 +16,15 @@ void GraphPatternMatchingCLI::addMainCommandOptions() {
     };
 
     app_.add_option("pattern", pattern_, "kind of pattern to be searched for. Required Option.")
+        ->required()
         ->check(mapNameValidator);
 
     app_.add_flag("-i,--induced", induced_, "Changes the pattern we are looking for to be inudced.");
 
-    app_.add_option("searchSpaceFilePath", input1_, "path to the search space graph file")->check(CLI::ExistingFile);
-    app_.add_option("patternFilePath", input2_, "path to the pattern graph file")->check(CLI::ExistingFile);
+    app_.add_option("searchSpaceFilePath", input1_, "path to the search space graph file")
+        ->required()
+        ->check(CLI::ExistingFile);
+    app_.add_option("patternFilePath", input2_, "path to the pattern graph file")->required()->check(CLI::ExistingFile);
 }
 
 void GraphPatternMatchingCLI::parse(int argc, char** argv) {
