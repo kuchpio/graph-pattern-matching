@@ -90,7 +90,7 @@ void Frame::OnMatchingStart() {
         [this](const core::Graph& patternGraph, const core::Graph& searchSpaceGraph) {
             auto result = currentlyWorkingMatcher->match(searchSpaceGraph, patternGraph);
 
-            wxTheApp->CallAfter([this, result = move(result)]() {
+            wxTheApp->CallAfter([this, result = std::move(result)]() {
                 matcherThread.join();
 
                 matchingResult = result;
