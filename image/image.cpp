@@ -45,7 +45,7 @@ std::pair<core::Graph, std::vector<std::pair<float, float>>> grapherize(const st
         throw std::runtime_error("Image file not found: " + imagePath);
     }
 
-    std::string command = "python " + scriptPath + " --image_path " + imagePath + " --n_clusters " + std::to_string(vertexCount) + " " + (isGraph ? "--graph" : "");
+    std::string command = "python " + scriptPath + " --image_path " + imagePath + " --n_clusters " + std::to_string(vertexCount) + " " + (isGraph ? "" : "--graph");
     std::string output = exec(command.c_str());
 
     nlohmann::json graphData = nlohmann::json::parse(output);
