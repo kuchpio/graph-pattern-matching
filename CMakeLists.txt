@@ -8,14 +8,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
 project("graph-pattern-matching")
-<<<<<<< HEAD
-#enable_language("CUDA")
-=======
 if(WITH_CUDA)
     set(CMAKE_CUDA_LIBRARY_ARCHITECTURE x86_64-linux-gnu)
     enable_language("CUDA")
 endif()
->>>>>>> master
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
