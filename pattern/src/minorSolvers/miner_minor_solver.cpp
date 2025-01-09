@@ -30,7 +30,8 @@ std::optional<std::vector<vertex>> MinerMinorMatcher::match(const core::Graph& G
     find_embedding::optional_parameters params;
     params.localInteractionPtr.reset(new MyCppInteractions(&this->interrupted_));
     params.tries = 100;
-    params.max_no_improvement = 30;
+    params.max_no_improvement = 10;
+    params.chainlength_patience = 4;
     auto bigGraph = this->convert_graph(G);
     auto smallGraph = this->convert_graph(H);
     std::vector<std::vector<int>> chains;

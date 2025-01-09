@@ -347,4 +347,15 @@ TEST(InducedTopologicalMinorIsomorphism, SmallHasInducedButNotTopologicalMinor) 
     EXPECT_FALSE(matcher.match(G, Q).has_value());
 }
 
+TEST(MinorMiner, random_100_vertex) {
+    auto G = utils::GraphFactory::random_connected_graph(90, 0.3);
+    auto minor = utils::GraphFactory::random_minor(G, 40);
+
+    auto matcher = MinerMinorMatcher();
+
+    auto matching = matcher.match(G, minor);
+
+    EXPECT_TRUE(matching.has_value());
+}
+
 } // namespace pattern
