@@ -16,9 +16,8 @@ class ImageToGraphTest : public ::testing::Test {
     std::string testImagePath;
 
     void SetUp() override {
-        testImagePath = std::string(EDGE_DETECTION_DIR) + "/image.png"; 
+        testImagePath = std::string(EDGE_DETECTION_DIR) + "/image.png";
     }
-
 };
 
 TEST_F(ImageToGraphTest, BasicGraphTriangulationTest) {
