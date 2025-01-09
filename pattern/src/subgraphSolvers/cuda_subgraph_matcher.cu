@@ -219,7 +219,7 @@ std::optional<std::vector<vertex>> CudaSubgraphMatcher::match(const core::Graph&
         resultTable.map(nextVertex);
     }
 
-    return obtainResult(resultTable);
+    return obtainResult(resultTable, bigCudaGraph);
 }
 
 std::optional<std::vector<uint32_t>> CudaSubgraphMatcher::createCandidateLists(const CudaGraph& bigGraph,
@@ -401,15 +401,16 @@ std::vector<uint32_t> CudaSubgraphMatcher::allocateMemoryForJoining(int v, uint3
     return GBAOffsets;
 }
 
-std::optional<std::vector<vertex>> CudaSubgraphMatcher::obtainResult(const ResultTable& resultTable) {
+std::optional<std::vector<vertex>> CudaSubgraphMatcher::obtainResult(const ResultTable& resultTable,
+                                                                     const CudaGraph& bigGraph) {
     if (resultTable.rowCount == 0) return std::nullopt;
     auto result = std::vector<uint32_t>(resultTable.size);
     cuda::memcpy_dev_host<uint32_t>(result.data(), resultTable.dev_data, result.size());
     cuda::free(resultTable.dev_data);
 
-    auto vertexResult = std::vector<vertex>(result.size());
+    auto vertexResult = std::vector<vertex>(bigGraph.size(), SIZE_MAX);
     for (vertex v = 0; v < result.size(); v++) {
-        vertexResult[v] = result[v];
+        vertexResult[result[v]] = resultTable.vertexOrdering[v];
     }
     return vertexResult;
 }
