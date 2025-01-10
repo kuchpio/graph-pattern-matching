@@ -368,4 +368,24 @@ TEST(topologicalMinor, random_100_vertex) {
     EXPECT_TRUE(matching.has_value());
 }
 
+TEST(indcuedTopologicalMinor, random_130_vertex) {
+    auto topologicalMinor = utils::GraphFactory::random_connected_graph(100);
+    auto G = utils::GraphFactory::random_edge_subdivisions(topologicalMinor, 30);
+
+    auto matcher = InducedTopologicalMinorHeuristicSolver(true);
+
+    auto matching = matcher.match(G, topologicalMinor);
+    EXPECT_TRUE(matching.has_value());
+}
+
+TEST(inducedMinor, random_40_vertex) {
+    auto G = utils::GraphFactory::random_connected_graph(40);
+    auto inducedMinor = utils::GraphFactory::random_induced_minor(G, 5);
+
+    auto matcher = InducedMinorHeuristic();
+
+    auto matching = matcher.match(G, inducedMinor);
+    EXPECT_TRUE(matching.has_value());
+}
+
 } // namespace pattern

@@ -164,15 +164,27 @@ core::Graph GraphFactory::random_minor(const core::Graph& G, std::size_t minorSi
     return minor;
 }
 
+core::Graph GraphFactory::random_induced_minor(const core::Graph& G, std::size_t minorSize) {
+    auto inducedMinor = G;
+    while (inducedMinor.size() > minorSize) {
+        std::size_t randomVertex = rand() % inducedMinor.size();
+        random_minor_operation(inducedMinor, randomVertex, true);
+    }
+    return inducedMinor;
+}
+
 std::size_t random_neighbour(const core::Graph& G, int v) {
     auto neighbours = G.get_neighbours(v);
     std::size_t random_index = rand() % neighbours.size();
     return neighbours[random_index];
 }
 
-void GraphFactory::random_minor_operation(core::Graph& G, int v) {
+void GraphFactory::random_minor_operation(core::Graph& G, int v, bool induced) {
     // choose random operation
+
     int random_operation = rand() % 3;
+
+    if (induced) random_operation = rand() % 2;
 
     std::size_t randomNeighbour;
     switch (random_operation) {
@@ -181,11 +193,11 @@ void GraphFactory::random_minor_operation(core::Graph& G, int v) {
         break;
     case 1:
         randomNeighbour = random_neighbour(G, v);
-        G.remove_edge(v, randomNeighbour);
+        G.contract_edge(v, randomNeighbour);
         break;
     case 2:
         randomNeighbour = random_neighbour(G, v);
-        G.contract_edge(v, randomNeighbour);
+        G.remove_edge(v, randomNeighbour);
         break;
     }
 }
