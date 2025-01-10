@@ -6,15 +6,15 @@
 namespace pattern
 {
 
-std::optional<std::vector<vertex>> InducedMinorHeuristic::tpRecursion(const core::Graph G, const core::Graph& H,
-                                                                      const std::vector<vertex>& mapping, int depth,
-                                                                      int lastSkippedEdge) {
+std::optional<std::vector<vertex>> InducedMinorHeuristic::minorRecursion(const core::Graph& G, const core::Graph& H,
+                                                                         const std::vector<vertex>& mapping, int depth,
+                                                                         int lastSkippedEdge) {
     if (depth > MAX_RECURSION_DEPTH) return std::nullopt;
     if (H.size() > G.size()) return std::nullopt;
     if (interrupted_) return std::nullopt;
     if (!maxDegreeConstraint(G, H)) return std::nullopt;
 
-    auto subgraphMatching = subgraphSolver.match(G, H);
+    auto subgraphMatching = subgraphMatcher_.get()->match(G, H);
     if (subgraphMatching) {
         mapping_ = mapping;
         return subgraphMatching;
@@ -24,7 +24,7 @@ std::optional<std::vector<vertex>> InducedMinorHeuristic::tpRecursion(const core
         auto [u, v] = G.edges()[i];
         auto newMinor = contractEdge(G, u, v);
         auto newMapping = updateMapping(mapping, u, v);
-        auto matching = tpRecursion(newMinor, H, newMapping, depth + 1, i);
+        auto matching = minorRecursion(newMinor, H, newMapping, depth + 1, i);
         if (matching) return matching;
     }
     return std::nullopt;
