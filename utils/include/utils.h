@@ -13,7 +13,8 @@ class GraphFactory {
     static std::vector<core::Graph> components(const core::Graph& G);
     static core::Graph random_spanning_tree(std::size_t vertex_count);
     static core::Graph random_connected_graph(std::size_t vertex_count, float edge_probability = 0.4);
-    static core::Graph random_minor(core::Graph G, std::size_t minorSize);
+    static core::Graph random_minor(const core::Graph& G, std::size_t minorSize);
+    static core::Graph random_edge_subdivisions(const core::Graph& G, std::size_t count);
 
   private:
     static std::vector<std::size_t> shuffled_vertices(std::size_t vertex_count);

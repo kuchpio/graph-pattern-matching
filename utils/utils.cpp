@@ -154,13 +154,14 @@ core::Graph GraphFactory::random_connected_graph(std::size_t vertex_count, float
     return spanningTree;
 }
 
-core::Graph GraphFactory::random_minor(core::Graph G, std::size_t minorSize) {
+core::Graph GraphFactory::random_minor(const core::Graph& G, std::size_t minorSize) {
 
-    while (G.size() > minorSize) {
-        std::size_t randomVertex = rand() % G.size();
-        random_minor_operation(G, randomVertex);
+    auto minor = G;
+    while (minor.size() > minorSize) {
+        std::size_t randomVertex = rand() % minor.size();
+        random_minor_operation(minor, randomVertex);
     }
-    return G;
+    return minor;
 }
 
 std::size_t random_neighbour(const core::Graph& G, int v) {
@@ -187,6 +188,17 @@ void GraphFactory::random_minor_operation(core::Graph& G, int v) {
         G.contract_edge(v, randomNeighbour);
         break;
     }
+}
+
+core::Graph GraphFactory::random_edge_subdivisions(const core::Graph& G, std::size_t count) {
+
+    auto biggerGraph = core::Graph(G);
+    for (int i = 0; i < count; ++i) {
+        std::size_t randomVertex = rand() % biggerGraph.size();
+        std::size_t randomNeighbour = random_neighbour(biggerGraph, randomVertex);
+        biggerGraph.subdivide_edge(randomVertex, randomNeighbour);
+    }
+    return biggerGraph;
 }
 
 std::vector<std::size_t> GraphFactory::shuffled_vertices(std::size_t vertex_count) {

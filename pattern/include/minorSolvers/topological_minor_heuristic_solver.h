@@ -7,7 +7,7 @@ namespace pattern
 {
 class TopologicalMinorHeuristicSolver : public TopologicalMinorHeuristic {
   public:
-    TopologicalMinorHeuristicSolver() : TopologicalMinorHeuristic(nullptr) {
+    TopologicalMinorHeuristicSolver(bool direct = false) : TopologicalMinorHeuristic(nullptr, direct) {
         subgraphMatcher_ = new Vf2SubgraphSolver();
     };
     ~TopologicalMinorHeuristicSolver() override {

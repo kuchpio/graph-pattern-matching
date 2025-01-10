@@ -349,12 +349,22 @@ TEST(InducedTopologicalMinorIsomorphism, SmallHasInducedButNotTopologicalMinor) 
 
 TEST(MinorMiner, random_120_vertex) {
     auto G = utils::GraphFactory::random_connected_graph(120, 0.3);
-    auto minor = utils::GraphFactory::random_minor(G, 40);
+    auto minor = utils::GraphFactory::random_minor(G, 45);
 
     auto matcher = MinerMinorMatcher();
 
     auto matching = matcher.match(G, minor);
 
+    EXPECT_TRUE(matching.has_value());
+}
+
+TEST(topologicalMinor, random_100_vertex) {
+    auto topologicalMinor = utils::GraphFactory::random_connected_graph(70);
+    auto G = utils::GraphFactory::random_edge_subdivisions(topologicalMinor, 30);
+
+    auto matcher = TopologicalMinorHeuristicSolver(true);
+
+    auto matching = matcher.match(G, topologicalMinor);
     EXPECT_TRUE(matching.has_value());
 }
 

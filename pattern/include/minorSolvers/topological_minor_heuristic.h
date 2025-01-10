@@ -7,10 +7,14 @@ namespace pattern
 {
 class TopologicalMinorHeuristic : public MinorMatcher {
   public:
-    TopologicalMinorHeuristic(SubgraphMatcher* subgraphMatcher) : subgraphMatcher_(subgraphMatcher){};
+    TopologicalMinorHeuristic(SubgraphMatcher* subgraphMatcher, bool directed = false)
+        : subgraphMatcher_(subgraphMatcher) {
+        if (directed) maxDeegre_ = 1;
+    };
     std::optional<std::vector<vertex>> match(const core::Graph& G, const core::Graph& Q) override;
 
   protected:
+    std::size_t maxDeegre_ = 2;
     virtual std::optional<std::vector<vertex>> tpRecursion(const core::Graph G, const core::Graph& H,
                                                            const std::vector<vertex>& mapping, int depth,
                                                            int lastSkippedEdge);
