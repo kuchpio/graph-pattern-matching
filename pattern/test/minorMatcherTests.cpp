@@ -379,10 +379,10 @@ TEST(indcuedTopologicalMinor, random_130_vertex) {
 }
 
 TEST(inducedMinor, random_40_vertex) {
-    auto G = utils::GraphFactory::random_connected_graph(40);
-    auto inducedMinor = utils::GraphFactory::random_induced_minor(G, 5);
+    auto G = utils::GraphFactory::random_connected_graph(60, 0.9);
+    auto inducedMinor = utils::GraphFactory::random_induced_minor(G, 8);
 
-    auto matcher = InducedMinorHeuristic();
+    auto matcher = InducedMinorHeuristic(true);
 
     auto matching = matcher.match(G, inducedMinor);
     EXPECT_TRUE(matching.has_value());

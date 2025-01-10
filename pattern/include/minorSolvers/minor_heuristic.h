@@ -35,10 +35,8 @@ class MinorHeuristic : public MinorMatcher {
     inline static std::vector<vertex> updateMapping(const std::vector<vertex>& mapping, vertex u, vertex v) {
         auto newMapping = std::vector<vertex>(mapping);
         for (vertex& vertex : newMapping) {
-            if (vertex == v)
-                vertex = u;
-            else if (vertex > v)
-                vertex--;
+            if (vertex == v) vertex = u;
+            if (vertex > v) vertex--;
         }
         return newMapping;
     }

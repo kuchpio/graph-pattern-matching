@@ -202,7 +202,6 @@ std::optional<std::vector<vertex>> CudaSubgraphMatcher::match(const core::Graph&
 
     auto resultTable = ResultTable(smallGraph.size());
 
-    std::cout << "Going to process first vertex\n";
     // Process first vertex
     uint32_t firstVertex = this->getFirstVertex(smallGraph, candidatesSizes);
     resultTable.dev_data = candidates[firstVertex];
@@ -214,13 +213,11 @@ std::optional<std::vector<vertex>> CudaSubgraphMatcher::match(const core::Graph&
         if (!addVertexToResultTable(nextVertex, candidates[nextVertex], candidatesSizes[nextVertex], bigGraph,
                                     smallGraph, resultTable)) {
             resultTable.map(nextVertex);
-            std::cout << "proccessed " << resultTable.size << "vertices \n";
             freeNotMappedCandidates(resultTable.mapping, candidates);
             return std::nullopt;
         }
         resultTable.map(nextVertex);
     }
-    std::cout << "proccessed all vertices \n";
 
     return obtainResult(resultTable, bigCudaGraph);
 }
