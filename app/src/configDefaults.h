@@ -4,6 +4,7 @@
 
 class ConfigDefaults {
   public:
+    const wxString TRIANGULATE_ID = "Triangulate";
     const wxString CONTRACTION_TIME_ID = "ContractionTime";
     const wxString ALIGNMENT_TIME_ID = "AlignmentTime";
     const wxString SPRING_STRENGTH_ID = "SpringStrength";
@@ -33,6 +34,7 @@ class ConfigDefaults {
         {SELECTED_TOPOLOGICAL_MINOR_ALGORITHM_ID, {"Heuristic", "Exact"}},
         {SELECTED_INDUCED_TOPOLOGICAL_MINOR_ALGORITHM_ID, {"Heuristic", "Exact"}}};
 
+    const bool TRIANGULATE = false;
     const float CONTRACTION_TIME = 1.0f;
     const float ALIGNMENT_TIME = 2.0f;
     const float SPRING_STRENGTH = 5.0f;

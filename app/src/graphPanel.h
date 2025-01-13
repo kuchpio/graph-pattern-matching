@@ -12,11 +12,12 @@ class GraphPanel : public wxPanel {
     GraphCanvas* canvas{nullptr};
     wxButton *openButton, *loadButton, *alignButton;
     wxButton *deleteButton, *connectButton, *disconnectButton, *contractButton, *subdivideButton;
-    wxStaticText *fileInfoLabel, *FPSInfoLabel;
+    wxStaticText* FPSInfoLabel;
     wxCheckBox* autoVertexPositioningCheckbox;
-    wxTextCtrl* vertexCountInput;
+    wxTextCtrl *vertexCountInput, *fileInfoOutput;
     bool canModifyGraph;
     const std::function<void()> clearMatchingCallback;
+    bool triangulateImage;
     std::string pathToImage;
 
     GraphManager manager;
@@ -50,4 +51,5 @@ class GraphPanel : public wxPanel {
     void OnMatchingEnd(const std::vector<unsigned int>& labelling);
     const GraphManager& Manager() const;
     void UpdateDrawingSettings(GraphDrawingSettings settings);
+    void UpdateImageTriangulationSetting(bool triangulate);
 };

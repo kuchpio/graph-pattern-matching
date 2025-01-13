@@ -11,7 +11,7 @@
 #include <filesystem>
 
 class ConfigDialog : public wxDialog {
-    wxCheckBox *isInducedCheckbox, *externalAlgorithmCheckbox;
+    wxCheckBox *isInducedCheckbox, *externalAlgorithmCheckbox, *triangulateImageCheckbox;
     wxRadioButton *isSubgraphRadiobutton, *isMinorRadiobutton, *isTopologicalMinorRadiobutton;
     wxChoice* algorithmChoice;
     wxSlider *contractionAnimationTimeSlider, *alignmentAnimationTimeSlider, *springStrengthSlider, *springLengthSlider,
@@ -22,6 +22,7 @@ class ConfigDialog : public wxDialog {
 
     std::unordered_map<std::string, int> selectedAlgorithm;
 
+    wxSizer* InitImageConversionConfig();
     wxSizer* InitAnimationConfig();
     wxSizer* InitMatchingConfig();
     wxSizer* InitExternalAlgorithmConfig();

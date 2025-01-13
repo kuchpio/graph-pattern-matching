@@ -62,7 +62,8 @@ std::pair<core::Graph, std::vector<std::pair<float, float>>> grapherize(const st
         edges.emplace_back(edge["source"], edge["target"]);
         edges.emplace_back(edge["target"], edge["source"]);
     }
-    core::Graph graph(edges);
+    core::Graph graph(graphData["nodes"].size());
+    graph.add_edges(edges);
 
     std::vector<std::pair<float, float>> vertexPositions(vertexCount);
     for (const auto& node : graphData["nodes"]) {

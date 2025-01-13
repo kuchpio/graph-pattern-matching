@@ -1,4 +1,10 @@
 #pragma once
 #include "core.h"
 
-extern "C" __declspec(dllexport) core::IPatternMatcher* GetPatternMatcher();
+#ifdef _WIN32
+#define EXPORT __declspec(dllexport)
+#else // __WIN32
+#define EXPORT
+#endif
+
+extern "C" EXPORT core::IPatternMatcher* GetPatternMatcher();

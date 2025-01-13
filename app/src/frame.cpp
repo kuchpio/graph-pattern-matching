@@ -117,8 +117,10 @@ Frame::Frame(const wxString& title)
 
 void Frame::LoadConfig(const wxConfig* config) {
     ConfigDefaults defaults;
-    GraphDrawingSettings settings;
 
+    auto triangulateImage = config->ReadObject(defaults.TRIANGULATE_ID, defaults.TRIANGULATE);
+
+    GraphDrawingSettings settings;
     settings.contractionAnimationTotalTimeSeconds =
         config->ReadObject(defaults.CONTRACTION_TIME_ID, defaults.CONTRACTION_TIME);
     settings.alignmentAnimationTotalTimeSeconds =
@@ -157,7 +159,9 @@ void Frame::LoadConfig(const wxConfig* config) {
     customAlgorithmName = config->Read(defaults.EXTERNAL_ALGORITHM_NAME_ID, defaults.EXTERNAL_ALGORITHM_NAME);
 
     searchSpacePanel->UpdateDrawingSettings(settings);
+    searchSpacePanel->UpdateImageTriangulationSetting(triangulateImage);
     patternPanel->UpdateDrawingSettings(settings);
+    patternPanel->UpdateImageTriangulationSetting(triangulateImage);
 
     startStopCustomMatchingButton->Show(customAlgorithmEnabled);
     startStopCustomMatchingButton->SetLabel("Match (" + customAlgorithmName + ")");

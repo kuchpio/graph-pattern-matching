@@ -25,16 +25,18 @@ GraphPanel::GraphPanel(
     auto fileSizer = new wxBoxSizer(wxHORIZONTAL);
     auto saveButton = new wxButton(filePanel, wxID_ANY, "Save");
     openButton = new wxButton(filePanel, wxID_ANY, "Open");
-    fileInfoLabel = new wxStaticText(filePanel, wxID_ANY, "Open a file to load the graph.");
+    fileInfoOutput = new wxTextCtrl(filePanel, wxID_ANY, "Open a file to load the graph.", wxDefaultPosition,
+                                    wxDefaultSize, wxTE_READONLY);
+    fileInfoOutput->SetMinSize(wxSize(200, wxDefaultCoord));
     vertexCountInput = new wxTextCtrl(filePanel, wxID_ANY);
-    vertexCountInput->SetHint("Vertex count");
-    vertexCountInput->SetMinSize(wxSize(120, wxDefaultCoord));
+    vertexCountInput->SetHint("Vertices");
+    vertexCountInput->SetMinSize(wxSize(80, wxDefaultCoord));
     vertexCountInput->Disable();
     loadButton = new wxButton(filePanel, wxID_ANY, "Load");
     loadButton->Disable();
     fileSizer->Add(saveButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
     fileSizer->Add(openButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
-    fileSizer->Add(fileInfoLabel, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
+    fileSizer->Add(fileInfoOutput, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
     fileSizer->AddStretchSpacer(1);
     fileSizer->Add(vertexCountInput, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
     fileSizer->Add(loadButton, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT | wxTOP | wxBOTTOM, 5);
@@ -50,7 +52,7 @@ GraphPanel::GraphPanel(
         }
 
         try {
-            auto [graph, vertexPositions] = image::grapherize(pathToImage, vertexCount);
+            auto [graph, vertexPositions] = image::grapherize(pathToImage, vertexCount, !triangulateImage);
             manager.Initialize(std::move(graph), std::move(vertexPositions));
         } catch (const std::runtime_error& err) {
             wxMessageBox("Could not load graph from given image.");
@@ -244,7 +246,7 @@ void GraphPanel::OpenFromFile(wxCommandEvent& event) {
 
         try {
             auto graph = core::Graph6Serializer::Deserialize(graph6Stream.ReadLine().ToStdString());
-            fileInfoLabel->SetLabel(fileDialog->GetFilename() + " (Graph6)");
+            fileInfoOutput->SetValue("(Graph6) " + fileDialog->GetFilename());
             manager.Initialize(std::move(graph));
         } catch (const core::graph6FormatError& err) {
             wxMessageBox("Could not open file " + fileDialog->GetFilename() + "\nError: " + err.what());
@@ -258,7 +260,7 @@ void GraphPanel::OpenFromFile(wxCommandEvent& event) {
         vertexCountInput->Disable();
         loadButton->Disable();
     } else {
-        fileInfoLabel->SetLabel(fileDialog->GetFilename() + " (Image)");
+        fileInfoOutput->SetValue("(Image) " + fileDialog->GetFilename());
 
         pathToImage = fileDialog->GetPath();
         vertexCountInput->Enable();
@@ -450,4 +452,8 @@ void GraphPanel::OnCanvasMotion(wxMouseEvent& event) {
 
 void GraphPanel::UpdateDrawingSettings(GraphDrawingSettings settings) {
     manager.UpdateSettings(settings);
+}
+
+void GraphPanel::UpdateImageTriangulationSetting(bool triangulate) {
+    triangulateImage = triangulate;
 }

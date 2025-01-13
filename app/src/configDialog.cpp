@@ -4,6 +4,7 @@
 #include "configDefaults.h"
 
 ConfigDialog::ConfigDialog(wxWindow* parent) : wxDialog(parent, wxID_ANY, "Settings") {
+    auto imageConversionConfigSizer = InitImageConversionConfig();
     auto animationConfigSizer = InitAnimationConfig();
     auto matchingConfigSizer = InitMatchingConfig();
     auto externalAlgorithmConfigSizer = InitExternalAlgorithmConfig();
@@ -13,6 +14,7 @@ ConfigDialog::ConfigDialog(wxWindow* parent) : wxDialog(parent, wxID_ANY, "Setti
 
     restoreDefaultsButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
         ConfigDefaults defaults;
+        triangulateImageCheckbox->SetValue(defaults.TRIANGULATE);
         contractionAnimationTimeSlider->SetValue((int)10.0 * defaults.CONTRACTION_TIME);
         alignmentAnimationTimeSlider->SetValue((int)10.0 * defaults.ALIGNMENT_TIME);
         springStrengthSlider->SetValue((int)10.0 * defaults.SPRING_STRENGTH);
@@ -37,11 +39,23 @@ ConfigDialog::ConfigDialog(wxWindow* parent) : wxDialog(parent, wxID_ANY, "Setti
     });
 
     auto sizer = new wxBoxSizer(wxVERTICAL);
-    sizer->Add(animationConfigSizer, 0, wxEXPAND | wxALL, 5);
-    sizer->Add(matchingConfigSizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 5);
-    sizer->Add(externalAlgorithmConfigSizer, 0, wxEXPAND | wxALL, 5);
+    sizer->Add(imageConversionConfigSizer, 0, wxEXPAND | wxALL, 5);
+    sizer->Add(animationConfigSizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+    sizer->Add(matchingConfigSizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+    sizer->Add(externalAlgorithmConfigSizer, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
     sizer->Add(bottomSizer, 0, wxEXPAND | wxALL, 5);
     SetSizerAndFit(sizer);
+}
+
+wxSizer* ConfigDialog::InitImageConversionConfig() {
+    auto imageConversionSizer = new wxStaticBoxSizer(wxVERTICAL, this, "Image Conversion");
+    auto imageConversionPanel = imageConversionSizer->GetStaticBox();
+
+    triangulateImageCheckbox = new wxCheckBox(imageConversionPanel, wxID_ANY, "Triangulate empty regions");
+    imageConversionSizer->Add(triangulateImageCheckbox, 0, wxLEFT, 5);
+    imageConversionSizer->AddStretchSpacer();
+
+    return imageConversionSizer;
 }
 
 wxSizer* ConfigDialog::InitAnimationConfig() {
@@ -119,7 +133,7 @@ wxSizer* ConfigDialog::InitMatchingConfig() {
 }
 
 wxSizer* ConfigDialog::InitExternalAlgorithmConfig() {
-    auto externalMatchingConfigSizer = new wxStaticBoxSizer(wxVERTICAL, this, "External matching algorithm");
+    auto externalMatchingConfigSizer = new wxStaticBoxSizer(wxVERTICAL, this, "External Matching Algorithm");
     auto externalMatchingConfigPanel = externalMatchingConfigSizer->GetStaticBox();
 
     externalAlgorithmCheckbox = new wxCheckBox(externalMatchingConfigPanel, wxID_ANY, "Enabled");
@@ -208,6 +222,7 @@ void ConfigDialog::UpdateSelectedAlgorithm() {
 
 void ConfigDialog::Load(wxConfigBase* config) {
     ConfigDefaults defaults;
+    triangulateImageCheckbox->SetValue(config->ReadObject(defaults.TRIANGULATE_ID, defaults.TRIANGULATE));
     contractionAnimationTimeSlider->SetValue(
         (int)10.0 * config->ReadObject(defaults.CONTRACTION_TIME_ID, defaults.CONTRACTION_TIME));
     alignmentAnimationTimeSlider->SetValue((int)10.0 *
@@ -243,6 +258,7 @@ void ConfigDialog::Load(wxConfigBase* config) {
 
 void ConfigDialog::Save(wxConfigBase* config) const {
     ConfigDefaults defaults;
+    config->Write(defaults.TRIANGULATE_ID, triangulateImageCheckbox->IsChecked());
     config->Write(defaults.CONTRACTION_TIME_ID, contractionAnimationTimeSlider->GetValue() / 10.0f);
     config->Write(defaults.ALIGNMENT_TIME_ID, alignmentAnimationTimeSlider->GetValue() / 10.0f);
     config->Write(defaults.SPRING_STRENGTH_ID, springStrengthSlider->GetValue() / 10.0f);
