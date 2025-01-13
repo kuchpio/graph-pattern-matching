@@ -17,7 +17,7 @@ class Frame : public wxFrame {
 
     wxCheckBox* inducedCheckbox;
     wxRadioButton *subgraphRadioButton, *minorRadioButton, *topologicalMinorRadioButton;
-    wxButton* startStopMatchingButton;
+    wxButton* startStopMatchingButton, *startStopCustomMatchingButton;
     wxStaticText* matchingStatus;
 
     std::thread matcherThread;

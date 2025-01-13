@@ -63,7 +63,7 @@ void GraphManager::AlignNodes(std::vector<std::optional<std::pair<float, float>>
         }
     }
 
-    if (animateAlignment) animationTimeLeftSeconds = ALIGNMENT_ANIMATION_TOTAL_TIME_SECONDS;
+    animationTimeLeftSeconds = settings.alignmentAnimationTotalTimeSeconds;
 }
 
 void GraphManager::ResizeAnimationData() {
@@ -119,12 +119,12 @@ void GraphManager::UpdatePositions(float deltaTimeSeconds, bool dragging) {
             if (dist < MIN_NODE_DISTANCE) dist = MIN_NODE_DISTANCE;
 
             if (graph.has_edge(i, j) || graph.has_edge(j, i)) {
-                float springCoefficient = -SPRING_STRENGTH * logf(dist / SPRING_LENGTH) / dist;
+                float springCoefficient = -settings.springStrength * logf(dist / settings.springLength) / dist;
                 acc_x += springCoefficient * dx;
                 acc_y += springCoefficient * dy;
             }
 
-            float repulsionCoefficient = REPULSION_STRENGTH / (dist * dist * dist);
+            float repulsionCoefficient = settings.nodeRepulsion / (dist * dist * dist);
             acc_x += repulsionCoefficient * dx;
             acc_y += repulsionCoefficient * dy;
         }
@@ -134,8 +134,8 @@ void GraphManager::UpdatePositions(float deltaTimeSeconds, bool dragging) {
 
         if (vertexStates[i] & 0b10u || dragging && vertexStates[i] & 0b01u) vel_x = vel_y = 0.0f;
 
-        acc_x -= DRAG * vel_x;
-        acc_y -= DRAG * vel_y;
+        acc_x -= settings.nodeDrag * vel_x;
+        acc_y -= settings.nodeDrag * vel_y;
 
         vertexVelocities2D[1 - readBufferId][2 * i] = vel_x + acc_x * deltaTimeSeconds;
         vertexVelocities2D[1 - readBufferId][2 * i + 1] = vel_y + acc_y * deltaTimeSeconds;
@@ -376,11 +376,7 @@ void GraphManager::ContractSelection() {
                    [vertexIndexDelta](vertex v) { return v - vertexIndexDelta[v]; });
     graph.remove_vertices(selectedVertices, toBeRemoved, vertexIndexDelta);
 
-    if (animateContraction) {
-        animationTimeLeftSeconds = CONTRACTION_ANIMATION_TOTAL_TIME_SECONDS;
-    } else {
-        ResizeAnimationData();
-    }
+    animationTimeLeftSeconds = settings.contractionAnimationTotalTimeSeconds;
 
     delete[] visited;
     delete[] toBeRemoved;
@@ -498,10 +494,6 @@ void GraphManager::Stop() {
     }
 }
 
-void GraphManager::SetAnimateContraction(bool animate) {
-    animateContraction = animate;
-}
-
-void GraphManager::SetAnimateAlignment(bool animate) {
-    animateAlignment = animate;
+void GraphManager::UpdateSettings(GraphDrawingSettings settings) {
+    this->settings = settings;
 }

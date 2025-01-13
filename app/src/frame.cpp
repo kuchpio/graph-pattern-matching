@@ -33,6 +33,7 @@ Frame::Frame(const wxString& title)
     minorRadioButton = new wxRadioButton(mainPanel, wxID_ANY, "Minor");
     topologicalMinorRadioButton = new wxRadioButton(mainPanel, wxID_ANY, "Topological minor");
     startStopMatchingButton = new wxButton(mainPanel, wxID_ANY, "Match");
+    startStopCustomMatchingButton = new wxButton(mainPanel, wxID_ANY, "Custom Match");
     matchingStatus = new wxStaticText(mainPanel, wxID_ANY, "");
     auto optionsButton = new wxButton(mainPanel, wxID_ANY, "Settings");
     auto configDialog = new ConfigDialog(this);
@@ -45,6 +46,7 @@ Frame::Frame(const wxString& title)
     mainPanelSizer->Add(minorRadioButton, 0, wxALIGN_CENTER | wxLEFT, 10);
     mainPanelSizer->Add(topologicalMinorRadioButton, 0, wxALIGN_CENTER | wxLEFT, 10);
     mainPanelSizer->Add(startStopMatchingButton, 0, wxALIGN_CENTER | wxLEFT, 10);
+    mainPanelSizer->Add(startStopCustomMatchingButton, 0, wxALIGN_CENTER | wxLEFT, 10);
     mainPanelSizer->Add(matchingStatus, 0, wxALIGN_CENTER | wxLEFT, 10);
     mainPanelSizer->AddStretchSpacer(1);
     mainPanelSizer->Add(optionsButton, 0, wxALIGN_CENTER);
@@ -79,6 +81,7 @@ Frame::Frame(const wxString& title)
         auto config = new wxConfig(APP_NAME_ID);
 
         configDialog->Load(config);
+        configDialog->CenterOnParent();
         if (configDialog->ShowModal() == wxID_OK) {
             configDialog->Save(config);
             LoadConfig(config);
@@ -95,11 +98,27 @@ Frame::Frame(const wxString& title)
 
 void Frame::LoadConfig(const wxConfig* config) {
     ConfigDefaults defaults;
+    GraphDrawingSettings settings;
 
-    auto animateContraction = config->ReadBool(defaults.ANIMATE_CONTRACTION_ID, defaults.ANIMATE_CONTRACTION);
-    auto animateAlignment = config->ReadBool(defaults.ANIMATE_ALIGNMENT_ID, defaults.ANIMATE_ALIGNMENT);
-    searchSpacePanel->SetAnimation(animateContraction, animateAlignment);
-    patternPanel->SetAnimation(animateContraction, animateAlignment);
+    settings.contractionAnimationTotalTimeSeconds =
+        config->ReadObject(defaults.CONTRACTION_TIME_ID, defaults.CONTRACTION_TIME);
+    settings.alignmentAnimationTotalTimeSeconds =
+        config->ReadObject(defaults.ALIGNMENT_TIME_ID, defaults.ALIGNMENT_TIME);
+    settings.springStrength = config->ReadObject(defaults.SPRING_STRENGTH_ID, defaults.SPRING_STRENGTH);
+    settings.springLength = config->ReadObject(defaults.SPRING_LENGTH_ID, defaults.SPRING_LENGTH);
+    settings.nodeRepulsion = config->ReadObject(defaults.NODE_REPULSION_ID, defaults.NODE_REPULSION);
+    settings.nodeDrag = config->ReadObject(defaults.NODE_DRAG_ID, defaults.NODE_DRAG);
+
+    auto customAlgorithmEnabled =
+        config->ReadObject(defaults.ENABLE_EXTERNAL_ALGORITHM_ID, defaults.ENABLE_EXTERNAL_ALGORITHM);
+    auto customAlgorithmName = config->Read(defaults.EXTERNAL_ALGORITHM_NAME_ID, defaults.EXTERNAL_ALGORITHM_NAME);
+
+    searchSpacePanel->UpdateDrawingSettings(settings);
+    patternPanel->UpdateDrawingSettings(settings);
+
+    startStopCustomMatchingButton->Show(customAlgorithmEnabled);
+    startStopCustomMatchingButton->SetLabel("Match (" + customAlgorithmName + ")");
+    Layout();
 }
 
 void Frame::OnMatchingStart() {

@@ -2,15 +2,14 @@
 
 #include "core.h"
 #include <vector>
+#include "graphDrawingSettings.h"
 
 class GraphManager {
-    const float CONTRACTION_ANIMATION_TOTAL_TIME_SECONDS = 1.0;
-    bool animateContraction = true;
-    const float ALIGNMENT_ANIMATION_TOTAL_TIME_SECONDS = 2.0;
-    bool animateAlignment = true;
     const float BOUNDS_MOVING_SPEED = 2.0;
+    const float MIN_NODE_DISTANCE = 0.1f;
 
     core::Graph graph;
+    GraphDrawingSettings settings;
 
     unsigned int readBufferId = 0;
     std::vector<float> vertexPositions2D[2], vertexVelocities2D[2];
@@ -20,12 +19,6 @@ class GraphManager {
     vertex renderedVertexCount = 0;
     float boundingWidth, boundingHeight, centerX, centerY;
     std::vector<unsigned int> vertexStates;
-
-    const float SPRING_STRENGTH = 5.0f;
-    const float SPRING_LENGTH = 1.0f;
-    const float REPULSION_STRENGTH = 10.0f;
-    const float DRAG = 4.0f;
-    const float MIN_NODE_DISTANCE = 0.1f;
 
     void ResizeAnimationData();
     static float Approach(float value, float goal, float change);
@@ -69,6 +62,5 @@ class GraphManager {
     const std::pair<float, float> Center();
     const core::Graph& Graph() const;
 
-    void SetAnimateContraction(bool animate);
-    void SetAnimateAlignment(bool animate);
+    void UpdateSettings(GraphDrawingSettings settings);
 };
