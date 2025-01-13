@@ -42,7 +42,7 @@ ConfigDialog::ConfigDialog(wxWindow* parent) : wxDialog(parent, wxID_ANY, "Setti
     sizer->Add(imageConversionConfigSizer, 0, wxEXPAND | wxALL, 5);
     sizer->Add(animationConfigSizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
     sizer->Add(matchingConfigSizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
-    sizer->Add(externalAlgorithmConfigSizer, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
+    sizer->Add(externalAlgorithmConfigSizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
     sizer->Add(bottomSizer, 0, wxEXPAND | wxALL, 5);
     SetSizerAndFit(sizer);
 }
@@ -52,7 +52,7 @@ wxSizer* ConfigDialog::InitImageConversionConfig() {
     auto imageConversionPanel = imageConversionSizer->GetStaticBox();
 
     triangulateImageCheckbox = new wxCheckBox(imageConversionPanel, wxID_ANY, "Triangulate empty regions");
-    imageConversionSizer->Add(triangulateImageCheckbox, 0, wxLEFT, 5);
+    imageConversionSizer->Add(triangulateImageCheckbox, 0, wxLEFT | wxBOTTOM, 5);
     imageConversionSizer->AddStretchSpacer();
 
     return imageConversionSizer;
@@ -153,7 +153,7 @@ wxSizer* ConfigDialog::InitExternalAlgorithmConfig() {
     externalAlgorithmSizer->Add(externalAlgorithmNameTextbox, 0, wxALIGN_CENTER);
     externalAlgorithmSizer->AddSpacer(20);
     externalAlgorithmSizer->Add(externalAlgorithmLibraryLabel, 0, wxALIGN_CENTER | wxRIGHT, 5);
-    externalAlgorithmSizer->Add(externalAlgorithmLibraryPathTextbox, 0, wxALIGN_CENTER | wxRIGHT, 5);
+    externalAlgorithmSizer->Add(externalAlgorithmLibraryPathTextbox, 1, wxALIGN_CENTER | wxRIGHT, 5);
     externalAlgorithmSizer->Add(externalAlgorithmLibrarySelectButton, 0, wxALIGN_CENTER);
     externalAlgorithmSizer->AddSpacer(10);
     externalAlgorithmPanel->SetSizerAndFit(externalAlgorithmSizer);

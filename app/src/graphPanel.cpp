@@ -27,7 +27,7 @@ GraphPanel::GraphPanel(
     openButton = new wxButton(filePanel, wxID_ANY, "Open");
     fileInfoOutput = new wxTextCtrl(filePanel, wxID_ANY, "Open a file to load the graph.", wxDefaultPosition,
                                     wxDefaultSize, wxTE_READONLY);
-    fileInfoOutput->SetMinSize(wxSize(200, wxDefaultCoord));
+    fileInfoOutput->SetMinSize(wxSize(220, wxDefaultCoord));
     vertexCountInput = new wxTextCtrl(filePanel, wxID_ANY);
     vertexCountInput->SetHint("Vertices");
     vertexCountInput->SetMinSize(wxSize(80, wxDefaultCoord));
