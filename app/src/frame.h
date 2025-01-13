@@ -20,6 +20,7 @@ class Frame : public wxFrame {
     wxButton* startStopMatchingButton, *startStopCustomMatchingButton;
     wxStaticText* matchingStatus;
 
+    std::unordered_map<std::string, int> selectedAlgorithm;
     std::thread matcherThread;
     pattern::PatternMatcher* currentlyWorkingMatcher;
     bool isCloseRequested;

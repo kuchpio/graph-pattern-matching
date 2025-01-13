@@ -7,6 +7,7 @@
 #include "wx/config.h"
 #include "wx/slider.h"
 #include "wx/textctrl.h"
+#include "wx/panel.h"
 #include <filesystem>
 
 class ConfigDialog : public wxDialog {
@@ -19,9 +20,14 @@ class ConfigDialog : public wxDialog {
     wxPanel* externalAlgorithmPanel;
     std::filesystem::path externalAlgorithmLibraryPath;
 
+    std::unordered_map<std::string, int> selectedAlgorithm;
+
     wxSizer* InitAnimationConfig();
     wxSizer* InitMatchingConfig();
     wxSizer* InitExternalAlgorithmConfig();
+    std::string GetSelectedOptionId() const;
+    void UpdateAlgorithmChoices();
+    void UpdateSelectedAlgorithm();
 
   public:
     ConfigDialog(wxWindow* parent);

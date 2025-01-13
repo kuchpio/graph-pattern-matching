@@ -109,6 +109,19 @@ void Frame::LoadConfig(const wxConfig* config) {
     settings.nodeRepulsion = config->ReadObject(defaults.NODE_REPULSION_ID, defaults.NODE_REPULSION);
     settings.nodeDrag = config->ReadObject(defaults.NODE_DRAG_ID, defaults.NODE_DRAG);
 
+    selectedAlgorithm[defaults.SELECTED_SUBGRAPH_ALGORITHM_ID] =
+        config->Read(defaults.SELECTED_SUBGRAPH_ALGORITHM_ID, defaults.SELECTED_SUBGRAPH_ALGORITHM);
+    selectedAlgorithm[defaults.SELECTED_INDUCED_SUBGRAPH_ALGORITHM_ID] =
+        config->Read(defaults.SELECTED_INDUCED_SUBGRAPH_ALGORITHM_ID, defaults.SELECTED_INDUCED_SUBGRAPH_ALGORITHM);
+    selectedAlgorithm[defaults.SELECTED_MINOR_ALGORITHM_ID] =
+        config->Read(defaults.SELECTED_MINOR_ALGORITHM_ID, defaults.SELECTED_MINOR_ALGORITHM);
+    selectedAlgorithm[defaults.SELECTED_INDUCED_MINOR_ALGORITHM_ID] =
+        config->Read(defaults.SELECTED_INDUCED_MINOR_ALGORITHM_ID, defaults.SELECTED_INDUCED_MINOR_ALGORITHM);
+    selectedAlgorithm[defaults.SELECTED_TOPOLOGICAL_MINOR_ALGORITHM_ID] =
+        config->Read(defaults.SELECTED_TOPOLOGICAL_MINOR_ALGORITHM_ID, defaults.SELECTED_TOPOLOGICAL_MINOR_ALGORITHM);
+    selectedAlgorithm[defaults.SELECTED_INDUCED_TOPOLOGICAL_MINOR_ALGORITHM_ID] =
+        config->Read(defaults.SELECTED_INDUCED_TOPOLOGICAL_MINOR_ALGORITHM_ID, defaults.SELECTED_INDUCED_TOPOLOGICAL_MINOR_ALGORITHM);
+
     auto customAlgorithmEnabled =
         config->ReadObject(defaults.ENABLE_EXTERNAL_ALGORITHM_ID, defaults.ENABLE_EXTERNAL_ALGORITHM);
     auto customAlgorithmName = config->Read(defaults.EXTERNAL_ALGORITHM_NAME_ID, defaults.EXTERNAL_ALGORITHM_NAME);
@@ -200,31 +213,43 @@ void Frame::ClearMatching() {
 }
 
 pattern::PatternMatcher* Frame::GetSelectedMatcher() const {
+    ConfigDefaults defaults;
 
     if (subgraphRadioButton->GetValue()) {
         if (inducedCheckbox->GetValue()) {
-            return new pattern::Vf2InducedSubgraphSolver();
+            auto selected = selectedAlgorithm.at(defaults.SELECTED_INDUCED_SUBGRAPH_ALGORITHM_ID);
+            if (selected == 0) return new pattern::Vf2InducedSubgraphSolver();
+            return new pattern::InducedSubgraphMatcher(); 
         }
+        auto selected = selectedAlgorithm.at(defaults.SELECTED_SUBGRAPH_ALGORITHM_ID);
 #ifdef CUDA_ENABLED
-        return new pattern::CudaSubgraphMatcher();
-#else
-        return new pattern::Vf2SubgraphSolver();
+        if (selected == 0) return new pattern::CudaSubgraphMatcher();
+        if (selected == 1) return new pattern::Vf2SubgraphSolver();
+#elif
+        if (selected == 0) return new pattern::Vf2SubgraphSolver();
 #endif
+        return new pattern::NativeSubgraphMatcher();
     }
 
     if (minorRadioButton->GetValue()) {
         if (inducedCheckbox->GetValue()) {
-            return new pattern::InducedMinorHeuristic();
+            auto selected = selectedAlgorithm.at(defaults.SELECTED_INDUCED_MINOR_ALGORITHM_ID);
+            if (selected == 0) return new pattern::InducedMinorHeuristic();
+            return new pattern::InducedMinorMatcher();
         }
-
-        return new pattern::MinerMinorMatcher();
+        auto selected = selectedAlgorithm.at(defaults.SELECTED_MINOR_ALGORITHM_ID);
+        if (selected == 0) return new pattern::MinerMinorMatcher();
+        return new pattern::NativeMinorMatcher();
     }
 
     if (inducedCheckbox->GetValue()) {
-        return new pattern::InducedTopologicalMinorHeuristicSolver();
+        auto selected = selectedAlgorithm.at(defaults.SELECTED_INDUCED_TOPOLOGICAL_MINOR_ALGORITHM_ID);
+        if (selected == 0) return new pattern::InducedTopologicalMinorHeuristicSolver();
+        return new pattern::TopologicalInducedMinorMatcher();
     }
-
-    return new pattern::TopologicalMinorHeuristicSolver();
+    auto selected = selectedAlgorithm.at(defaults.SELECTED_TOPOLOGICAL_MINOR_ALGORITHM_ID);
+    if (selected == 0) return new pattern::TopologicalMinorHeuristicSolver();
+    return new pattern::TopologicalInducedMinorMatcher();
 }
 
 std::vector<std::optional<std::pair<float, float>>> Frame::GetPatternMatchingAlignment() {
