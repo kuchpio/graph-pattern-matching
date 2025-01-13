@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <vector>
 #include <tuple>
+#include <optional>
 
 typedef std::size_t vertex;
 
@@ -46,6 +47,13 @@ class Graph {
     std::size_t degree_out(vertex v) const;
     std::vector<std::size_t> degrees_out() const;
 };
+
+class IPatternMatcher {
+  public:
+    virtual std::optional<std::vector<vertex>> match(const core::Graph& searchSpace, const core::Graph& pattern) = 0;
+    virtual void interrupt() = 0;
+};
+
 } // namespace core
 
 #include "../src/graph6Serializer.h"

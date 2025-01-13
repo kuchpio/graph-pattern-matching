@@ -5,6 +5,7 @@
 #include "cuda_subgraph_matcher.h"
 #include "wx/splitter.h"
 #include "wx/app.h"
+#include "wx/dynlib.h"
 #include <numeric>
 
 #include "subgraph_matcher.h"
@@ -37,7 +38,6 @@ Frame::Frame(const wxString& title)
     matchingStatus = new wxStaticText(mainPanel, wxID_ANY, "");
     auto optionsButton = new wxButton(mainPanel, wxID_ANY, "Settings");
     auto configDialog = new ConfigDialog(this);
-
 
     auto mainPanelSizer = new wxBoxSizer(wxHORIZONTAL);
     mainPanelSizer->Add(modeLabel, 0, wxALIGN_CENTER | wxLEFT, 5);
@@ -74,10 +74,29 @@ Frame::Frame(const wxString& title)
         if (currentlyWorkingMatcher) {
             OnMatchingStop();
         } else {
+            currentlyWorkingMatcher = GetSelectedMatcher();
+            startStopMatchingButton->SetLabel("Stop");
+            startStopCustomMatchingButton->Disable();
             OnMatchingStart();
         }
     });
-    optionsButton->Bind(wxEVT_BUTTON, [this, configDialog](wxCommandEvent& event) { 
+    startStopCustomMatchingButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
+        if (currentlyWorkingMatcher) {
+            OnMatchingStop();
+        } else {
+            try {
+                currentlyWorkingMatcher = GetCustomMatcher();
+            } catch (const std::runtime_error& err) {
+                wxMessageBox("Could not run `" + customAlgorithmName + "`\nError: " + std::string(err.what()));
+                wxLogDebug("ERROR: %s", err.what());
+                return;
+            }
+            startStopMatchingButton->Disable();
+            startStopCustomMatchingButton->SetLabel("Stop");
+            OnMatchingStart();
+        }
+    });
+    optionsButton->Bind(wxEVT_BUTTON, [this, configDialog](wxCommandEvent& event) {
         auto config = new wxConfig(APP_NAME_ID);
 
         configDialog->Load(config);
@@ -120,11 +139,22 @@ void Frame::LoadConfig(const wxConfig* config) {
     selectedAlgorithm[defaults.SELECTED_TOPOLOGICAL_MINOR_ALGORITHM_ID] =
         config->Read(defaults.SELECTED_TOPOLOGICAL_MINOR_ALGORITHM_ID, defaults.SELECTED_TOPOLOGICAL_MINOR_ALGORITHM);
     selectedAlgorithm[defaults.SELECTED_INDUCED_TOPOLOGICAL_MINOR_ALGORITHM_ID] =
-        config->Read(defaults.SELECTED_INDUCED_TOPOLOGICAL_MINOR_ALGORITHM_ID, defaults.SELECTED_INDUCED_TOPOLOGICAL_MINOR_ALGORITHM);
+        config->Read(defaults.SELECTED_INDUCED_TOPOLOGICAL_MINOR_ALGORITHM_ID,
+                     defaults.SELECTED_INDUCED_TOPOLOGICAL_MINOR_ALGORITHM);
 
     auto customAlgorithmEnabled =
         config->ReadObject(defaults.ENABLE_EXTERNAL_ALGORITHM_ID, defaults.ENABLE_EXTERNAL_ALGORITHM);
-    auto customAlgorithmName = config->Read(defaults.EXTERNAL_ALGORITHM_NAME_ID, defaults.EXTERNAL_ALGORITHM_NAME);
+    if (customAlgorithmEnabled) {
+        auto customMatchingAlgorithmPath = std::filesystem::path(
+            (const char*)config->Read(defaults.EXTERNAL_ALGORITHM_PATH_ID, defaults.EXTERNAL_ALGORITHM_PATH).mb_str());
+
+        if (plugin.IsLoaded()) plugin.Unload();
+        if (!plugin.Load(customMatchingAlgorithmPath.string())) {
+            wxMessageBox("Could not load library `" + customMatchingAlgorithmPath.filename().string());
+            customAlgorithmEnabled = false;
+        }
+    }
+    customAlgorithmName = config->Read(defaults.EXTERNAL_ALGORITHM_NAME_ID, defaults.EXTERNAL_ALGORITHM_NAME);
 
     searchSpacePanel->UpdateDrawingSettings(settings);
     patternPanel->UpdateDrawingSettings(settings);
@@ -135,9 +165,6 @@ void Frame::LoadConfig(const wxConfig* config) {
 }
 
 void Frame::OnMatchingStart() {
-    currentlyWorkingMatcher = GetSelectedMatcher();
-    startStopMatchingButton->SetLabel("Stop");
-
     const core::Graph& patternGraph = patternPanel->Manager().Graph();
     const core::Graph& searchSpaceGraph = searchSpacePanel->Manager().Graph();
 
@@ -169,7 +196,9 @@ void Frame::OnMatchingComplete() {
     delete currentlyWorkingMatcher;
     currentlyWorkingMatcher = nullptr;
     startStopMatchingButton->SetLabel("Match");
+    startStopCustomMatchingButton->SetLabel("Match (" + customAlgorithmName + ")");
     startStopMatchingButton->Enable();
+    startStopCustomMatchingButton->Enable();
 
     if (matchingResult.has_value()) {
         std::vector<unsigned int> patternLabelling(patternPanel->Manager().Graph().size(), 0);
@@ -212,14 +241,14 @@ void Frame::ClearMatching() {
     searchSpacePanel->OnMatchingEnd();
 }
 
-pattern::PatternMatcher* Frame::GetSelectedMatcher() const {
+core::IPatternMatcher* Frame::GetSelectedMatcher() const {
     ConfigDefaults defaults;
 
     if (subgraphRadioButton->GetValue()) {
         if (inducedCheckbox->GetValue()) {
             auto selected = selectedAlgorithm.at(defaults.SELECTED_INDUCED_SUBGRAPH_ALGORITHM_ID);
             if (selected == 0) return new pattern::Vf2InducedSubgraphSolver();
-            return new pattern::InducedSubgraphMatcher(); 
+            return new pattern::InducedSubgraphMatcher();
         }
         auto selected = selectedAlgorithm.at(defaults.SELECTED_SUBGRAPH_ALGORITHM_ID);
 #ifdef CUDA_ENABLED
@@ -250,6 +279,14 @@ pattern::PatternMatcher* Frame::GetSelectedMatcher() const {
     auto selected = selectedAlgorithm.at(defaults.SELECTED_TOPOLOGICAL_MINOR_ALGORITHM_ID);
     if (selected == 0) return new pattern::TopologicalMinorHeuristicSolver();
     return new pattern::TopologicalInducedMinorMatcher();
+}
+
+core::IPatternMatcher* Frame::GetCustomMatcher() const {
+    bool success;
+    auto getPatternMatcher = (core::IPatternMatcher * (*)()) plugin.GetSymbol("GetPatternMatcher", &success);
+    if (!success) throw std::runtime_error("Unable to find symbol `GetPatternMatcher`");
+
+    return getPatternMatcher();
 }
 
 std::vector<std::optional<std::pair<float, float>>> Frame::GetPatternMatchingAlignment() {

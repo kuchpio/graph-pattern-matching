@@ -21,19 +21,17 @@ class ConfigDefaults {
     const wxString EXTERNAL_ALGORITHM_PATH_ID = "ExternalAlgorithmPath";
 
     const std::unordered_map<std::string, std::vector<wxString>> CHOICES = {
-        {SELECTED_SUBGRAPH_ALGORITHM_ID, {
+        {SELECTED_SUBGRAPH_ALGORITHM_ID,
+         {
 #ifdef CUDA_ENABLED
-            "Exact (GPU)", 
+             "Exact (GPU)",
 #endif // CUDA_ENABLED
-            "Heuristic", 
-            "Exact (CPU)"
-        }},
-		{SELECTED_INDUCED_SUBGRAPH_ALGORITHM_ID, {"Heuristic", "Exact"}},
-		{SELECTED_MINOR_ALGORITHM_ID, {"Heuristic", "Exact"}},
-		{SELECTED_INDUCED_MINOR_ALGORITHM_ID, {"Heuristic", "Exact"}},
+             "Heuristic", "Exact (CPU)"}},
+        {SELECTED_INDUCED_SUBGRAPH_ALGORITHM_ID, {"Heuristic", "Exact"}},
+        {SELECTED_MINOR_ALGORITHM_ID, {"Heuristic", "Exact"}},
+        {SELECTED_INDUCED_MINOR_ALGORITHM_ID, {"Heuristic", "Exact"}},
         {SELECTED_TOPOLOGICAL_MINOR_ALGORITHM_ID, {"Heuristic", "Exact"}},
-        {SELECTED_INDUCED_TOPOLOGICAL_MINOR_ALGORITHM_ID, {"Heuristic", "Exact"}}
-    };
+        {SELECTED_INDUCED_TOPOLOGICAL_MINOR_ALGORITHM_ID, {"Heuristic", "Exact"}}};
 
     const float CONTRACTION_TIME = 1.0f;
     const float ALIGNMENT_TIME = 2.0f;

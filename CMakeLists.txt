@@ -30,6 +30,8 @@ add_subdirectory("image/test")
 add_subdirectory("pattern")
 add_subdirectory("pattern/test")
 
+add_subdirectory("plugin-sample")
+
 add_subdirectory("app")
 
 set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/app" PROPERTY VS_STARTUP_PROJECT "app")

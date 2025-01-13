@@ -8,7 +8,7 @@
 
 namespace pattern
 {
-class PatternMatcher {
+class PatternMatcher : public core::IPatternMatcher {
   public:
     virtual ~PatternMatcher() = default;
     virtual std::optional<std::vector<vertex>> match(const core::Graph& bigGraph, const core::Graph& smallGraph) = 0;

@@ -1,9 +1,11 @@
 #pragma once
 
 #include <thread>
+#include <filesystem>
 #include "wx/wx.h"
 #include "wx/config.h"
 #include "configDefaults.h"
+#include "wx/dynlib.h"
 
 #include "pattern.h"
 
@@ -17,12 +19,14 @@ class Frame : public wxFrame {
 
     wxCheckBox* inducedCheckbox;
     wxRadioButton *subgraphRadioButton, *minorRadioButton, *topologicalMinorRadioButton;
-    wxButton* startStopMatchingButton, *startStopCustomMatchingButton;
+    wxButton *startStopMatchingButton, *startStopCustomMatchingButton;
     wxStaticText* matchingStatus;
+    wxString customAlgorithmName;
+    wxDynamicLibrary plugin;
 
     std::unordered_map<std::string, int> selectedAlgorithm;
     std::thread matcherThread;
-    pattern::PatternMatcher* currentlyWorkingMatcher;
+    core::IPatternMatcher* currentlyWorkingMatcher;
     bool isCloseRequested;
     std::optional<std::vector<vertex>> matchingResult;
 
@@ -31,7 +35,8 @@ class Frame : public wxFrame {
     void OnMatchingComplete();
     void OnCloseRequest(wxCloseEvent& event);
     void ClearMatching();
-    pattern::PatternMatcher* GetSelectedMatcher() const;
+    core::IPatternMatcher* GetSelectedMatcher() const;
+    core::IPatternMatcher* GetCustomMatcher() const;
     std::vector<std::optional<std::pair<float, float>>> GetPatternMatchingAlignment();
     std::vector<std::optional<std::pair<float, float>>> GetSearchSpaceMatchingAlignment();
 

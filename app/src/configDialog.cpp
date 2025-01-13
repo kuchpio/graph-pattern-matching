@@ -7,30 +7,33 @@ ConfigDialog::ConfigDialog(wxWindow* parent) : wxDialog(parent, wxID_ANY, "Setti
     auto animationConfigSizer = InitAnimationConfig();
     auto matchingConfigSizer = InitMatchingConfig();
     auto externalAlgorithmConfigSizer = InitExternalAlgorithmConfig();
-	auto bottomSizer = CreateStdDialogButtonSizer(wxOK | wxCANCEL | wxHELP);
+    auto bottomSizer = CreateStdDialogButtonSizer(wxOK | wxCANCEL | wxHELP);
     auto restoreDefaultsButton = bottomSizer->GetHelpButton();
     restoreDefaultsButton->SetLabel("Defaults");
 
     restoreDefaultsButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
-		ConfigDefaults defaults;
-		contractionAnimationTimeSlider->SetValue((int)10.0 * defaults.CONTRACTION_TIME);
-		alignmentAnimationTimeSlider->SetValue((int)10.0 * defaults.ALIGNMENT_TIME);
-		springStrengthSlider->SetValue((int)10.0 * defaults.SPRING_STRENGTH);
-		springLengthSlider->SetValue((int)10.0 * defaults.SPRING_LENGTH);
-		nodeRepulsionSlider->SetValue((int)10.0 * defaults.NODE_REPULSION);
-		nodeDragSlider->SetValue((int)10.0 * defaults.NODE_DRAG);
-		selectedAlgorithm[defaults.SELECTED_SUBGRAPH_ALGORITHM_ID] = defaults.SELECTED_SUBGRAPH_ALGORITHM;
-		selectedAlgorithm[defaults.SELECTED_INDUCED_SUBGRAPH_ALGORITHM_ID] = defaults.SELECTED_INDUCED_SUBGRAPH_ALGORITHM;
-		selectedAlgorithm[defaults.SELECTED_MINOR_ALGORITHM_ID] = defaults.SELECTED_MINOR_ALGORITHM;
-		selectedAlgorithm[defaults.SELECTED_INDUCED_MINOR_ALGORITHM_ID] = defaults.SELECTED_INDUCED_MINOR_ALGORITHM;
-		selectedAlgorithm[defaults.SELECTED_TOPOLOGICAL_MINOR_ALGORITHM_ID] = defaults.SELECTED_TOPOLOGICAL_MINOR_ALGORITHM;
-		selectedAlgorithm[defaults.SELECTED_INDUCED_TOPOLOGICAL_MINOR_ALGORITHM_ID] = defaults.SELECTED_INDUCED_TOPOLOGICAL_MINOR_ALGORITHM;
+        ConfigDefaults defaults;
+        contractionAnimationTimeSlider->SetValue((int)10.0 * defaults.CONTRACTION_TIME);
+        alignmentAnimationTimeSlider->SetValue((int)10.0 * defaults.ALIGNMENT_TIME);
+        springStrengthSlider->SetValue((int)10.0 * defaults.SPRING_STRENGTH);
+        springLengthSlider->SetValue((int)10.0 * defaults.SPRING_LENGTH);
+        nodeRepulsionSlider->SetValue((int)10.0 * defaults.NODE_REPULSION);
+        nodeDragSlider->SetValue((int)10.0 * defaults.NODE_DRAG);
+        selectedAlgorithm[defaults.SELECTED_SUBGRAPH_ALGORITHM_ID] = defaults.SELECTED_SUBGRAPH_ALGORITHM;
+        selectedAlgorithm[defaults.SELECTED_INDUCED_SUBGRAPH_ALGORITHM_ID] =
+            defaults.SELECTED_INDUCED_SUBGRAPH_ALGORITHM;
+        selectedAlgorithm[defaults.SELECTED_MINOR_ALGORITHM_ID] = defaults.SELECTED_MINOR_ALGORITHM;
+        selectedAlgorithm[defaults.SELECTED_INDUCED_MINOR_ALGORITHM_ID] = defaults.SELECTED_INDUCED_MINOR_ALGORITHM;
+        selectedAlgorithm[defaults.SELECTED_TOPOLOGICAL_MINOR_ALGORITHM_ID] =
+            defaults.SELECTED_TOPOLOGICAL_MINOR_ALGORITHM;
+        selectedAlgorithm[defaults.SELECTED_INDUCED_TOPOLOGICAL_MINOR_ALGORITHM_ID] =
+            defaults.SELECTED_INDUCED_TOPOLOGICAL_MINOR_ALGORITHM;
         UpdateAlgorithmChoices();
-		externalAlgorithmCheckbox->SetValue(defaults.ENABLE_EXTERNAL_ALGORITHM);
+        externalAlgorithmCheckbox->SetValue(defaults.ENABLE_EXTERNAL_ALGORITHM);
         externalAlgorithmPanel->Enable(externalAlgorithmCheckbox->IsChecked());
-		externalAlgorithmNameTextbox->SetValue(defaults.EXTERNAL_ALGORITHM_NAME);
+        externalAlgorithmNameTextbox->SetValue(defaults.EXTERNAL_ALGORITHM_NAME);
         externalAlgorithmLibraryPath = std::filesystem::path(defaults.EXTERNAL_ALGORITHM_PATH);
-		externalAlgorithmLibraryPathTextbox->SetValue(externalAlgorithmLibraryPath.filename().string());
+        externalAlgorithmLibraryPathTextbox->SetValue(externalAlgorithmLibraryPath.filename().string());
     });
 
     auto sizer = new wxBoxSizer(wxVERTICAL);
@@ -87,7 +90,8 @@ wxSizer* ConfigDialog::InitMatchingConfig() {
     auto algorithmSelectionPanel = new wxPanel(matchingConfigPanel, wxID_ANY);
     auto algorithmLabel = new wxStaticText(algorithmSelectionPanel, wxID_ANY, "Algorithm: ");
     isInducedCheckbox = new wxCheckBox(algorithmSelectionPanel, wxID_ANY, "Induced");
-    isSubgraphRadiobutton = new wxRadioButton(algorithmSelectionPanel, wxID_ANY, "Subgraph", wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
+    isSubgraphRadiobutton =
+        new wxRadioButton(algorithmSelectionPanel, wxID_ANY, "Subgraph", wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
     isMinorRadiobutton = new wxRadioButton(algorithmSelectionPanel, wxID_ANY, "Minor");
     isTopologicalMinorRadiobutton = new wxRadioButton(algorithmSelectionPanel, wxID_ANY, "Topological minor");
     auto algorithmSelectionSeparator = new wxStaticLine(matchingConfigPanel);
@@ -127,7 +131,8 @@ wxSizer* ConfigDialog::InitExternalAlgorithmConfig() {
     auto externalAlgorithmNameLabel = new wxStaticText(externalAlgorithmPanel, wxID_ANY, "Name: ");
     externalAlgorithmNameTextbox = new wxTextCtrl(externalAlgorithmPanel, wxID_ANY);
     auto externalAlgorithmLibraryLabel = new wxStaticText(externalAlgorithmPanel, wxID_ANY, "Library: ");
-    externalAlgorithmLibraryPathTextbox = new wxTextCtrl(externalAlgorithmPanel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
+    externalAlgorithmLibraryPathTextbox = new wxTextCtrl(externalAlgorithmPanel, wxID_ANY, wxEmptyString,
+                                                         wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
     auto externalAlgorithmLibrarySelectButton = new wxButton(externalAlgorithmPanel, wxID_ANY, "Select");
     externalAlgorithmSizer->AddSpacer(10);
     externalAlgorithmSizer->Add(externalAlgorithmNameLabel, 0, wxALIGN_CENTER | wxRIGHT, 5);
@@ -147,18 +152,18 @@ wxSizer* ConfigDialog::InitExternalAlgorithmConfig() {
         externalAlgorithmPanel->Enable(externalAlgorithmCheckbox->IsChecked());
     });
     externalAlgorithmLibrarySelectButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
-		auto fileDialog = new wxFileDialog(this, "Choose a file to open", wxEmptyString, wxEmptyString,
-							 "Libraries (*.so; *.dll)|*.so;*.dll", wxFD_OPEN);
+        auto fileDialog = new wxFileDialog(this, "Choose a file to open", wxEmptyString, wxEmptyString,
+                                           "Libraries (*.so; *.dll)|*.so;*.dll", wxFD_OPEN);
 
-		if (fileDialog->ShowModal() != wxID_OK) {
-			fileDialog->Destroy();
-			return;
-		}
+        if (fileDialog->ShowModal() != wxID_OK) {
+            fileDialog->Destroy();
+            return;
+        }
 
         externalAlgorithmLibraryPath = std::filesystem::path((const char*)fileDialog->GetPath().mb_str());
         externalAlgorithmLibraryPathTextbox->SetValue(externalAlgorithmLibraryPath.filename().string());
 
-		fileDialog->Destroy();
+        fileDialog->Destroy();
     });
 
     return externalMatchingConfigSizer;
@@ -205,16 +210,13 @@ void ConfigDialog::Load(wxConfigBase* config) {
     ConfigDefaults defaults;
     contractionAnimationTimeSlider->SetValue(
         (int)10.0 * config->ReadObject(defaults.CONTRACTION_TIME_ID, defaults.CONTRACTION_TIME));
-    alignmentAnimationTimeSlider->SetValue(
-        (int)10.0 * config->ReadObject(defaults.ALIGNMENT_TIME_ID, defaults.ALIGNMENT_TIME));
-    springStrengthSlider->SetValue(
-        (int)10.0 * config->ReadObject(defaults.SPRING_STRENGTH_ID, defaults.SPRING_STRENGTH));
-    springLengthSlider->SetValue(
-        (int)10.0 * config->ReadObject(defaults.SPRING_LENGTH_ID, defaults.SPRING_LENGTH));
-    nodeRepulsionSlider->SetValue(
-        (int)10.0 * config->ReadObject(defaults.NODE_REPULSION_ID, defaults.NODE_REPULSION));
-    nodeDragSlider->SetValue(
-        (int)10.0 * config->ReadObject(defaults.NODE_DRAG_ID, defaults.NODE_DRAG));
+    alignmentAnimationTimeSlider->SetValue((int)10.0 *
+                                           config->ReadObject(defaults.ALIGNMENT_TIME_ID, defaults.ALIGNMENT_TIME));
+    springStrengthSlider->SetValue((int)10.0 *
+                                   config->ReadObject(defaults.SPRING_STRENGTH_ID, defaults.SPRING_STRENGTH));
+    springLengthSlider->SetValue((int)10.0 * config->ReadObject(defaults.SPRING_LENGTH_ID, defaults.SPRING_LENGTH));
+    nodeRepulsionSlider->SetValue((int)10.0 * config->ReadObject(defaults.NODE_REPULSION_ID, defaults.NODE_REPULSION));
+    nodeDragSlider->SetValue((int)10.0 * config->ReadObject(defaults.NODE_DRAG_ID, defaults.NODE_DRAG));
     selectedAlgorithm[defaults.SELECTED_SUBGRAPH_ALGORITHM_ID] =
         config->Read(defaults.SELECTED_SUBGRAPH_ALGORITHM_ID, defaults.SELECTED_SUBGRAPH_ALGORITHM);
     selectedAlgorithm[defaults.SELECTED_INDUCED_SUBGRAPH_ALGORITHM_ID] =
@@ -226,15 +228,16 @@ void ConfigDialog::Load(wxConfigBase* config) {
     selectedAlgorithm[defaults.SELECTED_TOPOLOGICAL_MINOR_ALGORITHM_ID] =
         config->Read(defaults.SELECTED_TOPOLOGICAL_MINOR_ALGORITHM_ID, defaults.SELECTED_TOPOLOGICAL_MINOR_ALGORITHM);
     selectedAlgorithm[defaults.SELECTED_INDUCED_TOPOLOGICAL_MINOR_ALGORITHM_ID] =
-        config->Read(defaults.SELECTED_INDUCED_TOPOLOGICAL_MINOR_ALGORITHM_ID, defaults.SELECTED_INDUCED_TOPOLOGICAL_MINOR_ALGORITHM);
+        config->Read(defaults.SELECTED_INDUCED_TOPOLOGICAL_MINOR_ALGORITHM_ID,
+                     defaults.SELECTED_INDUCED_TOPOLOGICAL_MINOR_ALGORITHM);
     UpdateAlgorithmChoices();
     externalAlgorithmCheckbox->SetValue(
         config->ReadObject(defaults.ENABLE_EXTERNAL_ALGORITHM_ID, defaults.ENABLE_EXTERNAL_ALGORITHM));
     externalAlgorithmPanel->Enable(externalAlgorithmCheckbox->IsChecked());
     externalAlgorithmNameTextbox->SetValue(
         config->Read(defaults.EXTERNAL_ALGORITHM_NAME_ID, defaults.EXTERNAL_ALGORITHM_NAME));
-    externalAlgorithmLibraryPath = std::filesystem::path((const char*)
-        config->Read(defaults.EXTERNAL_ALGORITHM_PATH_ID, defaults.EXTERNAL_ALGORITHM_PATH).mb_str());
+    externalAlgorithmLibraryPath = std::filesystem::path(
+        (const char*)config->Read(defaults.EXTERNAL_ALGORITHM_PATH_ID, defaults.EXTERNAL_ALGORITHM_PATH).mb_str());
     externalAlgorithmLibraryPathTextbox->SetValue(externalAlgorithmLibraryPath.filename().string());
 }
 
@@ -246,12 +249,17 @@ void ConfigDialog::Save(wxConfigBase* config) const {
     config->Write(defaults.SPRING_LENGTH_ID, springLengthSlider->GetValue() / 10.0f);
     config->Write(defaults.NODE_REPULSION_ID, nodeRepulsionSlider->GetValue() / 10.0f);
     config->Write(defaults.NODE_DRAG_ID, nodeDragSlider->GetValue() / 10.0f);
-    config->Write(defaults.SELECTED_SUBGRAPH_ALGORITHM_ID, selectedAlgorithm.at(defaults.SELECTED_SUBGRAPH_ALGORITHM_ID));
-    config->Write(defaults.SELECTED_INDUCED_SUBGRAPH_ALGORITHM_ID, selectedAlgorithm.at(defaults.SELECTED_INDUCED_SUBGRAPH_ALGORITHM_ID));
+    config->Write(defaults.SELECTED_SUBGRAPH_ALGORITHM_ID,
+                  selectedAlgorithm.at(defaults.SELECTED_SUBGRAPH_ALGORITHM_ID));
+    config->Write(defaults.SELECTED_INDUCED_SUBGRAPH_ALGORITHM_ID,
+                  selectedAlgorithm.at(defaults.SELECTED_INDUCED_SUBGRAPH_ALGORITHM_ID));
     config->Write(defaults.SELECTED_MINOR_ALGORITHM_ID, selectedAlgorithm.at(defaults.SELECTED_MINOR_ALGORITHM_ID));
-    config->Write(defaults.SELECTED_INDUCED_MINOR_ALGORITHM_ID, selectedAlgorithm.at(defaults.SELECTED_INDUCED_MINOR_ALGORITHM_ID));
-    config->Write(defaults.SELECTED_TOPOLOGICAL_MINOR_ALGORITHM_ID, selectedAlgorithm.at(defaults.SELECTED_TOPOLOGICAL_MINOR_ALGORITHM_ID));
-    config->Write(defaults.SELECTED_INDUCED_TOPOLOGICAL_MINOR_ALGORITHM_ID, selectedAlgorithm.at(defaults.SELECTED_INDUCED_TOPOLOGICAL_MINOR_ALGORITHM_ID));
+    config->Write(defaults.SELECTED_INDUCED_MINOR_ALGORITHM_ID,
+                  selectedAlgorithm.at(defaults.SELECTED_INDUCED_MINOR_ALGORITHM_ID));
+    config->Write(defaults.SELECTED_TOPOLOGICAL_MINOR_ALGORITHM_ID,
+                  selectedAlgorithm.at(defaults.SELECTED_TOPOLOGICAL_MINOR_ALGORITHM_ID));
+    config->Write(defaults.SELECTED_INDUCED_TOPOLOGICAL_MINOR_ALGORITHM_ID,
+                  selectedAlgorithm.at(defaults.SELECTED_INDUCED_TOPOLOGICAL_MINOR_ALGORITHM_ID));
     config->Write(defaults.ENABLE_EXTERNAL_ALGORITHM_ID, externalAlgorithmCheckbox->IsChecked());
     config->Write(defaults.EXTERNAL_ALGORITHM_NAME_ID, externalAlgorithmNameTextbox->GetValue());
     config->Write(defaults.EXTERNAL_ALGORITHM_PATH_ID, externalAlgorithmLibraryPath.c_str());
