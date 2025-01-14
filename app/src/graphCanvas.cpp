@@ -80,7 +80,7 @@ void GraphCanvas::OnSize(wxSizeEvent& event) {
     )
         isOpenGLInitialized = InitializeOpenGL();
 
-    viewPortSize = event.GetSize() * GetContentScaleFactor();
+    viewPortSize = event.GetSize(); //* GetContentScaleFactor();
     UpdateCanvasSize();
 }
 
