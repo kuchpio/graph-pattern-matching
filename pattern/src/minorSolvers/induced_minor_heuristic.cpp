@@ -47,7 +47,7 @@ std::optional<std::vector<vertex>> InducedMinorHeuristic::match(const core::Grap
 
 std::optional<std::vector<vertex>> InducedMinorHeuristic::inducedMinorRecursion(
     const core::Graph& G, const core::Graph& H, const std::vector<vertex>& mapping,
-    std::set<std::tuple<vertex, vertex>> processedEdges, int depth, int lastSkippedEdge) {
+    std::set<std::tuple<vertex, vertex>> processedEdges, int depth, std::size_t lastSkippedEdge) {
     if (depth > MAX_RECURSION_DEPTH) return std::nullopt;
     if (H.size() > G.size()) return std::nullopt;
     if (interrupted_) return std::nullopt;
@@ -59,16 +59,20 @@ std::optional<std::vector<vertex>> InducedMinorHeuristic::inducedMinorRecursion(
         return subgraphMatching;
     }
 
-    for (int i = lastSkippedEdge; i < edges_.size(); i++) {
+    for (std::size_t i = lastSkippedEdge; i < edges_.size(); i++) {
         auto [u, v] = edges_[i];
+        if (mapping[u] == mapping[v]) continue;
+
         if (!directed_) {
             if (processedEdges.contains(std::tie(v, u))) continue;
-            processedEdges.insert(edges_[i]);
         }
+        processedEdges.insert(std::tie(mapping[std::get<0>(edges_[i])], mapping[std::get<1>(edges_[i])]));
+
         auto newMinor = contractEdge(G, mapping[u], mapping[v]);
         auto newMapping = updateMapping(mapping, mapping[u], mapping[v]);
         auto matching = inducedMinorRecursion(newMinor, H, newMapping, processedEdges, depth + 1, i + 1);
         if (matching) return matching;
+        processedEdges.erase(std::tie(mapping[std::get<0>(edges_[i])], mapping[std::get<1>(edges_[i])]));
     }
     return std::nullopt;
 }

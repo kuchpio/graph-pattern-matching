@@ -10,6 +10,7 @@ namespace pattern
 
 TEST(NativeGraphIsomorphism, random_100_vertex_graph) {
 
+    srand(SEED);
     core::Graph G = utils::GraphFactory::random_connected_graph(10, 0.4f);
     core::Graph Q = utils::GraphFactory::isomoporhic_graph(G);
     auto matcher = NativeIsomorphismMatcher();
@@ -49,6 +50,8 @@ TEST(Vf2GraphIsomorphism, small_graph_matching) {
     // EXPECT_EQ(checkMatching, true);
 }
 TEST(NativeGraphIsomorphism, small_graph_not_isomorphic) {
+    srand(SEED);
+
     std::size_t graphSize = 5;
     core::Graph G = core::Graph(graphSize);
     core::Graph Q = core::Graph(graphSize);
@@ -68,6 +71,7 @@ TEST(NativeGraphIsomorphism, small_graph_not_isomorphic) {
 }
 
 TEST(Vf2GraphIsomorphism, small_graph_not_isomorphic) {
+
     std::size_t graphSize = 5;
     core::Graph G = core::Graph(graphSize);
     core::Graph Q = core::Graph(graphSize);
@@ -117,6 +121,7 @@ TEST(NativeGraphIsomorphism, small_graph_matching) {
 }
 
 TEST(VF2GraphIsomorphism, random_100_vertex_graph) {
+    srand(SEED);
 
     core::Graph G = utils::GraphFactory::random_connected_graph(100, 0.4f);
     core::Graph Q = utils::GraphFactory::isomoporhic_graph(G);

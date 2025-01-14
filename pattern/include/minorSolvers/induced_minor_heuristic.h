@@ -9,14 +9,14 @@ namespace pattern
 class InducedMinorHeuristic : public MinorHeuristic {
   public:
     InducedMinorHeuristic(bool directed = false)
-        : directed_(directed), MinorHeuristic(std::make_unique<Vf2InducedSubgraphSolver>()){};
+        : MinorHeuristic(std::make_unique<Vf2InducedSubgraphSolver>()), directed_(directed){};
     std::optional<std::vector<vertex>> match(const core::Graph& G, const core::Graph& H) override;
 
   protected:
     std::optional<std::vector<vertex>> inducedMinorRecursion(const core::Graph& G, const core::Graph& H,
                                                              const std::vector<vertex>& mapping,
                                                              std::set<std::tuple<vertex, vertex>> processedEdges,
-                                                             int depth, int lastSkippedEdge);
+                                                             int depth, std::size_t lastSkippedEdge);
     std::optional<std::vector<vertex>> minorRecursion(const core::Graph& G, const core::Graph& H,
                                                       const std::vector<vertex>& mapping, int depth,
                                                       int lastSkippedEdge) override {

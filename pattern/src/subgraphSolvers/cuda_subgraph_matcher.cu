@@ -189,6 +189,7 @@ std::optional<std::vector<vertex>> CudaSubgraphMatcher::match(const core::Graph&
     if (smallGraph.size() == 0 || bigGraph.size() == 0) return std::nullopt;
     if (smallGraph.size() > bigGraph.size()) return std::nullopt;
 
+    if (smallGraph.connected() == false) return std::nullopt;
     auto bigCudaGraph = CudaGraph(bigGraph);
     auto smallCudaGraph = CudaGraph(smallGraph);
 
@@ -209,7 +210,12 @@ std::optional<std::vector<vertex>> CudaSubgraphMatcher::match(const core::Graph&
     resultTable.rowCount = candidatesSizes[firstVertex];
 
     for (int v = 1; v < smallGraph.size(); v++) {
-        auto nextVertex = this->getNextVertex(smallGraph, candidatesSizes, resultTable.mapping).value();
+        auto nextVertexStatus = this->getNextVertex(smallGraph, candidatesSizes, resultTable.mapping);
+        if (!nextVertexStatus) {
+            freeNotMappedCandidates(resultTable.mapping, candidates);
+            return std::nullopt;
+        }
+        auto nextVertex = nextVertexStatus.value();
         if (!addVertexToResultTable(nextVertex, candidates[nextVertex], candidatesSizes[nextVertex], bigGraph,
                                     smallGraph, resultTable)) {
             resultTable.map(nextVertex);
@@ -285,10 +291,10 @@ std::optional<uint32_t> CudaSubgraphMatcher::getNextVertex(const CudaGraph& grap
                                                            const std::vector<uint32_t>& candidateListsSizes,
                                                            const std::vector<uint32_t>& mapping) {
     uint32_t highestScoreVertex = UINT32_MAX;
-    double currentMax = DBL_MAX;
+    double currentMin = DBL_MAX;
     for (uint32_t v = 0; v < graph.size(); v++) {
         if (mapping[v] != NOT_MAPPED) continue;
-        if ((static_cast<double>(candidateListsSizes[v]) / static_cast<double>(graph.neighboursOut(v))) < currentMax) {
+        if ((static_cast<double>(candidateListsSizes[v]) / static_cast<double>(graph.neighboursOut(v))) < currentMin) {
             bool connected = false;
             for (int i = 0; i < mapping.size(); i++) {
                 if (mapping[i] != NOT_MAPPED) {
@@ -296,7 +302,7 @@ std::optional<uint32_t> CudaSubgraphMatcher::getNextVertex(const CudaGraph& grap
                 }
             }
             if (connected == false) continue;
-            currentMax = static_cast<double>(candidateListsSizes[v]) / static_cast<double>(graph.neighboursOut(v));
+            currentMin = static_cast<double>(candidateListsSizes[v]) / static_cast<double>(graph.neighboursOut(v));
             highestScoreVertex = v;
         }
     }

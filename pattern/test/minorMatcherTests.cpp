@@ -348,6 +348,8 @@ TEST(InducedTopologicalMinorIsomorphism, SmallHasInducedButNotTopologicalMinor) 
 }
 
 TEST(MinorMiner, random_120_vertex) {
+    srand(SEED);
+
     auto G = utils::GraphFactory::random_connected_graph(120, 0.3);
     auto minor = utils::GraphFactory::random_minor(G, 45);
 
@@ -359,6 +361,8 @@ TEST(MinorMiner, random_120_vertex) {
 }
 
 TEST(topologicalMinor, random_100_vertex) {
+    srand(SEED);
+
     auto topologicalMinor = utils::GraphFactory::random_connected_graph(70);
     auto G = utils::GraphFactory::random_edge_subdivisions(topologicalMinor, 30);
 
@@ -369,6 +373,8 @@ TEST(topologicalMinor, random_100_vertex) {
 }
 
 TEST(indcuedTopologicalMinor, random_130_vertex) {
+    srand(SEED);
+
     auto topologicalMinor = utils::GraphFactory::random_connected_graph(100);
     auto G = utils::GraphFactory::random_edge_subdivisions(topologicalMinor, 30);
 
@@ -379,6 +385,8 @@ TEST(indcuedTopologicalMinor, random_130_vertex) {
 }
 
 TEST(inducedMinor, random_40_vertex) {
+    srand(SEED);
+
     auto G = utils::GraphFactory::random_connected_graph(60, 0.9);
     auto inducedMinor = utils::GraphFactory::random_induced_minor(G, 8);
 

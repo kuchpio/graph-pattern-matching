@@ -3,6 +3,7 @@
 GraphPatternMatchingCLI::GraphPatternMatchingCLI() {
     app_.description("CLI tool for matching patterns in graphs.");
     addMainCommandOptions();
+    app_.add_subcommand("benchmarks", "run benchmarks for the algorithms.");
 
     app_.footer("Example:\n"
                 "  ./graphPatternMatching subgraph file1 file2 \n"
@@ -10,19 +11,19 @@ GraphPatternMatchingCLI::GraphPatternMatchingCLI() {
 }
 
 void GraphPatternMatchingCLI::addMainCommandOptions() {
+    auto cmd = app_.add_subcommand("", "Find matching between graphs.");
     auto mapNameValidator = [&, this](const std::string& name) {
         if (matchingAlgorithms_.contains(name)) return std::string{};
         return std::string{"The value" + name + "is not a valid pattern."};
     };
 
-    app_.add_option("pattern", pattern_, "kind of pattern to be searched for.")->required()->check(mapNameValidator);
+    cmd->add_option("pattern", pattern_, "kind of pattern to be searched for.")->check(mapNameValidator);
 
-    app_.add_flag("-i,--induced", induced_, "makes the pattern induced.");
+    cmd->add_flag("-i,--induced", induced_, "makes the pattern induced.");
 
-    app_.add_option("searchSpaceFilePath", input1_, "path to the search space graph file")
-        ->required()
-        ->check(CLI::ExistingFile);
-    app_.add_option("patternFilePath", input2_, "path to the pattern graph file")->required()->check(CLI::ExistingFile);
+    cmd->add_option("searchSpaceFilePath", input1_, "path to the search space graph file")->check(CLI::ExistingFile);
+
+    cmd->add_option("patternFilePath", input2_, "path to the pattern graph file")->check(CLI::ExistingFile);
 }
 
 void GraphPatternMatchingCLI::parse(int argc, char** argv) {
@@ -34,6 +35,16 @@ int GraphPatternMatchingCLI::exit(const CLI::ParseError& error) {
 }
 
 void GraphPatternMatchingCLI::run() const {
+    try {
+        if (app_.got_subcommand("benchmarks")) {
+            utils::EfficiencyTests benchmarks;
+            benchmarks.run();
+            return;
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << "\n";
+    }
+
     auto searchGraph = loadGraph(input1_);
     auto patternGraph = loadGraph(input2_);
 
@@ -45,11 +56,12 @@ void GraphPatternMatchingCLI::run() const {
         matcher = matchingAlgorithms_.at(pattern_);
 
     auto matching = matcher.get()->match(searchGraph, patternGraph);
+
     if (matching) {
         printMatching(matching.value());
         return;
     }
-    std::cout << "patternGraph is not a " + pattern_ + " of searchGraph\n";
+    std::cout << "pattern Graph is not a " + pattern_ + " of searchGraph\n";
 }
 
 core::Graph GraphPatternMatchingCLI::loadGraph(const std::string& filepath) {
@@ -64,7 +76,7 @@ core::Graph GraphPatternMatchingCLI::loadGraph(const std::string& filepath) {
 
     try {
         auto graph = core::Graph6Serializer::Deserialize(graphEncoding);
-        return std::move(graph);
+        return graph;
     } catch (const core::graph6FormatError& err) {
         throw std::runtime_error("Could not open file " + filepath + "\nError: " + err.what());
     }

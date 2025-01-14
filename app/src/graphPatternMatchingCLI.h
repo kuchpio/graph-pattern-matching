@@ -2,12 +2,9 @@
 #include <string>
 #include "core.h"
 #include "pattern.h"
-#include "vf2_subgraph_solver.hpp"
-#include "vf2_induced_subgraph_solver.hpp"
-#include "topological_minor_heuristic_solver.h"
-#include "miner_minor_matcher.hpp"
-#include "induced_minor_heuristic.h"
-#include "topological_induced_minor_heuristic_solver.h"
+#include "generateSamples.h"
+
+#include "solvers.h"
 #include <map>
 #include <CLI/CLI.hpp>
 
@@ -27,6 +24,7 @@ class GraphPatternMatchingCLI {
   private:
     CLI::App app_{"Graph Pattern Matching"};
     bool induced_ = false;
+    bool tests_ = false;
     std::string pattern_ = "subgraph";
     std::string input1_{""};
     std::string input2_{""};
@@ -44,6 +42,7 @@ class GraphPatternMatchingCLI {
     };
 
     void addMainCommandOptions();
+    void addBenchmarks();
     static void printMatching(const std::vector<vertex>& matching);
     static core::Graph loadGraph(const std::string& filepath);
 };

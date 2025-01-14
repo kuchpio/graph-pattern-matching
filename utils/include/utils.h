@@ -3,6 +3,8 @@
 #include <cstddef>
 #include <vector>
 
+#define SEED 2000
+
 namespace utils
 {
 class GraphFactory {
@@ -10,12 +12,17 @@ class GraphFactory {
   public:
     static core::Graph isomoporhic_graph(const core::Graph& G);
     static core::Graph random_graph(std::size_t n, float edge_propability);
+    static core::Graph random_connected_subgraph(const core::Graph& G, std::size_t subgraphSize, bool induced = false,
+                                                 double edge_probability = 0.4);
+    static core::Graph random_subgraph(const core::Graph& G, std::size_t subgraphSize, bool induced = false,
+                                       double edge_probability = 0.4);
     static std::vector<core::Graph> components(const core::Graph& G);
     static core::Graph random_spanning_tree(std::size_t vertex_count);
-    static core::Graph random_connected_graph(std::size_t vertex_count, float edge_probability = 0.4);
+    static core::Graph random_connected_graph(std::size_t vertex_count, double edge_probability = 0.4);
     static core::Graph random_minor(const core::Graph& G, std::size_t minorSize);
     static core::Graph random_induced_minor(const core::Graph& G, std::size_t minorSize);
     static core::Graph random_edge_subdivisions(const core::Graph& G, std::size_t count);
+    static core::Graph undirectedGraph(const core::Graph& G);
 
   private:
     static std::vector<std::size_t> shuffled_vertices(std::size_t vertex_count);

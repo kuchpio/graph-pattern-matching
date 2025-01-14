@@ -1,20 +1,8 @@
-#include "miner_minor_matcher.hpp"
-#include "native_subgraph_matcher.h"
-#include "vf2_induced_subgraph_solver.hpp"
-#include "vf2_subgraph_solver.hpp"
-#include "cuda_subgraph_matcher.h"
 #include "wx/splitter.h"
 #include "wx/app.h"
 #include <numeric>
 
-#include "subgraph_matcher.h"
-#include "induced_subgraph_matcher.h"
-#include "minor_matcher.h"
-#include "induced_minor_matcher.h"
-#include "topological_minor_heuristic_solver.h"
-#include "topological_induced_minor_heuristic_solver.h"
-#include "topological_induced_minor_matcher.h"
-#include "induced_minor_heuristic.h"
+#include "solvers.h"
 
 #include "frame.h"
 #include "graphPanel.h"

@@ -27,6 +27,7 @@ class Graph {
     bool contract_edge(vertex u, vertex v);
     bool has_subgraph(const core::Graph& G) const;
     bool is_induced_subgraph(const core::Graph& G) const;
+    bool connected() const;
     vertex subdivide_edge(vertex u, vertex v);
 
     // operator
