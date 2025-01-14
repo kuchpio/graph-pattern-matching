@@ -10,32 +10,29 @@ namespace utils
 
 void EfficiencyTests::generateSamples(int count) {
     srand(SEED);
-    generateSubgraphSamples(count);
-    generateSubgraphSamples(count, true);
-    // generateCudaSubgraphSamples(3);
+    // generateSubgraphSamples(count);
+    //  generateSubgraphSamples(count, true);
+    generateCudaSubgraphSamples(55);
 
-    generateMinorSamples(30);
-    generateInducedMinorSamples(20);
+    // generateMinorSamples(30);
+    // generateInducedMinorSamples(20);
 
-    generateTopologicalMinorSamples(20);
+    //   generateTopologicalMinorSamples(20);
 }
 
 void EfficiencyTests::generateCudaSubgraphSamples(int count) {
-    const std::size_t bigGraphSize = 100;
+    std::size_t bigGraphSize = 500;
+    const std::size_t bigDelta = 50;
 
-    const auto bigGraph = GraphFactory::random_connected_graph(bigGraphSize, 0.02);
-    searchGraphs_.emplace("cuda_subgraph", bigGraph);
-
-    std::size_t subgraphSize = 5;
-    const std::size_t delta = subgraphSize;
-
-    std::vector<core::Graph> subgraphs;
+    std::vector<core::Graph> bigGraphs;
     for (int i = 0; i < count; i++) {
-        auto subgraph = GraphFactory::random_connected_subgraph(bigGraph, subgraphSize);
-        subgraphs.push_back(subgraph);
-        subgraphSize += delta;
+        const auto bigGraph = GraphFactory::random_connected_graph(bigGraphSize, 0.02);
+        cudaBigGraphs_.push_back(bigGraph);
+        bigGraphSize += bigDelta;
     }
-    patternGraphs_.emplace("cuda_subgraph", subgraphs);
+
+    std::size_t subgraphSize = 10;
+    cudaSmallGraph_ = GraphFactory::random_connected_graph(subgraphSize, 0.8);
 }
 
 void EfficiencyTests::generateSubgraphSamples(int count, bool induced) {
@@ -114,8 +111,13 @@ void EfficiencyTests::run() {
     generateSamples(100);
     createDirectory(path_);
     for (const auto& pattern : searchGraphs_) {
-        testMatching(pattern.first);
+        // testMatching(pattern.first);
     }
+    processMatching(matchingAlgorithms_["cuda_subgraph"], std::string(path_ + "/" + "cuda_subgraph"), cudaBigGraphs_,
+                    cudaSmallGraph_);
+
+    processMatching(matchingAlgorithms_["subgraph"], std::string(path_ + "/" + "subgraph2"), cudaBigGraphs_,
+                    cudaSmallGraph_);
 }
 
 void EfficiencyTests::testMatching(const std::string& pattern) {
@@ -137,6 +139,31 @@ void EfficiencyTests::testMatching(const std::string& pattern) {
 
         printf("Processed %d %s\n", index++, pattern.c_str());
 
+        if (matching)
+            outFile << "success; ";
+        else
+            outFile << "fail; ";
+        outFile << elapsed.count() << " seconds; ";
+        outFile << "big=" << bigGraph.size() << "; ";
+        outFile << "small=" << smallGraph.size() << ";  \n";
+    }
+    outFile.close();
+}
+
+void EfficiencyTests::processMatching(std::shared_ptr<pattern::PatternMatcher> matcher, const std::string& filepath,
+                                      const std::vector<core::Graph>& bigGraphs, const core::Graph& smallGraph) {
+    std::ofstream outFile(filepath, std::ios::app);
+    if (!outFile) {
+        throw std::runtime_error("Failed to open file: " + filepath);
+    }
+    int index = 0;
+    for (const auto& bigGraph : bigGraphs) {
+        auto start = std::chrono::high_resolution_clock::now();
+        auto matching = matcher.get()->match(bigGraph, smallGraph);
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed = end - start;
+
+        printf("proceess %d graph\n", index++);
         if (matching)
             outFile << "success; ";
         else
