@@ -3,6 +3,7 @@
 #include "core.h"
 #include "pattern.h"
 #include "generateSamples.h"
+#include "graph6Serializer.h"
 
 #include "solvers.h"
 #include <map>

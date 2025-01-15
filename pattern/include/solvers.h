@@ -7,3 +7,8 @@
 #include "induced_minor_heuristic.h"
 #include "topological_induced_minor_heuristic_solver.h"
 #include "cuda_subgraph_matcher.h"
+#include "induced_minor_matcher.h"
+#include "native_subgraph_matcher.h"
+#include "topological_minor_matcher.h"
+#include "topological_induced_minor_matcher.h"
+#include "induced_subgraph_matcher.h"

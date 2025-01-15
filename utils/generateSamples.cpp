@@ -10,14 +10,14 @@ namespace utils
 
 void EfficiencyTests::generateSamples(int count) {
     srand(SEED);
-    // generateSubgraphSamples(count);
-    //  generateSubgraphSamples(count, true);
+    generateSubgraphSamples(count);
+    generateSubgraphSamples(count, true);
     generateCudaSubgraphSamples(55);
 
-    // generateMinorSamples(30);
-    // generateInducedMinorSamples(20);
+    generateMinorSamples(30);
+    generateInducedMinorSamples(20);
 
-    //   generateTopologicalMinorSamples(20);
+    generateTopologicalMinorSamples(20);
 }
 
 void EfficiencyTests::generateCudaSubgraphSamples(int count) {
@@ -29,7 +29,7 @@ void EfficiencyTests::generateCudaSubgraphSamples(int count) {
 
     std::vector<core::Graph> bigGraphs;
     for (int i = 0; i < count; i++) {
-        const auto bigGraph = GraphFactory::random_bigger_graph(cudaSmallGraph_, bigGraphSize);
+        const auto bigGraph = GraphFactory::random_bigger_graph(cudaSmallGraph_, bigGraphSize, 0.4);
         cudaBigGraphs_.push_back(bigGraph);
         bigGraphSize += bigDelta;
     }
@@ -107,25 +107,84 @@ void EfficiencyTests::generateTopologicalMinorSamples(int count) {
     patternGraphs_["topologicalMinor"] = topolgicalMinors;
 }
 
-void EfficiencyTests::run() {
-    generateSamples(100);
-    createDirectory(path_);
-    for (const auto& pattern : searchGraphs_) {
-        // testMatching(pattern.first);
-    }
-    processMatching(matchingAlgorithms_["cuda_subgraph"], std::string(path_ + "/" + "cuda_subgraph"), cudaBigGraphs_,
-                    cudaSmallGraph_);
+void EfficiencyTests::testMatchings(const std::vector<std::string>& patterns, const std::string& directoryName,
+                                    const std::vector<core::Graph>& bigGraphs,
+                                    const std::vector<core::Graph>& smallGraphs) {
+    std::string directoryPath = path_ + "/" + directoryName;
+    createDirectory(directoryPath);
 
-    processMatching(matchingAlgorithms_["subgraph"], std::string(path_ + "/" + "subgraph2"), cudaBigGraphs_,
-                    cudaSmallGraph_);
+    for (const auto& pattern : patterns) {
+        auto matcher = matchingAlgorithms_.at(pattern);
+        const std::string& baseFilename(directoryPath + "/" + pattern);
+        if (smallGraphs.size() > 1) processMatching(baseFilename, matcher, bigGraphs, smallGraphs, true);
+        if (bigGraphs.size() > 1) processMatching(baseFilename, matcher, smallGraphs, bigGraphs, false);
+    }
 }
 
-void EfficiencyTests::testMatching(const std::string& pattern) {
+void EfficiencyTests::run() {
+    generateSamples(50);
+    createDirectory(path_);
+    for (const auto& pattern : searchGraphs_) {
+        // testMatching(path_, pattern.first);
+    }
+    /*
+    testMatchings(std::vector<std::string>{"cuda_subgraph", "subgraph"}, "subgraphGPU_CPU", cudaBigGraphs_,
+                  std::vector<core::Graph>{cudaSmallGraph_});
+    testMatchings(std::vector<std::string>{"subgraph", "induced_subgraph"}, "subgraphs",
+                  std::vector<core::Graph>{searchGraphs_.at("induced_subgraph")}, patternGraphs_["induced_subgraph"]);
 
+    /*testMatchings(std::vector<std::string>{"subgraph", "induced_subgraph", "cuda_subgraph"}, "subgraphs_all",
+                  std::vector<core::Graph>{searchGraphs_["induced_subgraph"]},
+       patternGraphs_["induced_subgraph"]);*/
+
+    /* testMatchings(std::vector<std::string>{"minor", "induced_minor", "topologicalMinor"}, "minors",
+                       std::vector<core::Graph>{searchGraphs_.at("induced_minor")}, patternGraphs_["induced_minor"]);
+    */
+
+    testMatchings(std::vector<std::string>{"induced_topologicalMinor", "topologicalMinor"}, "topologicalMinors",
+                  std::vector<core::Graph>{searchGraphs_.at("topologicalMinor")}, patternGraphs_["topologicalMinor"]);
+}
+
+void EfficiencyTests::processMatching(const std::string& path, std::shared_ptr<pattern::PatternMatcher> matcher,
+                                      const std::vector<core::Graph>& baseGraphs,
+                                      const std::vector<core::Graph>& graphs, bool bigConst) {
+    int index = 1;
+    for (const auto& baseGraph : baseGraphs) {
+        std::string whoChanges = bigConst ? "_bigConst_" : "_smallConst";
+        const std::string& currentFileName(path + whoChanges + std::to_string(index++));
+        std::ofstream outFile(currentFileName, std::ios::app);
+        if (!outFile) {
+            throw std::runtime_error("Failed to open file: " + currentFileName);
+        }
+        for (const auto& changingGraph : graphs) {
+            auto start = std::chrono::high_resolution_clock::now();
+            auto matching =
+                bigConst ? matcher->match(baseGraph, changingGraph) : matcher->match(changingGraph, baseGraph);
+            auto end = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> elapsed = end - start;
+
+            if (matching)
+                outFile << "success; ";
+            else
+                outFile << "fail; ";
+            outFile << elapsed.count() << " seconds; ";
+            if (bigConst) {
+                outFile << "big=" << baseGraph.size() << "; ";
+                outFile << "small=" << changingGraph.size() << ";  \n";
+            } else {
+                outFile << "big=" << changingGraph.size() << "; ";
+                outFile << "small=" << baseGraph.size() << ";  \n";
+            }
+        }
+        outFile.close();
+    }
+}
+
+void EfficiencyTests::testMatching(const std::string& path, const std::string& pattern) {
     auto bigGraph = searchGraphs_.at(pattern);
     auto smallGraphs = patternGraphs_.at(pattern);
     auto matcher = matchingAlgorithms_.at(pattern);
-    const std::string filepath(path_ + '/' + pattern);
+    const std::string filepath(path + '/' + pattern);
     std::ofstream outFile(filepath, std::ios::app);
     if (!outFile) {
         throw std::runtime_error("Failed to open file: " + filepath);
@@ -147,43 +206,6 @@ void EfficiencyTests::testMatching(const std::string& pattern) {
         outFile << "big=" << bigGraph.size() << "; ";
         outFile << "small=" << smallGraph.size() << ";  \n";
     }
-    outFile.close();
-}
-
-void EfficiencyTests::processMatching(std::shared_ptr<pattern::PatternMatcher> matcher, const std::string& filepath,
-                                      const std::vector<core::Graph>& bigGraphs, const core::Graph& smallGraph) {
-    std::ofstream outFile(filepath, std::ios::app);
-    if (!outFile) {
-        throw std::runtime_error("Failed to open file: " + filepath);
-    }
-    int index = 0;
-    for (const auto& bigGraph : bigGraphs) {
-        auto start = std::chrono::high_resolution_clock::now();
-        auto matching = matcher.get()->match(bigGraph, smallGraph);
-        auto end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> elapsed = end - start;
-
-        printf("proceess %d graph\n", index++);
-        if (matching)
-            outFile << "success; ";
-        else
-            outFile << "fail; ";
-        outFile << elapsed.count() << " seconds; ";
-        outFile << "big=" << bigGraph.size() << "; ";
-        outFile << "small=" << smallGraph.size() << ";  \n";
-    }
-    outFile.close();
-}
-
-void EfficiencyTests::saveGraph(const core::Graph& G, const std::string& path, const std::string& baseName, int index) {
-    std::string fileName = path + "/" + baseName + "_" + std::to_string(index) + ".g6";
-    auto serializedGraph = core::Graph6Serializer::Serialize(G);
-
-    std::ofstream outFile(fileName, std::ios::out);
-    if (!outFile) {
-        throw std::runtime_error("Failed to open file: " + fileName);
-    }
-    outFile << serializedGraph;
     outFile.close();
 }
 

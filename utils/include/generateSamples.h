@@ -33,12 +33,15 @@ class EfficiencyTests {
     void generateMinorSamples(int count);
     void generateInducedMinorSamples(int count);
     void generateTopologicalMinorSamples(int count);
-    void testMatching(const std::string& pattern);
+    void testMatching(const std::string& path, const std::string& pattern);
     void generateCudaSubgraphSamples(int count);
-    void processMatching(std::shared_ptr<pattern::PatternMatcher> matcher, const std::string& filepath,
-                         const std::vector<core::Graph>& bigGraphs, const core::Graph& smallGraph);
 
-    void saveGraph(const core::Graph& G, const std::string& path, const std::string& baseName, int index);
+    void testMatchings(const std::vector<std::string>& patterns, const std::string& directoryPath,
+                       const std::vector<core::Graph>& bigGraphs, const std::vector<core::Graph>& smallGraphs);
+    void processMatching(const std::string& path, std::shared_ptr<pattern::PatternMatcher> matcher,
+                         const std::vector<core::Graph>& baseGraph, const std::vector<core::Graph>& graphs,
+                         bool bigConst = true);
+
     void createDirectory(const std::string& path);
 };
 } // namespace utils
