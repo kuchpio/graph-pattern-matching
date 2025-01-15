@@ -88,8 +88,8 @@ class CudaSubgraphMatcher : public SubgraphMatcher {
                                                       ResultTable& resultTable);
 
     std::vector<uint32_t> getMappedNeighboursIn(int v, const CudaGraph& graph, const std::vector<uint32_t>& mapping);
-    std::vector<uint32_t> allocateMemoryForJoining(int v, uint32_t*& GBA, const ResultTable& resultTable,
-                                                   const CudaGraph& bigGraph);
+    std::optional<std::vector<uint32_t>> allocateMemoryForJoining(int v, uint32_t*& GBA, const ResultTable& resultTable,
+                                                                  const CudaGraph& bigGraph);
     std::optional<ResultTable> linkGBAWithResult(uint32_t* dev_GBA, const std::vector<uint32_t>& GBAOffsets,
                                                  uint32_t* dev_GBAOffsets, ResultTable& resultTable,
                                                  const CudaGraph& graph, uint32_t baseIndex);

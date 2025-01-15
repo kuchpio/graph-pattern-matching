@@ -17,14 +17,24 @@
         }                                                                                                              \
     } while (0)
 
+#define CHECK_CUDA_MALLOC_ERROR(cuda_call)                                                                             \
+    do {                                                                                                               \
+        cudaError_t cuda_status = cuda_call;                                                                           \
+        if (cuda_status != cudaSuccess) {                                                                              \
+            std::cerr << "CUDA error in " << CUDA_HELPER_STRINGIFY(cuda_call) << ": "                                  \
+                      << cudaGetErrorString(cuda_status) << std::endl;                                                 \
+            return std::nullopt;                                                                                       \
+        }                                                                                                              \
+    } while (0)
+
 namespace pattern
 {
 namespace cuda
 {
 
-template <class T> inline T* malloc(size_t count) {
+template <class T> inline std::optional<T*> malloc(size_t count) {
     T* ptr = nullptr;
-    CHECK_CUDA_ERROR(cudaMalloc(reinterpret_cast<void**>(&ptr), count * sizeof(T)));
+    CHECK_CUDA_MALLOC_ERROR(cudaMalloc(reinterpret_cast<void**>(&ptr), count * sizeof(T)));
     return ptr;
 }
 
