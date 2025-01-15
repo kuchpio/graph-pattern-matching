@@ -26,8 +26,8 @@ class Frame : public wxFrame {
 
     std::unordered_map<std::string, int> selectedAlgorithm;
     std::thread matcherThread;
-    core::IPatternMatcher* currentlyWorkingMatcher;
-    bool isCloseRequested;
+    core::IPatternMatcher* currentlyWorkingMatcher = nullptr;
+    bool isCloseRequested = false, isMatchingAlgorithmBeingStopped = false;
     std::optional<std::vector<vertex>> matchingResult;
 
     void OnMatchingStart();
@@ -35,6 +35,7 @@ class Frame : public wxFrame {
     void OnMatchingComplete();
     void OnCloseRequest(wxCloseEvent& event);
     void ClearMatching();
+    void UpdateControlsState();
     core::IPatternMatcher* GetSelectedMatcher() const;
     core::IPatternMatcher* GetCustomMatcher() const;
     std::vector<std::optional<std::pair<float, float>>> GetPatternMatchingAlignment();

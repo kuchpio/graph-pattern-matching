@@ -21,9 +21,7 @@
 #include "graphPanel.h"
 #include "configDialog.h"
 
-Frame::Frame(const wxString& title)
-    : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxDefaultSize), currentlyWorkingMatcher(nullptr),
-      isCloseRequested(false) {
+Frame::Frame(const wxString& title) : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxDefaultSize) {
     auto sizer = new wxBoxSizer(wxVERTICAL);
 
     auto mainPanel = new wxPanel(this);
@@ -57,9 +55,18 @@ Frame::Frame(const wxString& title)
     auto splitter = new wxSplitterWindow(this);
 
     patternPanel = new GraphPanel(
-        splitter, "Pattern graph", [this]() { ClearMatching(); }, [this]() { return GetPatternMatchingAlignment(); });
+        splitter, "Pattern graph", [this]() { ClearMatching(); },
+        [this]() {
+            UpdateControlsState();
+            if (isCloseRequested) Close();
+        },
+        [this]() { return GetPatternMatchingAlignment(); });
     searchSpacePanel = new GraphPanel(
         splitter, "Search space graph", [this]() { ClearMatching(); },
+        [this]() {
+            UpdateControlsState();
+            if (isCloseRequested) Close();
+        },
         [this]() { return GetSearchSpaceMatchingAlignment(); });
 
     splitter->SetSashGravity(0.5);
@@ -113,6 +120,8 @@ Frame::Frame(const wxString& title)
     auto config = new wxConfig(APP_NAME_ID);
     LoadConfig(config);
     delete config;
+
+    UpdateControlsState();
 }
 
 void Frame::LoadConfig(const wxConfig* config) {
@@ -191,18 +200,22 @@ void Frame::OnMatchingStart() {
 }
 
 void Frame::OnMatchingStop() {
-    startStopMatchingButton->Disable();
-    matchingStatus->SetLabel("Stopping the matching process...");
+    if (isMatchingAlgorithmBeingStopped) return;
+    isMatchingAlgorithmBeingStopped = true;
     currentlyWorkingMatcher->interrupt();
+
+    UpdateControlsState();
+    matchingStatus->SetLabel("Stopping the matching process...");
 }
 
 void Frame::OnMatchingComplete() {
     delete currentlyWorkingMatcher;
     currentlyWorkingMatcher = nullptr;
+    isMatchingAlgorithmBeingStopped = false;
+
+    UpdateControlsState();
     startStopMatchingButton->SetLabel("Match");
     startStopCustomMatchingButton->SetLabel("Match (" + customAlgorithmName + ")");
-    startStopMatchingButton->Enable();
-    startStopCustomMatchingButton->Enable();
 
     if (matchingResult.has_value()) {
         std::vector<unsigned int> patternLabelling(patternPanel->Manager().Graph().size(), 0);
@@ -229,20 +242,33 @@ void Frame::OnMatchingComplete() {
 }
 
 void Frame::OnCloseRequest(wxCloseEvent& event) {
-    if (currentlyWorkingMatcher) {
-        event.Veto();
-        OnMatchingStop();
-        isCloseRequested = true;
-    } else {
+    if (!currentlyWorkingMatcher && !searchSpacePanel->IsImageLoading() && !patternPanel->IsImageLoading()) {
         this->Destroy();
+        return;
     }
+
+    event.Veto();
+    isCloseRequested = true;
+    matchingStatus->SetLabel("Stopping... The application will close soon.");
+    if (currentlyWorkingMatcher && !isMatchingAlgorithmBeingStopped) {
+        isMatchingAlgorithmBeingStopped = true;
+        currentlyWorkingMatcher->interrupt();
+    }
+    UpdateControlsState();
 }
 
 void Frame::ClearMatching() {
-    matchingStatus->SetLabel(wxEmptyString);
+    if (!isCloseRequested) matchingStatus->SetLabel(wxEmptyString);
 
     patternPanel->OnMatchingEnd();
     searchSpacePanel->OnMatchingEnd();
+}
+
+void Frame::UpdateControlsState() {
+    auto enable =
+        !isMatchingAlgorithmBeingStopped && !searchSpacePanel->IsImageLoading() && !patternPanel->IsImageLoading();
+    startStopMatchingButton->Enable(enable);
+    startStopCustomMatchingButton->Enable(enable);
 }
 
 core::IPatternMatcher* Frame::GetSelectedMatcher() const {
@@ -258,7 +284,7 @@ core::IPatternMatcher* Frame::GetSelectedMatcher() const {
 #ifdef CUDA_ENABLED
         if (selected == 0) return new pattern::CudaSubgraphMatcher();
         if (selected == 1) return new pattern::Vf2SubgraphSolver();
-#elif
+#else
         if (selected == 0) return new pattern::Vf2SubgraphSolver();
 #endif
         return new pattern::NativeSubgraphMatcher();
