@@ -4,6 +4,7 @@
 #include "wx/txtstrm.h"
 #include "wx/notebook.h"
 #include "wx/numformatter.h"
+#include "wx/stdpaths.h"
 #include <numeric>
 #include <filesystem>
 #include "image.h"
@@ -54,10 +55,14 @@ GraphPanel::GraphPanel(
         lockMatchingCallback();
         UpdateControlsState();
 
+        std::filesystem::path execPath((const char*)wxStandardPaths::Get().GetExecutablePath().mb_str());
+        auto imageModulePath = execPath.parent_path().parent_path();
+        imageModulePath.append("image");
+
         loaderThread = std::thread(
-            [this, lockMatchingCallback](int vertexCount) {
+            [this, lockMatchingCallback, imageModulePath](int vertexCount) {
                 try {
-                    auto result = image::grapherize(pathToImage, vertexCount, !triangulateImage);
+                    auto result = image::grapherize(imageModulePath, pathToImage, vertexCount, !triangulateImage);
 
                     wxTheApp->CallAfter([this, result = std::move(result), lockMatchingCallback]() {
                         loaderThread.join();
