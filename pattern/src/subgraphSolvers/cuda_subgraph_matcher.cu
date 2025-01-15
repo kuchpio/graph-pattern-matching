@@ -498,13 +498,14 @@ void CudaSubgraphMatcher::freeNotMappedCandidates(const std::vector<uint32_t>& m
 }
 
 CudaGraph::CudaGraph(const core::Graph& G) {
-    neighbours = std::vector<uint32_t>(G.edge_count());
-    neighboursOffset = std::vector<uint32_t>(G.size() + 1);
+    auto undirectedG = G.undirected();
+    neighbours = std::vector<uint32_t>(undirectedG.edge_count());
+    neighboursOffset = std::vector<uint32_t>(undirectedG.size() + 1);
 
     uint32_t offset = 0;
-    for (uint32_t v = 0; v < G.size(); v++) {
+    for (uint32_t v = 0; v < undirectedG.size(); v++) {
         neighboursOffset[v] = offset;
-        for (uint32_t u : G.get_neighbours(v)) {
+        for (uint32_t u : undirectedG.get_neighbours(v)) {
             neighbours[offset++] = u;
         }
         std::sort(neighbours.begin() + neighboursOffset[v], neighbours.begin() + offset);

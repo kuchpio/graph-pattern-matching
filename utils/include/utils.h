@@ -23,10 +23,13 @@ class GraphFactory {
     static core::Graph random_induced_minor(const core::Graph& G, std::size_t minorSize);
     static core::Graph random_edge_subdivisions(const core::Graph& G, std::size_t count);
     static core::Graph undirectedGraph(const core::Graph& G);
+    static core::Graph random_bigger_graph(const core::Graph& G, std::size_t size, double edge_probability = 0.4);
 
   private:
     static std::vector<std::size_t> shuffled_vertices(std::size_t vertex_count);
     static void random_minor_operation(core::Graph& G, int v, bool induced = false);
+    static void addRandomEdge(core::Graph& G);
+    static void addRandomVertex(core::Graph& G);
     // static std::vector<core::Graph> components_with_reduced_vertices(const core::Graph& G);
 };
 

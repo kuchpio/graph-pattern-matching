@@ -324,15 +324,37 @@ core::Graph GraphFactory::random_subgraph(const core::Graph& G, std::size_t subg
     return subgraph;
 }
 
-core::Graph GraphFactory::undirectedGraph(const core::Graph& G) {
-    auto undirectedGraph = G;
-    auto edges = G.edges();
-    for (auto [u, v] : edges) {
-        if (undirectedGraph.has_edge(v, u) == false) {
-            undirectedGraph.add_edge(v, u);
+core::Graph GraphFactory::random_bigger_graph(const core::Graph& subgraph, std::size_t size, double edge_probability) {
+    auto G = subgraph;
+
+    while (G.size() < size) {
+        double probability = static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+        if (probability > (1.0 - edge_probability)) {
+            addRandomEdge(G);
+        } else {
+            addRandomVertex(G);
         }
     }
-    return undirectedGraph;
+    return G;
+}
+
+void GraphFactory::addRandomEdge(core::Graph& G) {
+    std::size_t randomVertex = rand() % G.size();
+    std::size_t randomNeighbour = 0;
+    int i = 0;
+    do {
+        randomNeighbour = rand() % G.size();
+        i++;
+        if (i > 100) return;
+    } while (randomVertex != randomNeighbour && !G.has_edge(randomVertex, randomNeighbour));
+
+    G.add_edge(randomVertex, randomNeighbour);
+}
+
+void GraphFactory::addRandomVertex(core::Graph& G) {
+    std::size_t randomVertex = rand() % G.size();
+    auto newVertex = G.add_vertex();
+    G.add_edge(randomVertex, newVertex);
 }
 
 } // namespace utils

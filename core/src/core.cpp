@@ -290,4 +290,15 @@ bool Graph::connected() const {
     return true;
 }
 
+Graph Graph::undirected() const {
+    auto undirectedGraph = core::Graph(*this);
+    auto edges = this->edges();
+    for (auto [u, v] : edges) {
+        if (this->has_edge(v, u) == false) {
+            undirectedGraph.add_edge(v, u);
+        }
+    }
+    return undirectedGraph;
+};
+
 } // namespace core

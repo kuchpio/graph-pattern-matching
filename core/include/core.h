@@ -28,6 +28,7 @@ class Graph {
     bool has_subgraph(const core::Graph& G) const;
     bool is_induced_subgraph(const core::Graph& G) const;
     bool connected() const;
+    core::Graph undirected() const;
     vertex subdivide_edge(vertex u, vertex v);
 
     // operator
