@@ -152,7 +152,6 @@ std::vector<vertex> Graph::get_neighbours(vertex v) const {
 }
 
 const std::vector<vertex>& Graph::neighbours(vertex v) const {
-    if (v >= this->size()) return std::vector<vertex>();
     return Graph::_adjacencyList[v];
 }
 

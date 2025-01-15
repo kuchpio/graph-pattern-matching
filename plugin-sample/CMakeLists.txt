@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.9)
+project(plugin-sample)
+add_library(plugin-sample SHARED "src/sample.cpp")
+target_include_directories(plugin-sample PUBLIC "include")
+target_link_libraries(plugin-sample core)

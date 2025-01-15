@@ -1,16 +1,17 @@
 ﻿cmake_minimum_required (VERSION 3.19 FATAL_ERROR)
 
-option(WITH_CUDA "enables CUDA algorithms" ON)
+project("graph-pattern-matching")
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-
-
-project("graph-pattern-matching")
-if(WITH_CUDA)
-    set(CMAKE_CUDA_LIBRARY_ARCHITECTURE x86_64-linux-gnu)
+include(CheckLanguage)
+check_language(CUDA)
+if(CMAKE_CUDA_COMPILER)
     enable_language("CUDA")
+    set(CMAKE_CUDA_STANDARD 17)
+    set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+    add_compile_definitions(CUDA_ENABLED)
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -29,6 +30,8 @@ add_subdirectory("image/test")
 
 add_subdirectory("pattern")
 add_subdirectory("pattern/test")
+
+add_subdirectory("plugin-sample")
 
 add_subdirectory("app")
 

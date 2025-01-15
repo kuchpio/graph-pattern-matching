@@ -2,7 +2,6 @@
 
 #define _USE_MATH_DEFINES
 #include <math.h>
-#include <cfloat>
 #include <algorithm>
 #include <numeric>
 
@@ -30,7 +29,8 @@ void GraphManager::Initialize(core::Graph&& newGraph, std::vector<std::pair<floa
     vertexVelocities2D[1] = std::vector<float>(2 * graph.size());
     vertexStates = std::vector<unsigned int>(graph.size());
 
-    float minX = FLT_MAX, minY = FLT_MAX, maxX = FLT_MIN, maxY = FLT_MIN;
+    float minX = std::numeric_limits<float>::max(), minY = std::numeric_limits<float>::max();
+    float maxX = std::numeric_limits<float>::lowest(), maxY = std::numeric_limits<float>::lowest();
     for (vertex v = 0; v < graph.size(); v++) {
         auto [newX, newY] = vertexPositions[v];
         vertexPositions2D[readBufferId][2 * v] = newX;
@@ -44,13 +44,13 @@ void GraphManager::Initialize(core::Graph&& newGraph, std::vector<std::pair<floa
         if (newY > maxY) maxY = newY;
     }
 
+    ResizeAnimationData();
+    animationTimeLeftSeconds = std::nullopt;
+
     boundingWidth = renderedVertexCount <= 1 ? 1.0 : maxX - minX;
     boundingHeight = renderedVertexCount <= 1 ? 1.0 : maxY - minY;
     centerX = renderedVertexCount == 0 ? 0.0f : (minX + maxX) / 2;
     centerY = renderedVertexCount == 0 ? 0.0f : (minY + maxY) / 2;
-
-    ResizeAnimationData();
-    animationTimeLeftSeconds = std::nullopt;
 }
 
 void GraphManager::AlignNodes(std::vector<std::optional<std::pair<float, float>>>& positions2D) {
@@ -63,7 +63,7 @@ void GraphManager::AlignNodes(std::vector<std::optional<std::pair<float, float>>
         }
     }
 
-    if (ANIMATE_ALIGNMENT) animationTimeLeftSeconds = ALIGNMENT_ANIMATION_TOTAL_TIME_SECONDS;
+    animationTimeLeftSeconds = settings.alignmentAnimationTotalTimeSeconds;
 }
 
 void GraphManager::ResizeAnimationData() {
@@ -74,7 +74,8 @@ void GraphManager::ResizeAnimationData() {
 }
 
 void GraphManager::UpdateBounds(float deltaTimeSeconds) {
-    float minX = FLT_MAX, minY = FLT_MAX, maxX = FLT_MIN, maxY = FLT_MIN;
+    float minX = std::numeric_limits<float>::max(), minY = std::numeric_limits<float>::max();
+    float maxX = std::numeric_limits<float>::lowest(), maxY = std::numeric_limits<float>::lowest();
     for (vertex v = 0; v < renderedVertexCount; v++) {
         float newX = vertexRenderedPositions2D[2 * v];
         float newY = vertexRenderedPositions2D[2 * v + 1];
@@ -119,12 +120,12 @@ void GraphManager::UpdatePositions(float deltaTimeSeconds, bool dragging) {
             if (dist < MIN_NODE_DISTANCE) dist = MIN_NODE_DISTANCE;
 
             if (graph.has_edge(i, j) || graph.has_edge(j, i)) {
-                float springCoefficient = -SPRING_STRENGTH * logf(dist / SPRING_LENGTH) / dist;
+                float springCoefficient = -settings.springStrength * logf(dist / settings.springLength) / dist;
                 acc_x += springCoefficient * dx;
                 acc_y += springCoefficient * dy;
             }
 
-            float repulsionCoefficient = REPULSION_STRENGTH / (dist * dist * dist);
+            float repulsionCoefficient = settings.nodeRepulsion / (dist * dist * dist);
             acc_x += repulsionCoefficient * dx;
             acc_y += repulsionCoefficient * dy;
         }
@@ -134,8 +135,8 @@ void GraphManager::UpdatePositions(float deltaTimeSeconds, bool dragging) {
 
         if (vertexStates[i] & 0b10u || dragging && vertexStates[i] & 0b01u) vel_x = vel_y = 0.0f;
 
-        acc_x -= DRAG * vel_x;
-        acc_y -= DRAG * vel_y;
+        acc_x -= settings.nodeDrag * vel_x;
+        acc_y -= settings.nodeDrag * vel_y;
 
         vertexVelocities2D[1 - readBufferId][2 * i] = vel_x + acc_x * deltaTimeSeconds;
         vertexVelocities2D[1 - readBufferId][2 * i + 1] = vel_y + acc_y * deltaTimeSeconds;
@@ -376,11 +377,7 @@ void GraphManager::ContractSelection() {
                    [vertexIndexDelta](vertex v) { return v - vertexIndexDelta[v]; });
     graph.remove_vertices(selectedVertices, toBeRemoved, vertexIndexDelta);
 
-    if (ANIMATE_CONTRACTION) {
-        animationTimeLeftSeconds = CONTRACTION_ANIMATION_TOTAL_TIME_SECONDS;
-    } else {
-        ResizeAnimationData();
-    }
+    animationTimeLeftSeconds = settings.contractionAnimationTotalTimeSeconds;
 
     delete[] visited;
     delete[] toBeRemoved;
@@ -496,4 +493,8 @@ void GraphManager::Stop() {
     for (unsigned int i = 0; i < graph.size(); i++) {
         vertexVelocities2D[readBufferId][2 * i] = vertexVelocities2D[readBufferId][2 * i + 1] = 0.0f;
     }
+}
+
+void GraphManager::UpdateSettings(GraphDrawingSettings settings) {
+    this->settings = settings;
 }
