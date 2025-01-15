@@ -7,10 +7,6 @@
 #include <string>
 #include <array>
 
-#ifndef EDGE_DETECTION_DIR
-#define EDGE_DETECTION_DIR "./"
-#endif
-
 #if defined(__linux__) || defined(__APPLE__)
 #define _popen(cmd, mode) popen(cmd, mode)
 #define _pclose(pipe) pclose(pipe)
@@ -35,13 +31,14 @@ static std::string exec(const char* cmd) {
     return result;
 }
 
-std::pair<core::Graph, std::vector<std::pair<float, float>>> grapherize(const std::string& imagePath, int vertexCount,
+std::pair<core::Graph, std::vector<std::pair<float, float>>> grapherize(std::filesystem::path modulePath,
+                                                                        const std::string& imagePath, int vertexCount,
                                                                         bool isGraph) {
     if (vertexCount <= 0) {
         throw std::runtime_error("Vertex count must be greater than 0.");
     }
 
-    std::string scriptPath = std::string(EDGE_DETECTION_DIR) + "/graph.py";
+    auto scriptPath = modulePath.append("edge_detection/graph.py").string();
 
     if (!std::filesystem::exists(scriptPath)) {
         throw std::runtime_error("Python script not found: " + scriptPath);
@@ -62,7 +59,8 @@ std::pair<core::Graph, std::vector<std::pair<float, float>>> grapherize(const st
         edges.emplace_back(edge["source"], edge["target"]);
         edges.emplace_back(edge["target"], edge["source"]);
     }
-    core::Graph graph(edges);
+    core::Graph graph(graphData["nodes"].size());
+    graph.add_edges(edges);
 
     std::vector<std::pair<float, float>> vertexPositions(vertexCount);
     for (const auto& node : graphData["nodes"]) {

@@ -4,17 +4,20 @@
 #include "wx/txtstrm.h"
 #include "wx/notebook.h"
 #include "wx/numformatter.h"
+#include "wx/stdpaths.h"
 #include <numeric>
 #include <filesystem>
 #include "image.h"
+#include "graph6Serializer.h"
 
 #include "graphPanel.h"
 #include "graphCanvas.h"
 
 GraphPanel::GraphPanel(
     wxWindow* parent, const wxString& title, std::function<void()> clearMatchingCallback,
+    std::function<void()> lockMatchingCallback,
     std::function<std::vector<std::optional<std::pair<float, float>>>()> getMatchingAlignmentCallback)
-    : wxPanel(parent), clearMatchingCallback(clearMatchingCallback), canModifyGraph(true) {
+    : wxPanel(parent), clearMatchingCallback(clearMatchingCallback) {
     auto sizer = new wxBoxSizer(wxVERTICAL);
 
     auto nameLabel = new wxStaticText(this, wxID_ANY, title);
@@ -25,23 +28,23 @@ GraphPanel::GraphPanel(
     auto fileSizer = new wxBoxSizer(wxHORIZONTAL);
     auto saveButton = new wxButton(filePanel, wxID_ANY, "Save");
     openButton = new wxButton(filePanel, wxID_ANY, "Open");
-    fileInfoLabel = new wxStaticText(filePanel, wxID_ANY, "Open a file to load the graph.");
+    fileInfoOutput = new wxTextCtrl(filePanel, wxID_ANY, "Open a file to load the graph.", wxDefaultPosition,
+                                    wxDefaultSize, wxTE_READONLY);
+    fileInfoOutput->SetMinSize(wxSize(220, wxDefaultCoord));
     vertexCountInput = new wxTextCtrl(filePanel, wxID_ANY);
-    vertexCountInput->SetHint("Vertex count");
-    vertexCountInput->SetMinSize(wxSize(120, wxDefaultCoord));
-    vertexCountInput->Disable();
+    vertexCountInput->SetHint("Vertices");
+    vertexCountInput->SetMinSize(wxSize(80, wxDefaultCoord));
     loadButton = new wxButton(filePanel, wxID_ANY, "Load");
-    loadButton->Disable();
     fileSizer->Add(saveButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
     fileSizer->Add(openButton, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
-    fileSizer->Add(fileInfoLabel, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
+    fileSizer->Add(fileInfoOutput, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
     fileSizer->AddStretchSpacer(1);
     fileSizer->Add(vertexCountInput, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxBOTTOM, 5);
     fileSizer->Add(loadButton, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT | wxTOP | wxBOTTOM, 5);
     filePanel->SetSizerAndFit(fileSizer);
     notebook->AddPage(filePanel, "File");
 
-    loadButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
+    loadButton->Bind(wxEVT_BUTTON, [this, lockMatchingCallback](wxCommandEvent& event) {
         auto vertexCount = 0;
         auto vertexCountString = vertexCountInput->GetValue();
         if (!vertexCountString.ToInt(&vertexCount)) {
@@ -49,15 +52,41 @@ GraphPanel::GraphPanel(
             return;
         }
 
-        try {
-            auto [graph, vertexPositions] = image::grapherize(pathToImage, vertexCount);
-            manager.Initialize(std::move(graph), std::move(vertexPositions));
-        } catch (const std::runtime_error& err) {
-            wxMessageBox("Could not load graph from given image.");
-            wxLogDebug("ERROR: %s", err.what());
-            return;
-        }
-        OnGraphUpdate();
+        imageLoading = true;
+        lockMatchingCallback();
+        UpdateControlsState();
+
+        std::filesystem::path execPath((const char*)wxStandardPaths::Get().GetExecutablePath().mb_str());
+        auto imageModulePath = execPath.parent_path().parent_path();
+        imageModulePath.append("image");
+
+        loaderThread = std::thread(
+            [this, lockMatchingCallback, imageModulePath](int vertexCount) {
+                try {
+                    auto result = image::grapherize(imageModulePath, pathToImage, vertexCount, !triangulateImage);
+
+                    wxTheApp->CallAfter([this, result = std::move(result), lockMatchingCallback]() {
+                        loaderThread.join();
+
+                        auto [graph, vertexPositions] = result;
+                        manager.Initialize(std::move(graph), std::move(vertexPositions));
+                        imageLoading = false;
+                        lockMatchingCallback();
+                        OnGraphUpdate();
+                    });
+                } catch (const std::runtime_error& err) {
+                    wxTheApp->CallAfter([this, err, lockMatchingCallback]() {
+                        loaderThread.join();
+
+                        wxMessageBox("Could not load graph from given image.");
+                        wxLogDebug("ERROR: %s", err.what());
+                        imageLoading = false;
+                        lockMatchingCallback();
+                        UpdateControlsState();
+                    });
+                }
+            },
+            vertexCount);
     });
 
     auto modifyPanel = new wxPanel(notebook);
@@ -91,8 +120,8 @@ GraphPanel::GraphPanel(
     contractButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
         manager.ContractSelection();
         if (manager.IsAnimationRunning()) {
+            canModifyGraph = false;
             this->clearMatchingCallback();
-            DisableGraphModifications();
         } else {
             OnGraphUpdate();
         }
@@ -161,6 +190,8 @@ GraphPanel::GraphPanel(
 
     lastFrameTime = animationClock::now();
     Bind(wxEVT_IDLE, &GraphPanel::OnIdle, this);
+
+    UpdateControlsState();
 }
 
 const GraphManager& GraphPanel::Manager() const {
@@ -178,34 +209,14 @@ void GraphPanel::OnGraphUpdate() {
     this->clearMatchingCallback();
 }
 
-void GraphPanel::EnableGraphModifications() {
-    canModifyGraph = true;
-    openButton->Enable();
-    if (pathToImage != "") loadButton->Enable();
-    deleteButton->Enable();
-    connectButton->Enable();
-    disconnectButton->Enable();
-    contractButton->Enable();
-    subdivideButton->Enable();
-}
-
-void GraphPanel::DisableGraphModifications() {
-    canModifyGraph = false;
-    openButton->Disable();
-    loadButton->Disable();
-    deleteButton->Disable();
-    connectButton->Disable();
-    disconnectButton->Disable();
-    contractButton->Disable();
-    subdivideButton->Disable();
-}
-
 void GraphPanel::OnMatchingStart() {
-    DisableGraphModifications();
+    canModifyGraph = false;
+    UpdateControlsState();
 }
 
 void GraphPanel::OnMatchingEnd() {
-    EnableGraphModifications();
+    canModifyGraph = true;
+    UpdateControlsState();
     alignButton->Disable();
 
     std::vector<unsigned int> labelling(manager.Graph().size(), 0);
@@ -214,7 +225,8 @@ void GraphPanel::OnMatchingEnd() {
 }
 
 void GraphPanel::OnMatchingEnd(const std::vector<unsigned int>& labelling) {
-    EnableGraphModifications();
+    canModifyGraph = true;
+    UpdateControlsState();
     alignButton->Enable();
 
     auto renderedLabelling = manager.GetRenderedLabelling(labelling);
@@ -244,7 +256,7 @@ void GraphPanel::OpenFromFile(wxCommandEvent& event) {
 
         try {
             auto graph = core::Graph6Serializer::Deserialize(graph6Stream.ReadLine().ToStdString());
-            fileInfoLabel->SetLabel(fileDialog->GetFilename() + " (Graph6)");
+            fileInfoOutput->SetValue("(Graph6) " + fileDialog->GetFilename());
             manager.Initialize(std::move(graph));
         } catch (const core::graph6FormatError& err) {
             wxMessageBox("Could not open file " + fileDialog->GetFilename() + "\nError: " + err.what());
@@ -252,17 +264,13 @@ void GraphPanel::OpenFromFile(wxCommandEvent& event) {
             return;
         }
 
-        OnGraphUpdate();
-
         pathToImage = "";
-        vertexCountInput->Disable();
-        loadButton->Disable();
+        OnGraphUpdate();
     } else {
-        fileInfoLabel->SetLabel(fileDialog->GetFilename() + " (Image)");
+        fileInfoOutput->SetValue("(Image) " + fileDialog->GetFilename());
 
         pathToImage = fileDialog->GetPath();
-        vertexCountInput->Enable();
-        if (canModifyGraph) loadButton->Enable();
+        UpdateControlsState();
     }
 
     fileDialog->Destroy();
@@ -308,7 +316,8 @@ void GraphPanel::OnIdle(wxIdleEvent& event) {
         canvas->SetVertexStates(manager.GetStates().data());
         auto edges = manager.GetEdges();
         canvas->SetEdges(edges.data(), edges.size() / 2);
-        EnableGraphModifications();
+        canModifyGraph = true;
+        UpdateControlsState();
     }
 
     if (!vertexDragging) manager.UpdateBounds(elapsedSeconds.count());
@@ -446,4 +455,28 @@ void GraphPanel::OnCanvasMotion(wxMouseEvent& event) {
         }
     }
     prevMousePoint = mousePoint;
+}
+
+void GraphPanel::UpdateDrawingSettings(GraphDrawingSettings settings) {
+    manager.UpdateSettings(settings);
+}
+
+void GraphPanel::UpdateImageTriangulationSetting(bool triangulate) {
+    triangulateImage = triangulate;
+}
+
+bool GraphPanel::IsImageLoading() const {
+    return imageLoading;
+}
+
+void GraphPanel::UpdateControlsState() {
+    openButton->Enable(canModifyGraph);
+    vertexCountInput->Enable(pathToImage != "");
+    loadButton->Enable(canModifyGraph && pathToImage != "" && !imageLoading);
+    loadButton->SetLabel(imageLoading ? "Loading..." : "Load");
+    deleteButton->Enable(canModifyGraph);
+    connectButton->Enable(canModifyGraph);
+    disconnectButton->Enable(canModifyGraph);
+    contractButton->Enable(canModifyGraph);
+    subdivideButton->Enable(canModifyGraph);
 }

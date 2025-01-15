@@ -29,6 +29,7 @@ namespace pattern
 std::optional<std::vector<vertex>> MinerMinorMatcher::match(const core::Graph& G, const core::Graph& H) {
     find_embedding::optional_parameters params;
     params.localInteractionPtr.reset(new MyCppInteractions(&this->interrupted_));
+    params.interactive = true;
 
     auto bigGraph = this->convert_graph(G);
     auto smallGraph = this->convert_graph(H);

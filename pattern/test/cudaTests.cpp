@@ -1,4 +1,3 @@
-#include "config.h"
 #ifdef CUDA_ENABLED
 
 #include "cuda_subgraph_matcher.h"

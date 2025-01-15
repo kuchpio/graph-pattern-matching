@@ -12,12 +12,15 @@ class GraphPanel : public wxPanel {
     GraphCanvas* canvas{nullptr};
     wxButton *openButton, *loadButton, *alignButton;
     wxButton *deleteButton, *connectButton, *disconnectButton, *contractButton, *subdivideButton;
-    wxStaticText *fileInfoLabel, *FPSInfoLabel;
+    wxStaticText* FPSInfoLabel;
     wxCheckBox* autoVertexPositioningCheckbox;
-    wxTextCtrl* vertexCountInput;
-    bool canModifyGraph;
+    wxTextCtrl *vertexCountInput, *fileInfoOutput;
     const std::function<void()> clearMatchingCallback;
+    bool triangulateImage;
     std::string pathToImage;
+    std::thread loaderThread;
+
+    bool canModifyGraph = true, imageLoading = false;
 
     GraphManager manager;
     using animationClock = std::chrono::high_resolution_clock;
@@ -38,15 +41,18 @@ class GraphPanel : public wxPanel {
     void OnCanvasClick(wxMouseEvent& event);
     void OnCanvasMotion(wxMouseEvent& event);
     void OnGraphUpdate();
-    void EnableGraphModifications();
-    void DisableGraphModifications();
+    void UpdateControlsState();
 
   public:
     GraphPanel(wxWindow* parent, const wxString& title, std::function<void()> clearMatchingCallback,
+               std::function<void()> enableMatchingCallback,
                std::function<std::vector<std::optional<std::pair<float, float>>>()> getMatchingAlignmentCallback);
 
     void OnMatchingStart();
     void OnMatchingEnd();
     void OnMatchingEnd(const std::vector<unsigned int>& labelling);
     const GraphManager& Manager() const;
+    void UpdateDrawingSettings(GraphDrawingSettings settings);
+    void UpdateImageTriangulationSetting(bool triangulate);
+    bool IsImageLoading() const;
 };
