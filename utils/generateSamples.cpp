@@ -125,21 +125,16 @@ void EfficiencyTests::run() {
     generateSamples(50);
     createDirectory(path_);
     for (const auto& pattern : searchGraphs_) {
-        // testMatching(path_, pattern.first);
+        testMatching(path_, pattern.first);
     }
-    /*
+
     testMatchings(std::vector<std::string>{"cuda_subgraph", "subgraph"}, "subgraphGPU_CPU", cudaBigGraphs_,
                   std::vector<core::Graph>{cudaSmallGraph_});
     testMatchings(std::vector<std::string>{"subgraph", "induced_subgraph"}, "subgraphs",
                   std::vector<core::Graph>{searchGraphs_.at("induced_subgraph")}, patternGraphs_["induced_subgraph"]);
 
-    /*testMatchings(std::vector<std::string>{"subgraph", "induced_subgraph", "cuda_subgraph"}, "subgraphs_all",
-                  std::vector<core::Graph>{searchGraphs_["induced_subgraph"]},
-       patternGraphs_["induced_subgraph"]);*/
-
-    /* testMatchings(std::vector<std::string>{"minor", "induced_minor", "topologicalMinor"}, "minors",
-                       std::vector<core::Graph>{searchGraphs_.at("induced_minor")}, patternGraphs_["induced_minor"]);
-    */
+    testMatchings(std::vector<std::string>{"minor", "induced_minor", "topologicalMinor"}, "minors",
+                  std::vector<core::Graph>{searchGraphs_.at("induced_minor")}, patternGraphs_["induced_minor"]);
 
     testMatchings(std::vector<std::string>{"induced_topologicalMinor", "topologicalMinor"}, "topologicalMinors",
                   std::vector<core::Graph>{searchGraphs_.at("topologicalMinor")}, patternGraphs_["topologicalMinor"]);

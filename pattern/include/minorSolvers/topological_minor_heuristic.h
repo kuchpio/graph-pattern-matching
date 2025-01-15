@@ -7,7 +7,7 @@ namespace pattern
 class TopologicalMinorHeuristic : public MinorHeuristic {
   public:
     TopologicalMinorHeuristic(std::unique_ptr<SubgraphMatcher> subgraphMatcher, bool directed = false)
-        : MinorHeuristic(std::move(subgraphMatcher)) {
+        : MinorHeuristic(std::move(subgraphMatcher), directed) {
         if (directed) maxDeegre_ = 1;
     };
 

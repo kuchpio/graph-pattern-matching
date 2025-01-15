@@ -9,7 +9,7 @@ namespace pattern
 class InducedMinorHeuristic : public MinorHeuristic {
   public:
     InducedMinorHeuristic(bool directed = false)
-        : MinorHeuristic(std::make_unique<Vf2InducedSubgraphSolver>()), directed_(directed){};
+        : MinorHeuristic(std::make_unique<Vf2InducedSubgraphSolver>(), directed){};
     std::optional<std::vector<vertex>> match(const core::Graph& G, const core::Graph& H) override;
 
   protected:
@@ -25,6 +25,5 @@ class InducedMinorHeuristic : public MinorHeuristic {
     bool maxDegreeConstraint(const core::Graph& G, const core::Graph& H);
 
     std::vector<std::tuple<vertex, vertex>> edges_;
-    bool directed_ = false;
 };
 } // namespace pattern
