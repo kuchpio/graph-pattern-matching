@@ -1,4 +1,5 @@
 #include "core.h"
+#include "graph6Serializer.h"
 #include "gtest/gtest.h"
 
 namespace core

@@ -8,6 +8,7 @@
 #include <numeric>
 #include <filesystem>
 #include "image.h"
+#include "graph6Serializer.h"
 
 #include "graphPanel.h"
 #include "graphCanvas.h"

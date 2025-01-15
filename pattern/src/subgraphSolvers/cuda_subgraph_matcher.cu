@@ -1,4 +1,3 @@
-#include "config.h"
 #ifdef CUDA_ENABLED
 
 #include "core.h"

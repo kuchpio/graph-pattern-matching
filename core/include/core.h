@@ -55,5 +55,3 @@ class IPatternMatcher {
 };
 
 } // namespace core
-
-#include "../src/graph6Serializer.h"
