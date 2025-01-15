@@ -66,9 +66,13 @@ def build_graph_from_image(image_path, n_clusters=50):
     image = cv2.imread(image_path, cv2.IMREAD_COLOR)
     image = cv2.resize(image, (256, 256))
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    edges = cv2.Canny(gray, 150, 200)
+    edges = cv2.Canny(gray, 80, 200)
     skeleton = skeletonize(edges > 0).astype(np.uint8)
     coords = np.column_stack(np.where(skeleton > 0))
+    coords = coords.astype(float)
+    max_y, max_x = skeleton.shape
+    coords[:, 0] /= max_y
+    coords[:, 1] /= max_x
     kmeans = KMeans(n_clusters=n_clusters, random_state=42)
     kmeans.fit(coords)
     vertices = kmeans.cluster_centers_
@@ -81,7 +85,7 @@ def build_graph_from_image(image_path, n_clusters=50):
     for i, c in enumerate(coords):
         c_label = labels[i]
         for s in shifts:
-            nb = (c[0] + s[0], c[1] + s[1])
+            nb = (c[0] + s[0] / max_y, c[1] + s[1] / max_x)
             if nb in index_map:
                 n_label = labels[index_map[nb]]
                 if c_label != n_label:
