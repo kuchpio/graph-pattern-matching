@@ -106,6 +106,7 @@ wxSizer* ConfigDialog::InitMatchingConfig() {
     isInducedCheckbox = new wxCheckBox(algorithmSelectionPanel, wxID_ANY, "Induced");
     isSubgraphRadiobutton =
         new wxRadioButton(algorithmSelectionPanel, wxID_ANY, "Subgraph", wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
+    isSubgraphRadiobutton->SetValue(true);
     isMinorRadiobutton = new wxRadioButton(algorithmSelectionPanel, wxID_ANY, "Minor");
     isTopologicalMinorRadiobutton = new wxRadioButton(algorithmSelectionPanel, wxID_ANY, "Topological minor");
     auto algorithmSelectionSeparator = new wxStaticLine(matchingConfigPanel);
@@ -167,7 +168,7 @@ wxSizer* ConfigDialog::InitExternalAlgorithmConfig() {
     });
     externalAlgorithmLibrarySelectButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
         auto fileDialog = new wxFileDialog(this, "Choose a file to open", wxEmptyString, wxEmptyString,
-                                           "Libraries (*.so; *.dll)|*.so;*.dll", wxFD_OPEN);
+                                           "Libraries (*.so; *.dylib; *.dll)|*.so;*.dll;*.dylib", wxFD_OPEN);
 
         if (fileDialog->ShowModal() != wxID_OK) {
             fileDialog->Destroy();

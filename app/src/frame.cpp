@@ -29,6 +29,7 @@ Frame::Frame(const wxString& title) : wxFrame(nullptr, wxID_ANY, title, wxDefaul
     inducedCheckbox = new wxCheckBox(mainPanel, wxID_ANY, "Induced");
     subgraphRadioButton =
         new wxRadioButton(mainPanel, wxID_ANY, "Subgraph", wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
+    subgraphRadioButton->SetValue(true);
     minorRadioButton = new wxRadioButton(mainPanel, wxID_ANY, "Minor");
     topologicalMinorRadioButton = new wxRadioButton(mainPanel, wxID_ANY, "Topological minor");
     startStopMatchingButton = new wxButton(mainPanel, wxID_ANY, "Match");
@@ -105,7 +106,6 @@ Frame::Frame(const wxString& title) : wxFrame(nullptr, wxID_ANY, title, wxDefaul
     });
     optionsButton->Bind(wxEVT_BUTTON, [this, configDialog](wxCommandEvent& event) {
         auto config = new wxConfig(APP_NAME_ID);
-
         configDialog->Load(config);
         configDialog->CenterOnParent();
         if (configDialog->ShowModal() == wxID_OK) {

@@ -52,6 +52,7 @@ class IPatternMatcher {
   public:
     virtual std::optional<std::vector<vertex>> match(const core::Graph& searchSpace, const core::Graph& pattern) = 0;
     virtual void interrupt() = 0;
+    virtual ~IPatternMatcher() = default;
 };
 
 } // namespace core
