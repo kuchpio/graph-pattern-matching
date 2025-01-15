@@ -282,8 +282,7 @@ core::IPatternMatcher* Frame::GetSelectedMatcher() const {
             return new pattern::InducedMinorHeuristic();
         }
         auto selected = selectedAlgorithm.at(defaults.SELECTED_MINOR_ALGORITHM_ID);
-        if (selected == 0) return new pattern::MinerMinorMatcher();
-        return new pattern::NativeMinorMatcher();
+        return new pattern::MinerMinorMatcher();
     }
 
     if (inducedCheckbox->GetValue()) {

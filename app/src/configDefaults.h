@@ -29,7 +29,7 @@ class ConfigDefaults {
 #endif // CUDA_ENABLED
              "Exact (CPU)"}},
         {SELECTED_INDUCED_SUBGRAPH_ALGORITHM_ID, {"Exact"}},
-        {SELECTED_MINOR_ALGORITHM_ID, {"Heuristic", "Exact"}},
+        {SELECTED_MINOR_ALGORITHM_ID, {"Heuristic"}},
         {SELECTED_INDUCED_MINOR_ALGORITHM_ID, {"Exact"}},
         {SELECTED_TOPOLOGICAL_MINOR_ALGORITHM_ID, {"Exact"}},
         {SELECTED_INDUCED_TOPOLOGICAL_MINOR_ALGORITHM_ID, {"Exact"}}};
