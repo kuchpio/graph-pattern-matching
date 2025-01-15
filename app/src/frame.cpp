@@ -265,8 +265,7 @@ core::IPatternMatcher* Frame::GetSelectedMatcher() const {
     if (subgraphRadioButton->GetValue()) {
         if (inducedCheckbox->GetValue()) {
             auto selected = selectedAlgorithm.at(defaults.SELECTED_INDUCED_SUBGRAPH_ALGORITHM_ID);
-            if (selected == 0) return new pattern::Vf2InducedSubgraphSolver();
-            return new pattern::InducedSubgraphMatcher();
+            return new pattern::Vf2InducedSubgraphSolver();
         }
         auto selected = selectedAlgorithm.at(defaults.SELECTED_SUBGRAPH_ALGORITHM_ID);
 #ifdef CUDA_ENABLED
@@ -275,14 +274,12 @@ core::IPatternMatcher* Frame::GetSelectedMatcher() const {
 #else
         if (selected == 0) return new pattern::Vf2SubgraphSolver();
 #endif
-        return new pattern::NativeSubgraphMatcher();
     }
 
     if (minorRadioButton->GetValue()) {
         if (inducedCheckbox->GetValue()) {
             auto selected = selectedAlgorithm.at(defaults.SELECTED_INDUCED_MINOR_ALGORITHM_ID);
-            if (selected == 0) return new pattern::InducedMinorHeuristic();
-            return new pattern::InducedMinorMatcher();
+            return new pattern::InducedMinorHeuristic();
         }
         auto selected = selectedAlgorithm.at(defaults.SELECTED_MINOR_ALGORITHM_ID);
         if (selected == 0) return new pattern::MinerMinorMatcher();
@@ -291,12 +288,10 @@ core::IPatternMatcher* Frame::GetSelectedMatcher() const {
 
     if (inducedCheckbox->GetValue()) {
         auto selected = selectedAlgorithm.at(defaults.SELECTED_INDUCED_TOPOLOGICAL_MINOR_ALGORITHM_ID);
-        if (selected == 0) return new pattern::InducedTopologicalMinorHeuristicSolver();
-        return new pattern::TopologicalInducedMinorMatcher();
+        return new pattern::InducedTopologicalMinorHeuristicSolver();
     }
     auto selected = selectedAlgorithm.at(defaults.SELECTED_TOPOLOGICAL_MINOR_ALGORITHM_ID);
-    if (selected == 0) return new pattern::TopologicalMinorHeuristicSolver();
-    return new pattern::TopologicalInducedMinorMatcher();
+    return new pattern::TopologicalMinorHeuristicSolver();
 }
 
 core::IPatternMatcher* Frame::GetCustomMatcher() const {
