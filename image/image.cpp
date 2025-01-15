@@ -31,7 +31,8 @@ static std::string exec(const char* cmd) {
     return result;
 }
 
-std::pair<core::Graph, std::vector<std::pair<float, float>>> grapherize(std::filesystem::path modulePath, const std::string& imagePath, int vertexCount,
+std::pair<core::Graph, std::vector<std::pair<float, float>>> grapherize(std::filesystem::path modulePath,
+                                                                        const std::string& imagePath, int vertexCount,
                                                                         bool isGraph) {
     if (vertexCount <= 0) {
         throw std::runtime_error("Vertex count must be greater than 0.");

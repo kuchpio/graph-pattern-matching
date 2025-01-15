@@ -46,7 +46,7 @@ TEST_F(ImageToGraphTest, BasicGraphForGraphTest) {
     EXPECT_EQ(positions.size(), vertexCount);
 
     // FIXME: Normalize vertex coordinates
-    //for (const auto& [x, y] : positions) {
+    // for (const auto& [x, y] : positions) {
     //    EXPECT_GE(x, 0.0);
     //    EXPECT_GE(y, 0.0);
     //}
