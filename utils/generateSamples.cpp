@@ -21,18 +21,18 @@ void EfficiencyTests::generateSamples(int count) {
 }
 
 void EfficiencyTests::generateCudaSubgraphSamples(int count) {
-    std::size_t bigGraphSize = 500;
-    const std::size_t bigDelta = 50;
-
-    std::vector<core::Graph> bigGraphs;
-    for (int i = 0; i < count; i++) {
-        const auto bigGraph = GraphFactory::random_connected_graph(bigGraphSize, 0.02);
-        cudaBigGraphs_.push_back(bigGraph);
-        bigGraphSize += bigDelta;
-    }
+    std::size_t bigGraphSize = 1000;
+    const std::size_t bigDelta = 100;
 
     std::size_t subgraphSize = 10;
     cudaSmallGraph_ = GraphFactory::random_connected_graph(subgraphSize, 0.8);
+
+    std::vector<core::Graph> bigGraphs;
+    for (int i = 0; i < count; i++) {
+        const auto bigGraph = GraphFactory::random_bigger_graph(cudaSmallGraph_, bigGraphSize);
+        cudaBigGraphs_.push_back(bigGraph);
+        bigGraphSize += bigDelta;
+    }
 }
 
 void EfficiencyTests::generateSubgraphSamples(int count, bool induced) {

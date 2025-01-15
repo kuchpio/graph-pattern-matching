@@ -9,7 +9,7 @@ def extract_data_from_file(file_path):
     
     with open(file_path, 'r') as file:
         for line in file:
-            match = re.search(r"fail; ([\d.]+) seconds; big=(\d+); small=\d+;", line)
+            match = re.search(r"success; ([\d.]+) seconds; big=(\d+); small=\d+;", line)
             if match:
                 time = float(match.group(1))
                 big = int(match.group(2))
