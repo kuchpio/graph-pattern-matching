@@ -21,9 +21,9 @@ void GraphPatternMatchingCLI::addMainCommandOptions() {
 
     cmd->add_flag("-i,--induced", induced_, "makes the pattern induced.");
 
-    cmd->add_option("searchSpaceFilePath", input1_, "path to the search space graph file")->check(CLI::ExistingFile);
+    cmd->add_option("searchSpaceFilePath", input1_, "path to the search space graph file.")->check(CLI::ExistingFile);
 
-    cmd->add_option("patternFilePath", input2_, "path to the pattern graph file")->check(CLI::ExistingFile);
+    cmd->add_option("patternFilePath", input2_, "path to the pattern graph file.")->check(CLI::ExistingFile);
 }
 
 void GraphPatternMatchingCLI::parse(int argc, char** argv) {
@@ -61,7 +61,7 @@ void GraphPatternMatchingCLI::run() const {
         printMatching(matching.value());
         return;
     }
-    std::cout << "pattern Graph is not a " + pattern_ + " of searchGraph\n";
+    std::cout << "pattern Graph is not a " + pattern_ + " of searchGraph.\n";
 }
 
 core::Graph GraphPatternMatchingCLI::loadGraph(const std::string& filepath) {
