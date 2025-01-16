@@ -265,32 +265,33 @@ core::IPatternMatcher* Frame::GetSelectedMatcher() const {
     if (subgraphRadioButton->GetValue()) {
         if (inducedCheckbox->GetValue()) {
             auto selected = selectedAlgorithm.at(defaults.SELECTED_INDUCED_SUBGRAPH_ALGORITHM_ID);
-            return new pattern::Vf2InducedSubgraphSolver();
+            return new pattern::Vf2InducedSubgraphMatcher();
         }
         auto selected = selectedAlgorithm.at(defaults.SELECTED_SUBGRAPH_ALGORITHM_ID);
 #ifdef CUDA_ENABLED
         if (selected == 0) return new pattern::CudaSubgraphMatcher();
-        if (selected == 1) return new pattern::Vf2SubgraphSolver();
+        if (selected == 1) return new pattern::Vf2SubgraphMatcher();
 #else
-        if (selected == 0) return new pattern::Vf2SubgraphSolver();
+        if (selected == 0) return new pattern::Vf2SubgraphMatcher();
 #endif
     }
 
     if (minorRadioButton->GetValue()) {
         if (inducedCheckbox->GetValue()) {
             auto selected = selectedAlgorithm.at(defaults.SELECTED_INDUCED_MINOR_ALGORITHM_ID);
-            return new pattern::InducedMinorHeuristic();
+            return new pattern::InducedMinorExactMatcher();
         }
         auto selected = selectedAlgorithm.at(defaults.SELECTED_MINOR_ALGORITHM_ID);
-        return new pattern::MinerMinorMatcher();
+        if (selected == 0) return new pattern::MinerMinorMatcher();
+        return new pattern::MinorExactMatcher();
     }
 
     if (inducedCheckbox->GetValue()) {
         auto selected = selectedAlgorithm.at(defaults.SELECTED_INDUCED_TOPOLOGICAL_MINOR_ALGORITHM_ID);
-        return new pattern::InducedTopologicalMinorHeuristicSolver();
+        return new pattern::InducedTopologicalMinorExactMatcher();
     }
     auto selected = selectedAlgorithm.at(defaults.SELECTED_TOPOLOGICAL_MINOR_ALGORITHM_ID);
-    return new pattern::TopologicalMinorHeuristicSolver();
+    return new pattern::TopologicalMinorExactMatcher();
 }
 
 core::IPatternMatcher* Frame::GetCustomMatcher() const {

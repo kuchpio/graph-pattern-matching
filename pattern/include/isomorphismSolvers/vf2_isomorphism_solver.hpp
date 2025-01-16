@@ -4,12 +4,12 @@
 #include "argraph.h"
 #include "subgraph_matcher.h"
 #include <optional>
-#include "vf2solver.h"
+#include "vf2Matcher.h"
 #include "vf2_state.h"
 
 namespace pattern
 {
-class Vf2IsomorphismSolver : public SubgraphMatcher, public Vf2Solver {
+class Vf2IsomorphismSolver : public SubgraphMatcher, public vf2Matcher {
   public:
     std::optional<std::vector<vertex>> match(const core::Graph& bigGraph, const core::Graph& smallGraph) {
         auto G = convertGraph(bigGraph);

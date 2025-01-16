@@ -1,4 +1,4 @@
-#include "induced_minor_heuristic.h"
+#include "minor_exact_matcher.h"
 #include <algorithm>
 
 #define MAX_RECURSION_DEPTH 10
@@ -6,7 +6,7 @@
 namespace pattern
 {
 
-std::optional<std::vector<vertex>> InducedMinorHeuristic::match(const core::Graph& G, const core::Graph& H) {
+std::optional<std::vector<vertex>> MinorExactMatcher::match(const core::Graph& G, const core::Graph& H) {
     if (H.size() > G.size()) return std::nullopt;
     std::vector<vertex> mapping(G.size());
     std::iota(mapping.begin(), mapping.end(), 0);
@@ -40,19 +40,18 @@ std::optional<std::vector<vertex>> InducedMinorHeuristic::match(const core::Grap
         });
 
     auto processedEdges = std::set<std::tuple<vertex, vertex>>();
-    auto matching = inducedMinorRecursion(G, H, mapping, processedEdges, 0, 0);
+    auto matching = minorRecursion(G, H, mapping, processedEdges, 0, 0);
     if (matching) return getResult(mapping_, matching.value());
     return std::nullopt;
 }
 
-std::optional<std::vector<vertex>> InducedMinorHeuristic::inducedMinorRecursion(
+std::optional<std::vector<vertex>> MinorExactMatcher::minorRecursion(
     const core::Graph& G, const core::Graph& H, const std::vector<vertex>& mapping,
     std::set<std::tuple<vertex, vertex>> processedEdges, int depth, std::size_t lastSkippedEdge) {
     if (depth > MAX_RECURSION_DEPTH) return std::nullopt;
     if (H.size() > G.size()) return std::nullopt;
     if (interrupted_) return std::nullopt;
     omittableEdges_ = findOmittableEdges(G);
-    if (!maxDegreeConstraint(G, H)) return std::nullopt;
 
     auto subgraphMatching = subgraphMatcher_.get()->match(G, H);
     if (subgraphMatching) {
@@ -77,28 +76,11 @@ std::optional<std::vector<vertex>> InducedMinorHeuristic::inducedMinorRecursion(
 
         auto newMinor = contractEdge(G, mapping[u], mapping[v]);
         auto newMapping = updateMapping(mapping, mapping[u], mapping[v]);
-        auto matching = inducedMinorRecursion(newMinor, H, newMapping, processedEdges, depth + 1, i + 1);
+        auto matching = minorRecursion(newMinor, H, newMapping, processedEdges, depth + 1, i + 1);
         if (matching) return matching;
         if (!directed_) processedEdges.erase(std::tie(u, v));
     }
     return std::nullopt;
 }
 
-bool InducedMinorHeuristic::maxDegreeConstraint(const core::Graph& G, const core::Graph& H) {
-    auto graphDegreesOut = G.degrees_out();
-    auto minorDegreesOut = H.degrees_out();
-
-    const std::size_t vertexDiff = G.size() - H.size();
-
-    std::sort(graphDegreesOut.begin(), graphDegreesOut.end());
-    std::sort(minorDegreesOut.begin(), minorDegreesOut.end());
-
-    std::size_t index = 0;
-
-    while (index < H.size()) {
-        if (graphDegreesOut[index] > (minorDegreesOut[index] + vertexDiff)) return false;
-        index++;
-    }
-    return true;
-}
 } // namespace pattern

@@ -2,8 +2,7 @@
 #include "induced_subgraph_matcher.h"
 #include "native_subgraph_matcher.h"
 #include "utils.h"
-#include "vf2_induced_subgraph_solver.hpp"
-#include "vf2_subgraph_solver.hpp"
+#include "subgraph_matchers.h"
 #include "gtest/gtest.h"
 
 namespace pattern
@@ -54,7 +53,7 @@ TEST(Vf2SubgraphIsomorphism, small_not_subgraph) {
     Q.add_edge(2, 3);
     Q.add_edge(3, 0);
 
-    auto matcher = Vf2SubgraphSolver();
+    auto matcher = Vf2SubgraphMatcher();
     EXPECT_FALSE(matcher.match(G, Q).has_value());
 }
 
@@ -98,7 +97,7 @@ TEST(Vf2SubgraphIsomorphism, small_subgraph) {
     Q.add_edge(2, 3);
     Q.add_edge(3, 0);
     // Check for subgraph isomorphism
-    Vf2SubgraphSolver matcher = Vf2SubgraphSolver();
+    Vf2SubgraphMatcher matcher = Vf2SubgraphMatcher();
     auto matching = matcher.match(G, Q);
     EXPECT_TRUE(matching.has_value());
 
@@ -198,7 +197,7 @@ TEST(Vf2InducedSubgraphIsomorphism, small_not_induced_subgraph) {
     Q.add_edge(2, 3);
     Q.add_edge(3, 0);
 
-    auto matcher = Vf2InducedSubgraphSolver();
+    auto matcher = Vf2InducedSubgraphMatcher();
     EXPECT_FALSE(matcher.match(G, Q).has_value());
 }
 
@@ -228,7 +227,7 @@ TEST(Vf2InducedSubgraphIsomorphism, small_induced_subgraph) {
     Q.add_edge(1, 2);
     Q.add_edge(2, 1);
 
-    auto matcher = Vf2InducedSubgraphSolver();
+    auto matcher = Vf2InducedSubgraphMatcher();
     auto matching = matcher.match(G, Q);
     EXPECT_TRUE(matching.has_value());
 

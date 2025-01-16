@@ -10,7 +10,7 @@
 
 namespace pattern
 {
-class Vf2Solver {
+class vf2Matcher {
   protected:
     inline Graph convertGraph(const core::Graph& G) {
         ARGEdit ed;
