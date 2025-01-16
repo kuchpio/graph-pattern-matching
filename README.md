@@ -11,6 +11,31 @@ As inputs, the program accepts graphs stored in `Graph6` format as well as image
 which are then processed to produce graph drawings corresponding to shapes visible in them.
 That way we may investigate how pattern matching in graphs relates to pattern matching in images.
 
+## Installation
+### Virtual Environment Setup
+**Create a virtual environment**:
+   ```bash
+   python3 -m venv venv
+   ```
+**Activate the virtual environment**:
+
+On Linux/macOS:
+     ```bash
+     source venv/bin/activate
+     ```
+
+     
+On Windows:
+     ```bash
+     .\\venv\\Scripts\\activate
+     ```
+     
+**Install the required libraries**:
+   The requirements file is located in `./image/edge_detection/requirements.txt`:
+   ```bash
+   pip install -r ./image/requirements.txt
+   ```
+---
 
 ## CLI 
 
@@ -54,5 +79,3 @@ Once all dependencies are present, the program can be built using standard `CMak
 
 Avaiable cmake flags:
 - `WITH_CUDA`: builds the program with CUDA algorithms. When this option is disabled, the CUDA library is no longer required
-
-#### 
