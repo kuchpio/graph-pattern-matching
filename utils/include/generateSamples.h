@@ -20,13 +20,14 @@ class EfficiencyTests {
     core::Graph cudaSmallGraph_ = core::Graph(0);
 
     std::map<std::string, std::shared_ptr<pattern::PatternMatcher>> matchingAlgorithms_ = {
-        {"subgraph", std::make_shared<pattern::Vf2SubgraphSolver>()},
+        {"subgraph", std::make_shared<pattern::Vf2SubgraphMatcher>()},
         {"minor", std::make_shared<pattern::MinerMinorMatcher>()},
-        {"topologicalMinor", std::make_shared<pattern::TopologicalMinorHeuristicSolver>(true)},
-        {"induced_subgraph", std::make_shared<pattern::Vf2InducedSubgraphSolver>()},
-        {"induced_minor", std::make_shared<pattern::InducedMinorHeuristic>(true)},
-        {"induced_topologicalMinor", std::make_shared<pattern::InducedTopologicalMinorHeuristicSolver>(true)},
-        {"cuda_subgraph", std::make_shared<pattern::CudaSubgraphMatcher>()}};
+        {"topologicalMinor", std::make_shared<pattern::TopologicalMinorExactMatcher>(true)},
+        {"induced_subgraph", std::make_shared<pattern::Vf2InducedSubgraphMatcher>()},
+        {"induced_minor", std::make_shared<pattern::InducedMinorExactMatcher>(true)},
+        {"induced_topologicalMinor", std::make_shared<pattern::InducedTopologicalMinorExactMatcher>(true)},
+        {"cuda_subgraph", std::make_shared<pattern::CudaSubgraphMatcher>()},
+        {"minor_exact", std::make_shared<pattern::MinorExactMatcher>()}};
     const std::string path_ = "./EfficiencyTests";
 
     void generateSubgraphSamples(int count, bool induced = false);

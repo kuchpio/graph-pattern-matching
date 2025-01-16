@@ -1,15 +1,15 @@
 #pragma once
 
-#include "vf2_induced_subgraph_solver.hpp"
-#include "minor_heuristic.h"
+#include "vf2_induced_subgraph_matcher.hpp"
+#include "minor_exact.h"
 #include <set>
 
 namespace pattern
 {
-class InducedMinorHeuristic : public MinorHeuristic {
+class InducedMinorExactMatcher : public MinorExact {
   public:
-    InducedMinorHeuristic(bool directed = false)
-        : MinorHeuristic(std::make_unique<Vf2InducedSubgraphSolver>(), directed){};
+    InducedMinorExactMatcher(bool directed = false)
+        : MinorExact(std::make_unique<Vf2InducedSubgraphMatcher>(), directed){};
     std::optional<std::vector<vertex>> match(const core::Graph& G, const core::Graph& H) override;
 
   protected:
@@ -17,11 +17,6 @@ class InducedMinorHeuristic : public MinorHeuristic {
                                                              const std::vector<vertex>& mapping,
                                                              std::set<std::tuple<vertex, vertex>> processedEdges,
                                                              int depth, std::size_t lastSkippedEdge);
-    std::optional<std::vector<vertex>> minorRecursion(const core::Graph& G, const core::Graph& H,
-                                                      const std::vector<vertex>& mapping, int depth,
-                                                      int lastSkippedEdge) override {
-        return std::nullopt;
-    }
     bool maxDegreeConstraint(const core::Graph& G, const core::Graph& H);
 
     std::vector<std::tuple<vertex, vertex>> edges_;

@@ -31,15 +31,15 @@ class GraphPatternMatchingCLI {
     std::string input2_{""};
 
     std::map<std::string, std::shared_ptr<pattern::PatternMatcher>> matchingAlgorithms_ = {
-        {"subgraph", std::make_shared<pattern::Vf2SubgraphSolver>()},
+        {"subgraph", std::make_shared<pattern::Vf2SubgraphMatcher>()},
         {"minor", std::make_shared<pattern::MinerMinorMatcher>()},
-        {"topologicalMinor", std::make_shared<pattern::TopologicalMinorHeuristicSolver>()},
-    };
+        {"topologicalMinor", std::make_shared<pattern::TopologicalMinorExactMatcher>()},
+        {"exact_minor", std::make_shared<pattern::MinorExactMatcher>()}};
 
     std::map<std::string, std::shared_ptr<pattern::PatternMatcher>> inducedMatchingAlgorithms_ = {
-        {"subgraph", std::make_shared<pattern::Vf2InducedSubgraphSolver>()},
-        {"minor", std::make_shared<pattern::InducedMinorHeuristic>()},
-        {"topologicalMinor", std::make_shared<pattern::InducedTopologicalMinorHeuristicSolver>()},
+        {"subgraph", std::make_shared<pattern::Vf2InducedSubgraphMatcher>()},
+        {"minor", std::make_shared<pattern::InducedMinorExactMatcher>()},
+        {"topologicalMinor", std::make_shared<pattern::InducedTopologicalMinorExactMatcher>()},
     };
 
     void addMainCommandOptions();

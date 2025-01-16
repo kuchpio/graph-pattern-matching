@@ -7,19 +7,11 @@
 
 namespace pattern
 {
-class MinorHeuristic : public MinorMatcher {
+class MinorExact : public MinorMatcher {
   public:
-    MinorHeuristic(std::unique_ptr<SubgraphMatcher> subgraphMatcher, bool directed = false)
+    MinorExact(std::unique_ptr<SubgraphMatcher> subgraphMatcher, bool directed = false)
         : subgraphMatcher_(std::move(subgraphMatcher)), directed_(directed){};
-    inline std::optional<std::vector<vertex>> match(const core::Graph& G, const core::Graph& H) override {
-        if (H.size() > G.size()) return std::nullopt;
-        std::vector<vertex> mapping(G.size());
-        std::iota(mapping.begin(), mapping.end(), 0);
-        omittableEdges_ = findOmittableEdges(G);
-        auto matching = minorRecursion(G, H, mapping, 0, 0);
-        if (matching) return getResult(mapping_, matching.value());
-        return std::nullopt;
-    }
+    virtual std::optional<std::vector<vertex>> match(const core::Graph& G, const core::Graph& H) = 0;
 
   protected:
     std::unique_ptr<SubgraphMatcher> subgraphMatcher_;
@@ -27,9 +19,6 @@ class MinorHeuristic : public MinorMatcher {
     std::vector<vertex> mapping_;
     bool directed_ = false;
 
-    virtual std::optional<std::vector<vertex>> minorRecursion(const core::Graph& G, const core::Graph& H,
-                                                              const std::vector<vertex>& mapping, int depth,
-                                                              int lastSkippedEdge) = 0;
     static core::Graph contractEdge(const core::Graph& G, vertex u, vertex v) {
         core::Graph Q = core::Graph(G);
         Q.contract_edge(u, v);

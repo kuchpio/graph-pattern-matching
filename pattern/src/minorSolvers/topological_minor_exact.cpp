@@ -1,4 +1,4 @@
-#include "topological_minor_heuristic.h"
+#include "topological_minor_exact.h"
 #include <numeric>
 
 #define MAX_RECURSION_DEPTH 1000
@@ -6,9 +6,9 @@
 namespace pattern
 {
 
-std::optional<std::vector<vertex>> TopologicalMinorHeuristic::minorRecursion(const core::Graph& G, const core::Graph& H,
-                                                                             const std::vector<vertex>& mapping,
-                                                                             int depth, int lastSkippedEdge) {
+std::optional<std::vector<vertex>> TopologicalMinorExact::minorRecursion(const core::Graph& G, const core::Graph& H,
+                                                                         const std::vector<vertex>& mapping, int depth,
+                                                                         int lastSkippedEdge) {
     if (depth > MAX_RECURSION_DEPTH) return std::nullopt;
     if (H.size() > G.size()) return std::nullopt;
     if (interrupted_) return std::nullopt;
