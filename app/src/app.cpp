@@ -2,9 +2,10 @@
 #include "frame.h"
 #include "graphPatternMatchingCLI.h"
 #include "generateSamples.h"
+#include <ctime>
 
 bool App::OnInit() {
-    srand(100);
+    srand(time(NULL));
 #ifdef __WXMSW__
     MSWEnableDarkMode();
 #endif
@@ -17,7 +18,6 @@ wxIMPLEMENT_APP_NO_MAIN(App);
 
 int main(int argc, char* argv[]) {
 
-    // utils::generateSamples("/home/borys/studia/Beng/graph-pattern-matching/samples/benchmarks", 10);
     GraphPatternMatchingCLI cli;
     if (argc == 1) return wxEntry(argc, argv);
 

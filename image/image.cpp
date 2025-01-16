@@ -7,9 +7,9 @@
 #include <string>
 #include <array>
 
-#if defined(__linux__) || defined(__APPLE__)
-#define _popen(cmd, mode) popen(cmd, mode)
-#define _pclose(pipe) pclose(pipe)
+#ifdef _WIN32
+#define popen(cmd, mode) _popen(cmd, mode)
+#define pclose(pipe) _pclose(pipe)
 #endif
 
 namespace image
@@ -21,7 +21,7 @@ static std::string exec(const char* cmd) {
 
     FILE* pipe = popen(cmd, "r");
     if (!pipe) {
-        throw std::runtime_error("_popen() failed!");
+        throw std::runtime_error("popen() failed!");
     }
     while (fgets(buffer.data(), static_cast<int>(buffer.size()), pipe) != nullptr) {
         result += buffer.data();
