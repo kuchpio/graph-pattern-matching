@@ -26,7 +26,8 @@ class EfficiencyTests {
         {"induced_subgraph", std::make_shared<pattern::Vf2InducedSubgraphMatcher>()},
         {"induced_minor", std::make_shared<pattern::InducedMinorExactMatcher>(true)},
         {"induced_topologicalMinor", std::make_shared<pattern::InducedTopologicalMinorExactMatcher>(true)},
-        {"cuda_subgraph", std::make_shared<pattern::CudaSubgraphMatcher>()}};
+        {"cuda_subgraph", std::make_shared<pattern::CudaSubgraphMatcher>()},
+        {"minor_exact", std::make_shared<pattern::MinorExactMatcher>()}};
     const std::string path_ = "./EfficiencyTests";
 
     void generateSubgraphSamples(int count, bool induced = false);

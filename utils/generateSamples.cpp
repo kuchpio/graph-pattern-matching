@@ -14,7 +14,7 @@ void EfficiencyTests::generateSamples(int count) {
     generateSubgraphSamples(count, true);
     generateCudaSubgraphSamples(55);
 
-    generateMinorSamples(30);
+    generateMinorSamples(20);
     generateInducedMinorSamples(20);
 
     generateTopologicalMinorSamples(20);
@@ -78,7 +78,7 @@ void EfficiencyTests::generateInducedMinorSamples(int count) {
 
 void EfficiencyTests::generateMinorSamples(int count) {
 
-    const std::size_t bigGraphSize = 30;
+    const std::size_t bigGraphSize = 20;
     const auto bigGraph = GraphFactory::random_connected_graph(bigGraphSize, 0.05);
     searchGraphs_.emplace("minor", bigGraph);
 
@@ -125,9 +125,12 @@ void EfficiencyTests::run() {
     generateSamples(50);
     createDirectory(path_);
     for (const auto& pattern : searchGraphs_) {
-        testMatching(path_, pattern.first);
+        // testMatching(path_, pattern.first);
     }
 
+    testMatchings(std::vector<std::string>{"minor", "minor_exact"}, "minorsExact_Heuristic",
+                  std::vector<core::Graph>{searchGraphs_.at("minor")}, patternGraphs_["minor"]);
+    /*
     testMatchings(std::vector<std::string>{"cuda_subgraph", "subgraph"}, "subgraphGPU_CPU", cudaBigGraphs_,
                   std::vector<core::Graph>{cudaSmallGraph_});
     testMatchings(std::vector<std::string>{"subgraph", "induced_subgraph"}, "subgraphs",
@@ -138,6 +141,7 @@ void EfficiencyTests::run() {
 
     testMatchings(std::vector<std::string>{"induced_topologicalMinor", "topologicalMinor"}, "topologicalMinors",
                   std::vector<core::Graph>{searchGraphs_.at("topologicalMinor")}, patternGraphs_["topologicalMinor"]);
+                  */
 }
 
 void EfficiencyTests::processMatching(const std::string& path, std::shared_ptr<pattern::PatternMatcher> matcher,

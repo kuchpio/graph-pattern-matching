@@ -34,7 +34,7 @@ class GraphPatternMatchingCLI {
         {"subgraph", std::make_shared<pattern::Vf2SubgraphMatcher>()},
         {"minor", std::make_shared<pattern::MinerMinorMatcher>()},
         {"topologicalMinor", std::make_shared<pattern::TopologicalMinorExactMatcher>()},
-    };
+        {"exact_minor", std::make_shared<pattern::MinorExactMatcher>()}};
 
     std::map<std::string, std::shared_ptr<pattern::PatternMatcher>> inducedMatchingAlgorithms_ = {
         {"subgraph", std::make_shared<pattern::Vf2InducedSubgraphMatcher>()},
