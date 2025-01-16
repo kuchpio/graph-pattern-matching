@@ -1,11 +1,5 @@
 ﻿add_library(pattern STATIC 
             "src/isomorphismSolvers/native_isomorphism_matcher.cpp"
-            "src/subgraphSolvers/native_subgraph_matcher.cpp"  
-            "src/subgraphSolvers/induced_subgraph_matcher.cpp"
-            "src/minorSolvers/minor_matcher.cpp"
-            "src/minorSolvers/induced_minor_matcher.cpp"
-            "src/minorSolvers/topological_minor_matcher.cpp"
-            "src/minorSolvers/topological_induced_minor_matcher.cpp"
             "src/minorSolvers/miner_minor_solver.cpp"
             "src/subgraphSolvers/cuda_subgraph_matcher.cu"
             "src/minorSolvers/topological_minor_exact.cpp"
