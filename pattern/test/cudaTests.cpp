@@ -54,6 +54,8 @@ TEST(CudaSubgraphIsomorphism, small_subgraph) {
 }
 
 TEST(CudaSubgraphIsomorphism, randomBigSearchGraph) {
+    srand(SEED);
+
     std::size_t bigGraphSize = 600;
     std::size_t smallGraphSize = 20;
 

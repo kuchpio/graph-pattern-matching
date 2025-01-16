@@ -1,21 +1,9 @@
-#include "miner_minor_matcher.hpp"
-#include "native_subgraph_matcher.h"
-#include "vf2_induced_subgraph_solver.hpp"
-#include "vf2_subgraph_solver.hpp"
-#include "cuda_subgraph_matcher.h"
 #include "wx/splitter.h"
 #include "wx/app.h"
 #include "wx/dynlib.h"
 #include <numeric>
 
-#include "subgraph_matcher.h"
-#include "induced_subgraph_matcher.h"
-#include "minor_matcher.h"
-#include "induced_minor_matcher.h"
-#include "topological_minor_heuristic_solver.h"
-#include "topological_induced_minor_heuristic_solver.h"
-#include "topological_induced_minor_matcher.h"
-#include "induced_minor_heuristic.h"
+#include "solvers.h"
 
 #include "frame.h"
 #include "graphPanel.h"
@@ -277,8 +265,7 @@ core::IPatternMatcher* Frame::GetSelectedMatcher() const {
     if (subgraphRadioButton->GetValue()) {
         if (inducedCheckbox->GetValue()) {
             auto selected = selectedAlgorithm.at(defaults.SELECTED_INDUCED_SUBGRAPH_ALGORITHM_ID);
-            if (selected == 0) return new pattern::Vf2InducedSubgraphSolver();
-            return new pattern::InducedSubgraphMatcher();
+            return new pattern::Vf2InducedSubgraphSolver();
         }
         auto selected = selectedAlgorithm.at(defaults.SELECTED_SUBGRAPH_ALGORITHM_ID);
 #ifdef CUDA_ENABLED
@@ -287,28 +274,23 @@ core::IPatternMatcher* Frame::GetSelectedMatcher() const {
 #else
         if (selected == 0) return new pattern::Vf2SubgraphSolver();
 #endif
-        return new pattern::NativeSubgraphMatcher();
     }
 
     if (minorRadioButton->GetValue()) {
         if (inducedCheckbox->GetValue()) {
             auto selected = selectedAlgorithm.at(defaults.SELECTED_INDUCED_MINOR_ALGORITHM_ID);
-            if (selected == 0) return new pattern::InducedMinorHeuristic();
-            return new pattern::InducedMinorMatcher();
+            return new pattern::InducedMinorHeuristic();
         }
         auto selected = selectedAlgorithm.at(defaults.SELECTED_MINOR_ALGORITHM_ID);
-        if (selected == 0) return new pattern::MinerMinorMatcher();
-        return new pattern::NativeMinorMatcher();
+        return new pattern::MinerMinorMatcher();
     }
 
     if (inducedCheckbox->GetValue()) {
         auto selected = selectedAlgorithm.at(defaults.SELECTED_INDUCED_TOPOLOGICAL_MINOR_ALGORITHM_ID);
-        if (selected == 0) return new pattern::InducedTopologicalMinorHeuristicSolver();
-        return new pattern::TopologicalInducedMinorMatcher();
+        return new pattern::InducedTopologicalMinorHeuristicSolver();
     }
     auto selected = selectedAlgorithm.at(defaults.SELECTED_TOPOLOGICAL_MINOR_ALGORITHM_ID);
-    if (selected == 0) return new pattern::TopologicalMinorHeuristicSolver();
-    return new pattern::TopologicalInducedMinorMatcher();
+    return new pattern::TopologicalMinorHeuristicSolver();
 }
 
 core::IPatternMatcher* Frame::GetCustomMatcher() const {

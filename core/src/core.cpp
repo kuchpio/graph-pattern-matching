@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <tuple>
 #include <numeric>
+#include <stack>
 
 namespace core
 {
@@ -262,5 +263,41 @@ vertex Graph::subdivide_edge(vertex u, vertex v) {
     this->add_edge(newVertex, v);
     return newVertex;
 }
+
+bool Graph::connected() const {
+    if (this->size() == 0) return true;
+
+    std::vector<bool> visited(this->size(), false);
+    std::stack<vertex> stack;
+    stack.push(0);
+    visited[0] = true;
+
+    while (!stack.empty()) {
+        std::size_t current = stack.top();
+        stack.pop();
+        for (auto neighbor : this->neighbours(current)) {
+            if (!visited[neighbor]) {
+                visited[neighbor] = true;
+                stack.push(neighbor);
+            }
+        }
+    }
+
+    for (std::size_t i = 0; i < this->size(); ++i) {
+        if (!visited[i]) return false;
+    }
+    return true;
+}
+
+Graph Graph::undirected() const {
+    auto undirectedGraph = core::Graph(*this);
+    auto edges = this->edges();
+    for (auto [u, v] : edges) {
+        if (this->has_edge(v, u) == false) {
+            undirectedGraph.add_edge(v, u);
+        }
+    }
+    return undirectedGraph;
+};
 
 } // namespace core

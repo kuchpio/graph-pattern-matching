@@ -347,4 +347,53 @@ TEST(InducedTopologicalMinorIsomorphism, SmallHasInducedButNotTopologicalMinor) 
     EXPECT_FALSE(matcher.match(G, Q).has_value());
 }
 
+TEST(MinorMiner, random_120_vertex) {
+    srand(SEED);
+
+    auto G = utils::GraphFactory::random_connected_graph(120, 0.3);
+    auto minor = utils::GraphFactory::random_minor(G, 45);
+
+    auto matcher = MinerMinorMatcher();
+
+    auto matching = matcher.match(G, minor);
+
+    EXPECT_TRUE(matching.has_value());
+}
+
+TEST(topologicalMinor, random_100_vertex) {
+    srand(SEED);
+
+    auto topologicalMinor = utils::GraphFactory::random_connected_graph(70);
+    auto G = utils::GraphFactory::random_edge_subdivisions(topologicalMinor, 30);
+
+    auto matcher = TopologicalMinorHeuristicSolver(true);
+
+    auto matching = matcher.match(G, topologicalMinor);
+    EXPECT_TRUE(matching.has_value());
+}
+
+TEST(indcuedTopologicalMinor, random_130_vertex) {
+    srand(SEED);
+
+    auto topologicalMinor = utils::GraphFactory::random_connected_graph(100);
+    auto G = utils::GraphFactory::random_edge_subdivisions(topologicalMinor, 30);
+
+    auto matcher = InducedTopologicalMinorHeuristicSolver(true);
+
+    auto matching = matcher.match(G, topologicalMinor);
+    EXPECT_TRUE(matching.has_value());
+}
+
+TEST(inducedMinor, random_40_vertex) {
+    srand(SEED);
+
+    auto G = utils::GraphFactory::random_connected_graph(60, 0.9);
+    auto inducedMinor = utils::GraphFactory::random_induced_minor(G, 8);
+
+    auto matcher = InducedMinorHeuristic(true);
+
+    auto matching = matcher.match(G, inducedMinor);
+    EXPECT_TRUE(matching.has_value());
+}
+
 } // namespace pattern

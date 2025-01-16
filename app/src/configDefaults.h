@@ -27,12 +27,12 @@ class ConfigDefaults {
 #ifdef CUDA_ENABLED
              "Exact (GPU)",
 #endif // CUDA_ENABLED
-             "Heuristic", "Exact (CPU)"}},
-        {SELECTED_INDUCED_SUBGRAPH_ALGORITHM_ID, {"Heuristic", "Exact"}},
-        {SELECTED_MINOR_ALGORITHM_ID, {"Heuristic", "Exact"}},
-        {SELECTED_INDUCED_MINOR_ALGORITHM_ID, {"Heuristic", "Exact"}},
-        {SELECTED_TOPOLOGICAL_MINOR_ALGORITHM_ID, {"Heuristic", "Exact"}},
-        {SELECTED_INDUCED_TOPOLOGICAL_MINOR_ALGORITHM_ID, {"Heuristic", "Exact"}}};
+             "Exact (CPU)"}},
+        {SELECTED_INDUCED_SUBGRAPH_ALGORITHM_ID, {"Exact"}},
+        {SELECTED_MINOR_ALGORITHM_ID, {"Heuristic"}},
+        {SELECTED_INDUCED_MINOR_ALGORITHM_ID, {"Exact"}},
+        {SELECTED_TOPOLOGICAL_MINOR_ALGORITHM_ID, {"Exact"}},
+        {SELECTED_INDUCED_TOPOLOGICAL_MINOR_ALGORITHM_ID, {"Exact"}}};
 
     const bool TRIANGULATE = false;
     const float CONTRACTION_TIME = 1.0f;

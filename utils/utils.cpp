@@ -10,13 +10,10 @@
 #include <tuple>
 #include <vector>
 
-#define SEED 2000
-
 namespace utils
 {
 void remove_empty_vertices(core::Graph& G);
 core::Graph utils::GraphFactory::isomoporhic_graph(const core::Graph& G) {
-    std::srand(unsigned(SEED));
 
     // Shuffle vertices
     std::vector<vertex> shuffled_vertices(G.size());
@@ -137,15 +134,13 @@ core::Graph GraphFactory::random_spanning_tree(std::size_t vertex_count) {
     return SpanningTree;
 }
 
-core::Graph GraphFactory::random_connected_graph(std::size_t vertex_count, float edge_probability) {
+core::Graph GraphFactory::random_connected_graph(std::size_t vertex_count, double edge_probability) {
     auto spanningTree = random_spanning_tree(vertex_count);
 
-    srand(SEED);
-
-    for (int v = 0; v < spanningTree.size(); v++) {
-        for (int u = 0; u < spanningTree.size(); u++) {
+    for (vertex v = 0; v < spanningTree.size(); v++) {
+        for (vertex u = 0; u < spanningTree.size(); u++) {
             if (u == v) continue;
-            float probability = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+            double probability = static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
             if (probability > (1.0f - edge_probability)) {
                 spanningTree.add_edge(v, u);
             }
@@ -154,13 +149,25 @@ core::Graph GraphFactory::random_connected_graph(std::size_t vertex_count, float
     return spanningTree;
 }
 
-core::Graph GraphFactory::random_minor(core::Graph G, std::size_t minorSize) {
+core::Graph GraphFactory::random_minor(const core::Graph& G, std::size_t minorSize) {
 
-    while (G.size() > minorSize) {
-        std::size_t randomVertex = rand() % G.size();
-        random_minor_operation(G, randomVertex);
+    auto minor = G;
+    while (minor.size() > minorSize) {
+        std::size_t randomVertex = rand() % minor.size();
+        auto newMinor = minor;
+        random_minor_operation(newMinor, randomVertex);
+        if (newMinor.connected()) minor = newMinor;
     }
-    return G;
+    return minor;
+}
+
+core::Graph GraphFactory::random_induced_minor(const core::Graph& G, std::size_t minorSize) {
+    auto inducedMinor = G;
+    while (inducedMinor.size() > minorSize) {
+        std::size_t randomVertex = rand() % inducedMinor.size();
+        random_minor_operation(inducedMinor, randomVertex, true);
+    }
+    return inducedMinor;
 }
 
 std::size_t random_neighbour(const core::Graph& G, int v) {
@@ -169,9 +176,12 @@ std::size_t random_neighbour(const core::Graph& G, int v) {
     return neighbours[random_index];
 }
 
-void GraphFactory::random_minor_operation(core::Graph& G, int v) {
+void GraphFactory::random_minor_operation(core::Graph& G, int v, bool induced) {
     // choose random operation
+
     int random_operation = rand() % 3;
+
+    if (induced) random_operation = rand() % 2;
 
     std::size_t randomNeighbour;
     switch (random_operation) {
@@ -179,14 +189,31 @@ void GraphFactory::random_minor_operation(core::Graph& G, int v) {
         G.remove_vertex(v);
         break;
     case 1:
-        randomNeighbour = random_neighbour(G, v);
-        G.remove_edge(v, randomNeighbour);
-        break;
-    case 2:
+        if (G.degree_out(v) == 0) break;
         randomNeighbour = random_neighbour(G, v);
         G.contract_edge(v, randomNeighbour);
         break;
+    case 2:
+        if (G.degree_out(v) == 0) break;
+        randomNeighbour = random_neighbour(G, v);
+        G.remove_edge(v, randomNeighbour);
+        break;
     }
+}
+
+core::Graph GraphFactory::random_edge_subdivisions(const core::Graph& G, std::size_t count) {
+
+    auto biggerGraph = core::Graph(G);
+    for (std::size_t i = 0; i < count; ++i) {
+        std::size_t randomVertex = rand() % biggerGraph.size();
+        if (biggerGraph.degree_out(randomVertex) == 0) {
+            i--;
+            continue;
+        };
+        std::size_t randomNeighbour = random_neighbour(biggerGraph, randomVertex);
+        biggerGraph.subdivide_edge(randomVertex, randomNeighbour);
+    }
+    return biggerGraph;
 }
 
 std::vector<std::size_t> GraphFactory::shuffled_vertices(std::size_t vertex_count) {
@@ -220,7 +247,7 @@ bool MatchingChecker::checkMinorMatching(const core::Graph& G, const core::Graph
                                          const std::vector<vertex>& mapping) {
     auto minorMapping = toMinorMapping(mapping);
 
-    for (int i = 0; i < minorMapping.size(); ++i) {
+    for (std::size_t i = 0; i < minorMapping.size(); ++i) {
         auto& vMappings = minorMapping[i];
         for (auto u : H.get_neighbours(i)) {
             bool flag = false;
@@ -248,10 +275,86 @@ std::vector<std::vector<vertex>> MatchingChecker::toMinorMapping(const std::vect
     minorSize = minorSize + 1;
 
     auto minorMapping = std::vector<std::vector<vertex>>(minorSize);
-    for (int i = 0; i < mapping.size(); ++i)
+    for (std::size_t i = 0; i < mapping.size(); ++i)
         if (mapping[i] != SIZE_MAX) minorMapping[mapping[i]].push_back(i);
 
     return minorMapping;
+}
+
+core::Graph GraphFactory::random_connected_subgraph(const core::Graph& G, std::size_t subgraphSize, bool induced,
+                                                    double edge_probability) {
+    auto subgraph = G;
+
+    while (subgraph.size() > subgraphSize) {
+        auto newSubgraph = subgraph;
+        const auto randomVertex = std::rand() % subgraph.size();
+        if (induced)
+            newSubgraph.remove_vertex(randomVertex);
+        else {
+            double probability = static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+            if (probability > (1.0f - edge_probability)) {
+                if (newSubgraph.degree_out(randomVertex) == 0) continue;
+                const auto randomNeighbour = random_neighbour(newSubgraph, randomVertex);
+                newSubgraph.remove_edge(randomVertex, randomNeighbour);
+            } else
+                newSubgraph.remove_vertex(randomVertex);
+        }
+        if (newSubgraph.connected()) subgraph = newSubgraph;
+    }
+    return subgraph;
+}
+core::Graph GraphFactory::random_subgraph(const core::Graph& G, std::size_t subgraphSize, bool induced,
+                                          double edge_probability) {
+    auto subgraph = G;
+
+    while (subgraph.size() > subgraphSize) {
+        const auto randomVertex = std::rand() % subgraph.size();
+        if (induced)
+            subgraph.remove_vertex(randomVertex);
+        else {
+            double probability = static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+            if (probability > (1.0f - edge_probability)) {
+                if (subgraph.degree_out(randomVertex) == 0) continue;
+                const auto randomNeighbour = random_neighbour(subgraph, randomVertex);
+                subgraph.remove_edge(randomVertex, randomNeighbour);
+            } else
+                subgraph.remove_vertex(randomVertex);
+        }
+    }
+    return subgraph;
+}
+
+core::Graph GraphFactory::random_bigger_graph(const core::Graph& subgraph, std::size_t size, double edge_probability) {
+    auto G = subgraph;
+
+    while (G.size() < size) {
+        double probability = static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+        if (probability > (1.0 - edge_probability)) {
+            addRandomEdge(G);
+        } else {
+            addRandomVertex(G);
+        }
+    }
+    return G;
+}
+
+void GraphFactory::addRandomEdge(core::Graph& G) {
+    std::size_t randomVertex = rand() % G.size();
+    std::size_t randomNeighbour = 0;
+    int i = 0;
+    do {
+        randomNeighbour = rand() % G.size();
+        i++;
+        if (i > 100) return;
+    } while (randomVertex != randomNeighbour && !G.has_edge(randomVertex, randomNeighbour));
+
+    G.add_edge(randomVertex, randomNeighbour);
+}
+
+void GraphFactory::addRandomVertex(core::Graph& G) {
+    std::size_t randomVertex = rand() % G.size();
+    auto newVertex = G.add_vertex();
+    G.add_edge(randomVertex, newVertex);
 }
 
 } // namespace utils

@@ -19,14 +19,14 @@ static std::string exec(const char* cmd) {
     std::array<char, 4096> buffer{};
     std::string result;
 
-    FILE* pipe = _popen(cmd, "r");
+    FILE* pipe = popen(cmd, "r");
     if (!pipe) {
         throw std::runtime_error("_popen() failed!");
     }
     while (fgets(buffer.data(), static_cast<int>(buffer.size()), pipe) != nullptr) {
         result += buffer.data();
     }
-    _pclose(pipe);
+    pclose(pipe);
 
     return result;
 }

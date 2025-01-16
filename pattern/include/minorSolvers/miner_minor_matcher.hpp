@@ -3,6 +3,7 @@
 #include "core.h"
 #include "find_embedding/graph.hpp"
 #include "minor_matcher.h"
+#include "vf2_subgraph_solver.hpp"
 namespace pattern
 {
 class MinerMinorMatcher : public MinorMatcher {
@@ -11,6 +12,7 @@ class MinerMinorMatcher : public MinorMatcher {
 
   private:
     graph::input_graph convert_graph(const core::Graph& G);
+    Vf2SubgraphSolver subgraphSolver_ = Vf2SubgraphSolver();
 };
 
 } // namespace pattern
