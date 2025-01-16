@@ -87,7 +87,7 @@ but when command line arguments are provided on launch the application will star
 
 The application consists of two panels corresponding to search space graph (left) and pattern graph (right).
 Each panel provides a menu at the top with three tabs `File`, `Edit`, and `View` 
-as well as a canvas at the borrom that enables drawing of those graphs.
+as well as a canvas at the bottom that enables drawing of those graphs.
 Below the panels the user can configure and begin the matching process.
 
 #### File
@@ -99,7 +99,7 @@ Finally, the `Save` button can be used to save a graph that the user was working
 #### Edit
 
 The `Edit` tab allows the users to change the graph's structure. 
-Availible operations:
+Available operations:
  * `Delete` (deletes all selected vertices),
  * `Connect` (connects all pairs of selected vertices),
  * `Disconnect` (connects all pairs of selected vertices),
